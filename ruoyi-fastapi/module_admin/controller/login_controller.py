@@ -72,6 +72,17 @@ async def get_login_user_info(request: Request, current_user: CurrentUserModel =
         return ResponseUtil.error(msg=str(e))
 
 
+@loginController.get("/getRouters", dependencies=[Depends(CheckUserInterfaceAuth('common'))])
+async def get_login_user_routers(request: Request, current_user: CurrentUserModel = Depends(LoginService.get_current_user), query_db: Session = Depends(get_db)):
+    try:
+        logger.info('获取成功')
+        user_routers = await LoginService.get_current_user_routers(current_user.user.user_id, query_db)
+        return ResponseUtil.success(data=user_routers)
+    except Exception as e:
+        logger.exception(e)
+        return ResponseUtil.error(msg=str(e))
+
+
 @loginController.post("/getSmsCode", response_model=SmsCode)
 async def get_sms_code(request: Request, user: ResetUserModel, query_db: Session = Depends(get_db)):
     try:
@@ -112,7 +123,7 @@ async def get_login_user_info(request: Request, current_user: CurrentUserInfoSer
         return response_500(data="", message=str(e))
 
 
-@loginController.post("/logout", dependencies=[Depends(get_current_user), Depends(CheckUserInterfaceAuth('common'))])
+@loginController.post("/logout", dependencies=[Depends(CheckUserInterfaceAuth('common'))])
 async def logout(request: Request, token: Optional[str] = Depends(oauth2_scheme), query_db: Session = Depends(get_db)):
     try:
         payload = jwt.decode(token, JwtConfig.SECRET_KEY, algorithms=[JwtConfig.ALGORITHM])

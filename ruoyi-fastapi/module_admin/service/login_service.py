@@ -12,6 +12,7 @@ from module_admin.dao.login_dao import *
 from module_admin.service.user_service import UserService
 from module_admin.dao.user_dao import *
 from config.env import JwtConfig, RedisInitKeyConfig
+from utils.common_util import CamelCaseUtil
 from utils.pwd_util import *
 from utils.response_util import *
 from utils.message_util import *
@@ -157,8 +158,8 @@ class LoginService:
         except JWTError:
             logger.warning("用户token已失效，请重新登录")
             raise AuthException(data="", message="用户token已失效，请重新登录")
-        user = UserDao.get_user_by_id(query_db, user_id=token_data.user_id)
-        if user is None:
+        query_user = UserDao.get_user_by_id(query_db, user_id=token_data.user_id)
+        if query_user.get('user_basic_info') is None:
             logger.warning("用户token不合法")
             raise AuthException(data="", message="用户token不合法")
         redis_token = await request.app.state.redis.get(f"{RedisInitKeyConfig.ACCESS_TOKEN.get('key')}:{session_id}")
@@ -170,10 +171,90 @@ class LoginService:
             # await request.app.state.redis.set(f"{RedisInitKeyConfig.ACCESS_TOKEN.get('key')}:{user.user_basic_info.user_id}", redis_token,
             #                                   ex=timedelta(minutes=JwtConfig.REDIS_TOKEN_EXPIRE_MINUTES))
 
-            return user
+            role_id_list = [item.role_id for item in query_user.get('user_role_info')]
+            if 1 in role_id_list:
+                permissions = ['*:*:*']
+            else:
+                permissions = [row.perms for row in query_user.get('user_menu_info')]
+            post_ids = ','.join([str(row.post_id) for row in query_user.get('user_post_info')])
+            role_ids = ','.join([str(row.role_id) for row in query_user.get('user_role_info')])
+            roles = [row.role_key for row in query_user.get('user_role_info')]
+
+            current_user = CurrentUserModel(
+                permissions=permissions,
+                roles=roles,
+                user=UserInfoModel(
+                    **CamelCaseUtil.transform_result(query_user.get('user_basic_info')),
+                    postIds=post_ids,
+                    roleIds=role_ids,
+                    dept=CamelCaseUtil.transform_result(query_user.get('user_dept_info')),
+                    role=CamelCaseUtil.transform_result(query_user.get('user_role_info'))
+                )
+            )
+            return current_user
         else:
             logger.warning("用户token已失效，请重新登录")
             raise AuthException(data="", message="用户token已失效，请重新登录")
+
+    @classmethod
+    async def get_current_user_routers(cls, user_id: int, query_db: Session):
+        """
+        根据用户id获取当前用户路由信息
+        :param user_id: 用户id
+        :param query_db: orm对象
+        :return: 当前用户路由信息对象
+        """
+        query_user = UserDao.get_user_by_id(query_db, user_id=user_id)
+        user_router_menu = [row for row in query_user.get('user_menu_info') if row.menu_type in ['M', 'C']]
+        user_router = cls.__generate_user_router_menu(0, user_router_menu)
+        return user_router
+
+    @classmethod
+    def __generate_user_router_menu(cls, pid: int, permission_list):
+        """
+        工具方法：根据菜单信息生成路由信息树形嵌套数据
+        :param pid: 菜单id
+        :param permission_list: 菜单列表信息
+        :return: 路由信息树形嵌套数据
+        """
+        router_list = []
+        for permission in permission_list:
+            if permission.parent_id == pid:
+                children = cls.__generate_user_router_menu(permission.menu_id, permission_list)
+                router_list_data = {}
+                if permission.menu_type == 'M':
+                    router_list_data['name'] = permission.path.capitalize()
+                    router_list_data['path'] = f'/{permission.path}'
+                    router_list_data['hidden'] = False if permission.visible == '0' else True
+                    if permission.is_frame == 1:
+                        router_list_data['redirect'] = 'noRedirect'
+                    if permission.parent_id == 0:
+                        router_list_data['component'] = 'Layout'
+                    else:
+                        router_list_data['component'] = 'ParentView'
+                    if children:
+                        router_list_data['alwaysShow'] = True
+                        router_list_data['children'] = children
+                    router_list_data['meta'] = {
+                        'title': permission.menu_name,
+                        'icon': permission.icon,
+                        'noCache': False if permission.is_cache == '0' else True,
+                        'link': permission.path if permission.is_frame == 0 else None
+                    }
+                elif permission.menu_type == 'C':
+                    router_list_data['name'] = permission.path.capitalize()
+                    router_list_data['path'] = permission.path
+                    router_list_data['hidden'] = False if permission.visible == '0' else True
+                    router_list_data['component'] = permission.component
+                    router_list_data['meta'] = {
+                        'title': permission.menu_name,
+                        'icon': permission.icon,
+                        'noCache': False if permission.is_cache == '0' else True,
+                        'link': permission.path if permission.is_frame == 0 else None
+                    }
+                router_list.append(router_list_data)
+
+        return router_list
 
 
 async def get_current_user(request: Request = Request, token: str = Depends(oauth2_scheme),

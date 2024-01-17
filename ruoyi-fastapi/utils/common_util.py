@@ -59,8 +59,10 @@ class CamelCaseUtil:
         :param result: 输入数据
         :return: 小驼峰形式结果
         """
+        if result is None:
+            return result
         # 如果是字典，直接转换键
-        if isinstance(result, dict):
+        elif isinstance(result, dict):
             return {cls.__to_camel_case(k): v for k, v in result.items()}
         # 如果是一组字典或其他类型的列表，遍历列表进行转换
         elif isinstance(result, list):

@@ -1,12 +1,11 @@
 from sqlalchemy import and_, or_, desc, func
-from sqlalchemy.orm import Session, attributes
+from sqlalchemy.orm import Session
 from module_admin.entity.do.user_do import SysUser, SysUserRole, SysUserPost
 from module_admin.entity.do.role_do import SysRole, SysRoleMenu, SysRoleDept
 from module_admin.entity.do.dept_do import SysDept
 from module_admin.entity.do.post_do import SysPost
 from module_admin.entity.do.menu_do import SysMenu
-from module_admin.entity.vo.user_vo import UserModel, UserRoleModel, UserPostModel, CurrentUserInfo, UserQueryModel, UserRoleQueryModel, CurrentUserModel, UserInfoModel
-from utils.common_util import CamelCaseUtil
+from module_admin.entity.vo.user_vo import UserModel, UserRoleModel, UserPostModel, CurrentUserInfo, UserQueryModel, UserRoleQueryModel
 from utils.time_format_util import object_format_datetime, list_format_datetime, format_datetime_dict_list
 from datetime import datetime, time
 from typing import Union, List
@@ -76,7 +75,6 @@ class UserDao:
             query_user_menu_info = db.query(SysMenu) \
                 .filter(SysMenu.status == 0) \
                 .distinct().all()
-            permissions = ['*:*:*']
         else:
             query_user_menu_info = db.query(SysMenu).select_from(SysUser) \
                 .filter(SysUser.status == 0, SysUser.del_flag == 0, SysUser.user_id == user_id) \
@@ -86,21 +84,13 @@ class UserDao:
                 .join(SysMenu, and_(SysRoleMenu.menu_id == SysMenu.menu_id, SysMenu.status == 0)) \
                 .order_by(SysMenu.order_num) \
                 .distinct().all()
-            permissions = [row.perms for row in query_user_menu_info]
-        post_ids = ','.join([str(row.post_id) for row in query_user_post_info])
-        role_ids = ','.join([str(row.role_id) for row in query_user_role_info])
-        roles = [row.role_key for row in query_user_role_info]
 
-        results = CurrentUserModel(
-            permissions=permissions,
-            roles=roles,
-            user=UserInfoModel(
-                **CamelCaseUtil.transform_result(attributes.instance_dict(query_user_basic_info)),
-                postIds=post_ids,
-                roleIds=role_ids,
-                dept=CamelCaseUtil.transform_result(query_user_dept_info),
-                role=CamelCaseUtil.transform_result(query_user_role_info)
-            )
+        results = dict(
+            user_basic_info=query_user_basic_info,
+            user_dept_info=query_user_dept_info,
+            user_role_info=query_user_role_info,
+            user_post_info=query_user_post_info,
+            user_menu_info=query_user_menu_info
         )
 
         return results

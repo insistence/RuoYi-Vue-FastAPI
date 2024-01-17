@@ -26,6 +26,7 @@ from utils.response_util import *
 from utils.log_util import logger
 from utils.common_util import worship
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("RuoYi-FastAPI开始启动")
