@@ -176,6 +176,13 @@ class ResponseUtil:
             content=jsonable_encoder(result)
         )
 
+    @classmethod
+    def streaming(cls, *, data: Any = None):
+        return StreamingResponse(
+            status_code=status.HTTP_200_OK,
+            content=data
+        )
+
 
 def response_200(*, data: Any = None, message="获取成功") -> Response:
     return JSONResponse(

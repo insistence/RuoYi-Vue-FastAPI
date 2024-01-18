@@ -3,6 +3,7 @@ from pydantic.alias_generators import to_camel
 from typing import Union, Optional, List
 from datetime import datetime
 from module_admin.entity.vo.dept_vo import DeptModel
+from module_admin.annotation.form_annotation import as_form
 
 
 class TokenData(BaseModel):
@@ -166,6 +167,7 @@ class UserQueryModel(UserModel):
     end_time: Optional[str] = None
 
 
+@as_form
 class UserPageQueryModel(UserQueryModel):
     """
     用户管理分页查询模型

@@ -1,3 +1,4 @@
+from fastapi import UploadFile
 from module_admin.service.role_service import RoleService
 from module_admin.service.post_service import PostService
 from module_admin.entity.vo.user_vo import *
@@ -218,11 +219,12 @@ class UserService:
         return CrudUserResponse(**result)
 
     @classmethod
-    def batch_import_user_services(cls, query_db: Session, user_import: ImportUserModel, current_user: CurrentUserInfoServiceResponse):
+    async def batch_import_user_services(cls, query_db: Session, file: UploadFile, update_support: bool, current_user: CurrentUserModel):
         """
         批量导入用户service
-        :param user_import: 用户导入参数对象
         :param query_db: orm对象
+        :param file: 用户导入文件对象
+        :param update_support: 用户存在时是否更新
         :param current_user: 当前用户对象
         :return: 批量导入用户结果
         """
@@ -235,8 +237,9 @@ class UserService:
             "用户性别": "sex",
             "帐号状态": "status"
         }
-        filepath = get_filepath_from_url(user_import.url)
-        df = pd.read_excel(filepath)
+        contents = await file.read()
+        df = pd.read_excel(io.BytesIO(contents))
+        await file.close()
         df.rename(columns=header_dict, inplace=True)
         add_error_result = []
         count = 0
@@ -254,35 +257,31 @@ class UserService:
                 if row['status'] == '停用':
                     row['status'] = '1'
                 add_user = UserModel(
-                    **dict(
-                        dept_id=row['dept_id'],
-                        user_name=row['user_name'],
-                        password=PwdUtil.get_password_hash('123456'),
-                        nick_name=row['nick_name'],
-                        email=row['email'],
-                        phonenumber=row['phonenumber'],
-                        sex=row['sex'],
-                        status=row['status'],
-                        create_by=current_user.user.user_name,
-                        update_by=current_user.user.user_name
-                    )
+                    deptId=row['dept_id'],
+                    userName=row['user_name'],
+                    password=PwdUtil.get_password_hash('123456'),
+                    nickName=row['nick_name'],
+                    email=row['email'],
+                    phonenumber=str(row['phonenumber']),
+                    sex=row['sex'],
+                    status=row['status'],
+                    createBy=current_user.user.user_name,
+                    updateBy=current_user.user.user_name
                 )
-                user_info = UserDao.get_user_by_info(query_db, UserModel(**dict(user_name=row['user_name'])))
+                user_info = UserDao.get_user_by_info(query_db, UserModel(userName=row['user_name']))
                 if user_info:
-                    if user_import.is_update:
+                    if update_support:
                         edit_user = UserModel(
-                            **dict(
-                                user_id=user_info.user_id,
-                                dept_id=row['dept_id'],
-                                user_name=row['user_name'],
-                                nick_name=row['nick_name'],
-                                email=row['email'],
-                                phonenumber=row['phonenumber'],
-                                sex=row['sex'],
-                                status=row['status'],
-                                update_by=current_user.user.user_name
-                            )
-                        ).dict(exclude_unset=True)
+                            userId=user_info.user_id,
+                            deptId=row['dept_id'],
+                            userName=row['user_name'],
+                            nickName=row['nick_name'],
+                            email=row['email'],
+                            phonenumber=str(row['phonenumber']),
+                            sex=row['sex'],
+                            status=row['status'],
+                            updateBy=current_user.user.user_name
+                        ).model_dump(exclude_unset=True)
                         UserDao.edit_user_dao(query_db, edit_user)
                     else:
                         add_error_result.append(f"{count}.用户账号{row['user_name']}已存在")
@@ -294,7 +293,7 @@ class UserService:
             query_db.rollback()
             result = dict(is_success=False, message=str(e))
 
-        return CrudUserResponse(**result)
+        return CrudResponseModel(**result)
 
     @staticmethod
     def get_user_import_template_services():

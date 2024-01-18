@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request
-from fastapi import Depends
+from fastapi import Depends, File, Query
 import base64
 from config.get_db import get_db
 from module_admin.service.login_service import LoginService
@@ -219,46 +219,46 @@ async def reset_system_user_password(request: Request, reset_user: ResetUserMode
         return response_500(data="", message=str(e))
 
 
-@userController.post("/user/importData", dependencies=[Depends(CheckUserInterfaceAuth('system:user:import'))])
+@userController.post("/importData", dependencies=[Depends(CheckUserInterfaceAuth('system:user:import'))])
 @log_decorator(title='用户管理', business_type=6)
-async def batch_import_system_user(request: Request, user_import: ImportUserModel, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
+async def batch_import_system_user(request: Request, file: UploadFile = File(...), update_support: bool = Query(alias='updateSupport'), query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
     try:
-        batch_import_result = UserService.batch_import_user_services(query_db, user_import, current_user)
+        batch_import_result = await UserService.batch_import_user_services(query_db, file, update_support, current_user)
         if batch_import_result.is_success:
             logger.info(batch_import_result.message)
-            return response_200(data=batch_import_result, message=batch_import_result.message)
+            return ResponseUtil.success(msg=batch_import_result.message)
         else:
             logger.warning(batch_import_result.message)
-            return response_400(data="", message=batch_import_result.message)
+            return ResponseUtil.failure(msg=batch_import_result.message)
     except Exception as e:
         logger.exception(e)
-        return response_500(data="", message=str(e))
+        return ResponseUtil.error(msg=str(e))
 
 
-@userController.post("/user/importTemplate", dependencies=[Depends(CheckUserInterfaceAuth('system:user:import'))])
+@userController.post("/importTemplate", dependencies=[Depends(CheckUserInterfaceAuth('system:user:import'))])
 async def export_system_user_template(request: Request, query_db: Session = Depends(get_db)):
     try:
         user_import_template_result = UserService.get_user_import_template_services()
         logger.info('获取成功')
-        return streaming_response_200(data=bytes2file_response(user_import_template_result))
+        return ResponseUtil.streaming(data=bytes2file_response(user_import_template_result))
     except Exception as e:
         logger.exception(e)
-        return response_500(data="", message=str(e))
+        return ResponseUtil.error(msg=str(e))
 
 
 @userController.post("/export", dependencies=[Depends(CheckUserInterfaceAuth('system:user:export'))])
 @log_decorator(title='用户管理', business_type=5)
-async def export_system_user_list(request: Request, user_page_query: UserPageQueryModel, query_db: Session = Depends(get_db), data_scope_sql: str = Depends(GetDataScope('SysUser'))):
+async def export_system_user_list(request: Request, user_page_query: UserPageQueryModel = Depends(UserPageQueryModel.as_form), query_db: Session = Depends(get_db), data_scope_sql: str = Depends(GetDataScope('SysUser'))):
     try:
         user_query = UserQueryModel(**user_page_query.model_dump(by_alias=True))
         # 获取全量数据
         user_query_result = UserService.get_user_list_services(query_db, user_query, data_scope_sql)
         user_export_result = UserService.export_user_list_services(user_query_result)
         logger.info('导出成功')
-        return streaming_response_200(data=bytes2file_response(user_export_result))
+        return ResponseUtil.streaming(data=bytes2file_response(user_export_result))
     except Exception as e:
         logger.exception(e)
-        return response_500(data="", message=str(e))
+        return ResponseUtil.error(msg=str(e))
 
 
 @userController.post("/user/authRole/allocatedList", response_model=UserRolePageObjectResponse, dependencies=[Depends(CheckUserInterfaceAuth('common'))])
