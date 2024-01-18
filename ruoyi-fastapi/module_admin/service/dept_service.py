@@ -164,16 +164,16 @@ class DeptService:
         :param permission_list: 部门列表信息
         :return: 部门树形嵌套数据
         """
-        permission_list = [dict(title=item.dept_name, key=str(item.dept_id), value=str(item.dept_id), parent_id=str(item.parent_id)) for item in permission_list]
+        permission_list = [dict(id=item.dept_id, label=item.dept_name, parentId=item.parent_id) for item in permission_list]
         # 转成dept_id为key的字典
-        mapping: dict = dict(zip([i['key'] for i in permission_list], permission_list))
+        mapping: dict = dict(zip([i['id'] for i in permission_list], permission_list))
 
         # 树容器
         container: list = []
 
         for d in permission_list:
             # 如果找不到父级项，则是根节点
-            parent: dict = mapping.get(d['parent_id'])
+            parent: dict = mapping.get(d['parentId'])
             if parent is None:
                 container.append(d)
             else:

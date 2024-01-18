@@ -68,13 +68,13 @@ app.add_middleware(
 # 自定义token检验异常
 @app.exception_handler(AuthException)
 async def auth_exception_handler(request: Request, exc: AuthException):
-    return response_401(data=exc.data, message=exc.message)
+    return ResponseUtil.unauthorized(data=exc.data, msg=exc.message)
 
 
 # 自定义权限检验异常
 @app.exception_handler(PermissionException)
 async def permission_exception_handler(request: Request, exc: PermissionException):
-    return response_403(data=exc.data, message=exc.message)
+    return ResponseUtil.forbidden(data=exc.data, msg=exc.message)
 
 
 @app.exception_handler(HTTPException)
@@ -86,26 +86,26 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 
 
 controller_list = [
-    {'router': loginController, 'tags': ['登录模块']},
-    {'router': captchaController, 'tags': ['验证码模块']},
-    {'router': userController, 'tags': ['系统管理-用户管理']},
-    {'router': roleController, 'tags': ['系统管理-角色管理']},
-    {'router': menuController, 'tags': ['系统管理-菜单管理']},
-    {'router': deptController, 'tags': ['系统管理-部门管理']},
-    {'router': postController, 'tags': ['系统管理-岗位管理']},
-    {'router': dictController, 'tags': ['系统管理-字典管理']},
-    {'router': configController, 'tags': ['系统管理-参数管理']},
-    {'router': noticeController, 'tags': ['系统管理-通知公告管理']},
-    {'router': logController, 'tags': ['系统管理-日志管理']},
-    {'router': onlineController, 'tags': ['系统监控-在线用户']},
-    {'router': jobController, 'tags': ['系统监控-定时任务']},
-    {'router': serverController, 'tags': ['系统监控-菜单管理']},
-    {'router': cacheController, 'tags': ['系统监控-缓存监控']},
-    {'router': commonController, 'tags': ['通用模块']}
+    {'router': loginController, 'prefix': '', 'tags': ['登录模块']},
+    {'router': captchaController, 'prefix': '', 'tags': ['验证码模块']},
+    {'router': userController, 'prefix': '/system', 'tags': ['系统管理-用户管理']},
+    {'router': roleController, 'prefix': '/system', 'tags': ['系统管理-角色管理']},
+    {'router': menuController, 'prefix': '/system', 'tags': ['系统管理-菜单管理']},
+    {'router': deptController, 'prefix': '/system', 'tags': ['系统管理-部门管理']},
+    {'router': postController, 'prefix': '/system', 'tags': ['系统管理-岗位管理']},
+    {'router': dictController, 'prefix': '/system', 'tags': ['系统管理-字典管理']},
+    {'router': configController, 'prefix': '/system', 'tags': ['系统管理-参数管理']},
+    {'router': noticeController, 'prefix': '/system', 'tags': ['系统管理-通知公告管理']},
+    {'router': logController, 'prefix': '/monitor', 'tags': ['系统管理-日志管理']},
+    {'router': onlineController, 'prefix': '/monitor', 'tags': ['系统监控-在线用户']},
+    {'router': jobController, 'prefix': '/monitor', 'tags': ['系统监控-定时任务']},
+    {'router': serverController, 'prefix': '/monitor', 'tags': ['系统监控-菜单管理']},
+    {'router': cacheController, 'prefix': '/monitor', 'tags': ['系统监控-缓存监控']},
+    {'router': commonController, 'prefix': '/common', 'tags': ['通用模块']}
 ]
 
 for controller in controller_list:
-    app.include_router(router=controller.get('router'), tags=controller.get('tags'))
+    app.include_router(router=controller.get('router'), prefix=controller.get('prefix'), tags=controller.get('tags'))
 
 if __name__ == '__main__':
     uvicorn.run(app='app:app', host="0.0.0.0", port=9099, reload=True)

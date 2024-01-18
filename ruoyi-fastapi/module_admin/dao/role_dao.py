@@ -122,7 +122,7 @@ class RoleDao:
             .order_by(SysRole.role_sort) \
             .distinct().all()
 
-        return list_format_datetime(role_list)
+        return role_list
 
     @classmethod
     def add_role_dao(cls, db: Session, role: RoleModel):

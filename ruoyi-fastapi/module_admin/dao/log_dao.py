@@ -54,7 +54,7 @@ class OperationLogDao:
         :param operation_log: 操作日志对象
         :return: 新增校验结果
         """
-        db_operation_log = SysOperLog(**operation_log.dict())
+        db_operation_log = SysOperLog(**operation_log.model_dump())
         db.add(db_operation_log)
         db.flush()
 
@@ -117,7 +117,7 @@ class LoginLogDao:
         :param login_log: 登录日志对象
         :return: 新增校验结果
         """
-        db_login_log = SysLogininfor(**login_log.dict())
+        db_login_log = SysLogininfor(**login_log.model_dump())
         db.add(db_login_log)
         db.flush()
 

@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from fastapi import Depends
 from config.get_db import get_db
-from module_admin.service.login_service import get_current_user, CurrentUserInfoServiceResponse
+from module_admin.service.login_service import LoginService, CurrentUserModel
 from module_admin.service.config_service import *
 from module_admin.entity.vo.config_vo import *
 from utils.response_util import *
@@ -12,7 +12,7 @@ from module_admin.aspect.interface_auth import CheckUserInterfaceAuth
 from module_admin.annotation.log_annotation import log_decorator
 
 
-configController = APIRouter(dependencies=[Depends(get_current_user)])
+configController = APIRouter(prefix='/config', dependencies=[Depends(LoginService.get_current_user)])
 
 
 @configController.post("/config/get", response_model=ConfigPageObjectResponse, dependencies=[Depends(CheckUserInterfaceAuth('system:config:list'))])
@@ -32,7 +32,7 @@ async def get_system_config_list(request: Request, config_page_query: ConfigPage
 
 @configController.post("/config/add", response_model=CrudConfigResponse, dependencies=[Depends(CheckUserInterfaceAuth('system:config:add'))])
 @log_decorator(title='参数管理', business_type=1)
-async def add_system_config(request: Request, add_config: ConfigModel, query_db: Session = Depends(get_db), current_user: CurrentUserInfoServiceResponse = Depends(get_current_user)):
+async def add_system_config(request: Request, add_config: ConfigModel, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
     try:
         add_config.create_by = current_user.user.user_name
         add_config.update_by = current_user.user.user_name
@@ -50,7 +50,7 @@ async def add_system_config(request: Request, add_config: ConfigModel, query_db:
 
 @configController.patch("/config/edit", response_model=CrudConfigResponse, dependencies=[Depends(CheckUserInterfaceAuth('system:config:edit'))])
 @log_decorator(title='参数管理', business_type=2)
-async def edit_system_config(request: Request, edit_config: ConfigModel, query_db: Session = Depends(get_db), current_user: CurrentUserInfoServiceResponse = Depends(get_current_user)):
+async def edit_system_config(request: Request, edit_config: ConfigModel, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
     try:
         edit_config.update_by = current_user.user.user_name
         edit_config.update_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -91,6 +91,18 @@ async def query_detail_system_config(request: Request, config_id: int, query_db:
     except Exception as e:
         logger.exception(e)
         return response_500(data="", message=str(e))
+
+
+@configController.get("/configKey/{config_key}")
+async def query_system_config(request: Request, config_key: str):
+    try:
+        # 获取全量数据
+        config_query_result = await ConfigService.query_config_list_from_cache_services(request.app.state.redis, config_key)
+        logger.info('获取成功')
+        return ResponseUtil.success(msg=config_query_result)
+    except Exception as e:
+        logger.exception(e)
+        return ResponseUtil.error(msg=str(e))
 
 
 @configController.post("/config/export", dependencies=[Depends(CheckUserInterfaceAuth('system:config:export'))])

@@ -1,6 +1,29 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+from pydantic.alias_generators import to_camel
 from typing import Union, Optional, List
-from module_admin.entity.vo.user_vo import DeptModel
+from datetime import datetime
+
+
+class DeptModel(BaseModel):
+    """
+    部门表对应pydantic模型
+    """
+    model_config = ConfigDict(alias_generator=to_camel, from_attributes=True)
+
+    dept_id: Optional[int] = None
+    parent_id: Optional[int] = None
+    ancestors: Optional[str] = None
+    dept_name: Optional[str] = None
+    order_num: Optional[int] = None
+    leader: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    status: Optional[str] = None
+    del_flag: Optional[str] = None
+    create_by: Optional[str] = None
+    create_time: Optional[datetime] = None
+    update_by: Optional[str] = None
+    update_time: Optional[datetime] = None
 
 
 class DeptPageObject(DeptModel):
@@ -9,17 +32,6 @@ class DeptPageObject(DeptModel):
     """
     page_num: int
     page_size: int
-
-
-class DeptPageObjectResponse(BaseModel):
-    """
-    用户管理列表分页查询返回模型
-    """
-    rows: List[Union[DeptModel, None]] = []
-    page_num: int
-    page_size: int
-    total: int
-    has_next: bool
 
 
 class DeptResponse(BaseModel):

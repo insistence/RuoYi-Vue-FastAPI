@@ -19,7 +19,7 @@ class DataBaseConfig:
     PORT = 3306
     USERNAME = 'root'
     PASSWORD = 'mysqlroot'
-    DB = 'dash-fastapi'
+    DB = 'ruoyi-fastapi'
 
 
 class RedisConfig:

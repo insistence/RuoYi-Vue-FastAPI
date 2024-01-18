@@ -57,7 +57,7 @@ class ResponseUtil:
         :return: 失败响应结果
         """
         result = {
-            'code': 400,
+            'code': 601,
             'msg': msg
         }
 
@@ -73,7 +73,7 @@ class ResponseUtil:
         result.update({'success': False, 'time': datetime.now()})
 
         return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_200_OK,
             content=jsonable_encoder(result)
         )
 
@@ -106,7 +106,40 @@ class ResponseUtil:
         result.update({'success': False, 'time': datetime.now()})
 
         return JSONResponse(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_200_OK,
+            content=jsonable_encoder(result)
+        )
+
+    @classmethod
+    def forbidden(cls, msg: str = '该用户无此接口权限', data: Optional[Any] = None, rows: Optional[Any] = None,
+                  dict_content: Optional[Dict] = None, model_content: Optional[BaseModel] = None) -> Response:
+        """
+        未认证响应方法
+        :param msg: 可选，自定义未认证响应信息
+        :param data: 可选，未认证响应结果中属性为data的值
+        :param rows: 可选，未认证响应结果中属性为rows的值
+        :param dict_content: 可选，dict类型，未认证响应结果中自定义属性的值
+        :param model_content: 可选，BaseModel类型，未认证响应结果中自定义属性的值
+        :return: 未认证响应结果
+        """
+        result = {
+            'code': 403,
+            'msg': msg
+        }
+
+        if data is not None:
+            result['data'] = data
+        if rows is not None:
+            result['rows'] = rows
+        if dict_content is not None:
+            result.update(dict_content)
+        if model_content is not None:
+            result.update(model_content.model_dump(by_alias=True))
+
+        result.update({'success': False, 'time': datetime.now()})
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
             content=jsonable_encoder(result)
         )
 
@@ -139,7 +172,7 @@ class ResponseUtil:
         result.update({'success': False, 'time': datetime.now()})
 
         return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=status.HTTP_200_OK,
             content=jsonable_encoder(result)
         )
 
@@ -224,12 +257,13 @@ def streaming_response_200(*, data: Any = None):
         status_code=status.HTTP_200_OK,
         content=data,
     )
-    
-    
+
+
 class AuthException(Exception):
     """
     自定义令牌异常AuthException
     """
+
     def __init__(self, data: str = None, message: str = None):
         self.data = data
         self.message = message
@@ -239,6 +273,7 @@ class PermissionException(Exception):
     """
     自定义权限异常PermissionException
     """
+
     def __init__(self, data: str = None, message: str = None):
         self.data = data
         self.message = message
@@ -248,6 +283,7 @@ class LoginException(Exception):
     """
     自定义登录异常LoginException
     """
+
     def __init__(self, data: str = None, message: str = None):
         self.data = data
         self.message = message

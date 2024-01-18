@@ -31,8 +31,8 @@ class RoleQueryModel(RoleModel):
     """
     角色管理不分页查询模型
     """
-    create_time_start: Optional[str]
-    create_time_end: Optional[str]
+    create_time_start: Optional[str] = None
+    create_time_end: Optional[str] = None
 
 
 class RolePageObject(RoleQueryModel):

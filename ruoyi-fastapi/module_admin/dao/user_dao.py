@@ -6,9 +6,8 @@ from module_admin.entity.do.dept_do import SysDept
 from module_admin.entity.do.post_do import SysPost
 from module_admin.entity.do.menu_do import SysMenu
 from module_admin.entity.vo.user_vo import UserModel, UserRoleModel, UserPostModel, CurrentUserInfo, UserQueryModel, UserRoleQueryModel
-from utils.time_format_util import object_format_datetime, list_format_datetime, format_datetime_dict_list
+from utils.time_format_util import object_format_datetime, list_format_datetime
 from datetime import datetime, time
-from typing import Union, List
 
 
 class UserDao:
@@ -128,14 +127,14 @@ class UserDao:
             .join(SysMenu, and_(SysRoleMenu.menu_id == SysMenu.menu_id, SysMenu.status == 0)) \
             .distinct().all()
         results = dict(
-            user_basic_info=object_format_datetime(query_user_basic_info),
-            user_dept_info=object_format_datetime(query_user_dept_info),
-            user_role_info=list_format_datetime(query_user_role_info),
-            user_post_info=list_format_datetime(query_user_post_info),
-            user_menu_info=list_format_datetime(query_user_menu_info)
+            user_basic_info=query_user_basic_info,
+            user_dept_info=query_user_dept_info,
+            user_role_info=query_user_role_info,
+            user_post_info=query_user_post_info,
+            user_menu_info=query_user_menu_info
         )
 
-        return CurrentUserInfo(**results)
+        return results
 
     @classmethod
     def get_user_list(cls, db: Session, query_object: UserQueryModel, data_scope_sql: str):
@@ -158,41 +157,15 @@ class UserDao:
                     SysUser.status == query_object.status if query_object.status else True,
                     SysUser.sex == query_object.sex if query_object.sex else True,
                     SysUser.create_time.between(
-                        datetime.combine(datetime.strptime(query_object.create_time_start, '%Y-%m-%d'), time(00, 00, 00)),
-                        datetime.combine(datetime.strptime(query_object.create_time_end, '%Y-%m-%d'), time(23, 59, 59)))
-                    if query_object.create_time_start and query_object.create_time_end else True,
+                        datetime.combine(datetime.strptime(query_object.begin_time, '%Y-%m-%d'), time(00, 00, 00)),
+                        datetime.combine(datetime.strptime(query_object.end_time, '%Y-%m-%d'), time(23, 59, 59)))
+                    if query_object.begin_time and query_object.end_time else True,
                     eval(data_scope_sql)
                     ) \
             .outerjoin(SysDept, and_(SysUser.dept_id == SysDept.dept_id, SysDept.status == 0, SysDept.del_flag == 0)) \
             .distinct().all()
 
-        result_list: List[Union[dict, None]] = []
-        if user_list:
-            for item in user_list:
-                obj = dict(
-                    user_id=item[0].user_id,
-                    dept_id=item[0].dept_id,
-                    dept_name=item[1].dept_name if item[1] else '',
-                    user_name=item[0].user_name,
-                    nick_name=item[0].nick_name,
-                    user_type=item[0].user_type,
-                    email=item[0].email,
-                    phonenumber=item[0].phonenumber,
-                    sex=item[0].sex,
-                    avatar=item[0].avatar,
-                    status=item[0].status,
-                    del_flag=item[0].del_flag,
-                    login_ip=item[0].login_ip,
-                    login_date=item[0].login_date,
-                    create_by=item[0].create_by,
-                    create_time=item[0].create_time,
-                    update_by=item[0].update_by,
-                    update_time=item[0].update_time,
-                    remark=item[0].remark
-                )
-                result_list.append(obj)
-
-        return format_datetime_dict_list(result_list)
+        return user_list
 
     @classmethod
     def add_user_dao(cls, db: Session, user: UserModel):
@@ -202,7 +175,7 @@ class UserDao:
         :param user: 用户对象
         :return: 新增校验结果
         """
-        db_user = SysUser(**user.dict())
+        db_user = SysUser(**user.model_dump())
         db.add(db_user)
         db.flush()
 

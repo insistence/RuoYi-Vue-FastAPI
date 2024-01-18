@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from module_admin.entity.do.post_do import SysPost
 from module_admin.entity.vo.post_vo import PostModel
-from utils.time_format_util import list_format_datetime
+from utils.common_util import CamelCaseUtil
 
 
 class PostDao:
@@ -83,7 +83,7 @@ class PostDao:
             .order_by(SysPost.post_sort) \
             .distinct().all()
 
-        return list_format_datetime(post_list)
+        return CamelCaseUtil.transform_result(post_list)
 
     @classmethod
     def add_post_dao(cls, db: Session, post: PostModel):

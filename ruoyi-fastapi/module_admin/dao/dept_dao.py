@@ -136,7 +136,7 @@ class DeptDao:
             .order_by(SysDept.order_num) \
             .distinct().all()
 
-        return list_format_datetime(dept_result)
+        return dept_result
 
     @classmethod
     def get_dept_list(cls, db: Session, page_object: DeptModel, data_scope_sql: str):

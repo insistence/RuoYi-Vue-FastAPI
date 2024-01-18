@@ -64,17 +64,11 @@ async def editor_upload(request: Request, baseUrl: str = Form(), uploadId: str =
 
 
 @commonController.get(f"/{CachePathConfig.PATHSTR}")
-async def common_download(request: Request, taskPath: str, taskId: str, filename: str, token: Optional[str] = None, query_db: Session = Depends(get_db)):
+async def common_download(request: Request, taskPath: str, taskId: str, filename: str):
     try:
         def generate_file():
             with open(os.path.join(CachePathConfig.PATH, taskPath, taskId, filename), 'rb') as response_file:
                 yield from response_file
-        if taskPath not in ['notice']:
-            current_user = await get_current_user(request, token, query_db)
-            if current_user:
-                logger.info('获取成功')
-                return streaming_response_200(data=generate_file())
-        logger.info('获取成功')
         return streaming_response_200(data=generate_file())
     except Exception as e:
         logger.exception(e)

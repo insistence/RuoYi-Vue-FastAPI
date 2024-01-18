@@ -1,7 +1,8 @@
 import math
 from typing import List
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+from pydantic.alias_generators import to_camel
 
 
 class PageModel(BaseModel):
@@ -19,6 +20,19 @@ class PageObjectResponse(BaseModel):
     """
     用户管理列表分页查询返回模型
     """
+    rows: List = []
+    page_num: int
+    page_size: int
+    total: int
+    has_next: bool
+
+
+class PageResponseModel(BaseModel):
+    """
+    列表分页查询返回模型
+    """
+    model_config = ConfigDict(alias_generator=to_camel)
+
     rows: List = []
     page_num: int
     page_size: int
@@ -71,14 +85,14 @@ def get_page_obj(data_list: List, page_num: int, page_size: int):
     paginated_data = data_list[start:end]
     has_next = True if math.ceil(len(data_list) / page_size) > page_num else False
 
-    result = dict(
+    result = PageResponseModel(
         rows=paginated_data,
-        page_num=page_num,
-        page_size=page_size,
+        pageNum=page_num,
+        pageSize=page_size,
         total=len(data_list),
-        has_next=has_next
+        hasNext=has_next
     )
 
-    return PageObjectResponse(**result)
+    return result
 
 

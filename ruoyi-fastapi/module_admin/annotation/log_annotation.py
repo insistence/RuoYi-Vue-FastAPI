@@ -48,7 +48,7 @@ def log_decorator(title: str, business_type: int, log_type: Optional[str] = 'ope
             # 获取请求的url
             oper_url = request.url.path
             # 获取请求的ip及ip归属区域
-            oper_ip = request.headers.get('remote_addr')
+            oper_ip = request.headers.get("X-Forwarded-For")
             oper_location = '内网IP'
             try:
                 if oper_ip != '127.0.0.1' and oper_ip != 'localhost':
@@ -73,13 +73,20 @@ def log_decorator(title: str, business_type: int, log_type: Optional[str] = 'ope
                     oper_param = "\n".join([f"{key}: {value}" for key, value in payload.items()])
                 else:
                     payload = await request.body()
-                    oper_param = json.dumps(json.loads(str(payload, 'utf-8')), ensure_ascii=False)
+                    # 通过 request.path_params 直接访问路径参数
+                    path_params = request.path_params
+                    oper_param = {}
+                    if payload:
+                        oper_param.update(json.loads(str(payload, 'utf-8')))
+                    if path_params:
+                        oper_param.update(path_params)
+                    oper_param = json.dumps(oper_param, ensure_ascii=False)
                 # 日志表请求参数字段长度最大为2000，因此在此处判断长度
                 if len(oper_param) > 2000:
                     oper_param = '请求参数过长'
 
                 # 获取操作时间
-                oper_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                oper_time = datetime.now()
                 # 此处在登录之前向原始函数传递一些登录信息，用于监测在线用户的相关信息
                 login_log = {}
                 if log_type == 'login':
@@ -88,10 +95,10 @@ def log_decorator(title: str, business_type: int, log_type: Optional[str] = 'ope
                     system_os = f'{user_agent_info.os.family} {user_agent_info.os.version[0]}'
                     login_log = dict(
                         ipaddr=oper_ip,
-                        login_location=oper_location,
+                        loginLocation=oper_location,
                         browser=browser,
                         os=system_os,
-                        login_time=oper_time
+                        loginTime=oper_time.strftime('%Y-%m-%d %H:%M:%S')
                     )
                     kwargs['form_data'].login_info = login_log
                 # 调用原始函数
@@ -112,14 +119,14 @@ def log_decorator(title: str, business_type: int, log_type: Optional[str] = 'ope
                             result_dict = {'code': result.status_code, 'message': '获取成功'}
                         else:
                             result_dict = {'code': result.status_code, 'message': '获取失败'}
-                json_result = json.dumps(dict(code=result_dict.get('code'), message=result_dict.get('message')), ensure_ascii=False)
+                json_result = json.dumps(result_dict, ensure_ascii=False)
                 # 根据响应结果获取响应状态及异常信息
                 status = 1
                 error_msg = ''
                 if result_dict.get('code') == 200:
                     status = 0
                 else:
-                    error_msg = result_dict.get('message')
+                    error_msg = result_dict.get('msg')
                 # 根据日志类型向对应的日志表插入数据
                 if log_type == 'login':
                     # 登录请求来自于api文档时不记录登录日志，其余情况则记录
@@ -128,34 +135,35 @@ def log_decorator(title: str, business_type: int, log_type: Optional[str] = 'ope
                     else:
                         user = kwargs.get('form_data')
                         user_name = user.username
-                        login_log['user_name'] = user_name
+                        login_log['loginTime'] = oper_time
+                        login_log['userName'] = user_name
                         login_log['status'] = str(status)
-                        login_log['msg'] = result_dict.get('message')
+                        login_log['msg'] = result_dict.get('msg')
 
                         LoginLogService.add_login_log_services(query_db, LogininforModel(**login_log))
                 else:
                     current_user = await LoginService.get_current_user(request, token, query_db)
                     oper_name = current_user.user.user_name
                     dept_name = current_user.user.dept.dept_name if current_user.user.dept else None
-                    operation_log = dict(
+                    operation_log = OperLogModel(
                         title=title,
-                        business_type=business_type,
+                        businessType=business_type,
                         method=func_path,
-                        request_method=request_method,
-                        operator_type=operator_type,
-                        oper_name=oper_name,
-                        dept_name=dept_name,
-                        oper_url=oper_url,
-                        oper_ip=oper_ip,
-                        oper_location=oper_location,
-                        oper_param=oper_param,
-                        json_result=json_result,
+                        requestMethod=request_method,
+                        operatorType=operator_type,
+                        operName=oper_name,
+                        deptName=dept_name,
+                        operUrl=oper_url,
+                        operIp=oper_ip,
+                        operLocation=oper_location,
+                        operParam=oper_param,
+                        jsonResult=json_result,
                         status=status,
-                        error_msg=error_msg,
-                        oper_time=oper_time,
-                        cost_time=cost_time
+                        errorMsg=error_msg,
+                        operTime=oper_time,
+                        costTime=int(cost_time)
                     )
-                    OperationLogService.add_operation_log_services(query_db, OperLogModel(**operation_log))
+                    OperationLogService.add_operation_log_services(query_db, operation_log)
 
                 return result
 

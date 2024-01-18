@@ -14,7 +14,7 @@ loginController = APIRouter()
 
 
 @loginController.post("/login", response_model=Token)
-# @log_decorator(title='用户登录', business_type=0, log_type='login')
+@log_decorator(title='用户登录', business_type=0, log_type='login')
 async def login(request: Request, form_data: CustomOAuth2PasswordRequestForm = Depends(), query_db: Session = Depends(get_db)):
     captcha_enabled = True if await request.app.state.redis.get(f"{RedisInitKeyConfig.SYS_CONFIG.get('key')}:sys.account.captchaEnabled") == 'true' else False
     user = UserLogin(
@@ -123,14 +123,14 @@ async def get_login_user_info(request: Request, current_user: CurrentUserInfoSer
         return response_500(data="", message=str(e))
 
 
-@loginController.post("/logout", dependencies=[Depends(CheckUserInterfaceAuth('common'))])
-async def logout(request: Request, token: Optional[str] = Depends(oauth2_scheme), query_db: Session = Depends(get_db)):
+@loginController.post("/logout")
+async def logout(request: Request, token: Optional[str] = Depends(oauth2_scheme)):
     try:
         payload = jwt.decode(token, JwtConfig.SECRET_KEY, algorithms=[JwtConfig.ALGORITHM])
         session_id: str = payload.get("session_id")
         await logout_services(request, session_id)
         logger.info('退出成功')
-        return response_200(data="", message="退出成功")
+        return ResponseUtil.success(msg="退出成功")
     except Exception as e:
         logger.exception(e)
-        return response_500(data="", message=str(e))
+        return ResponseUtil.error(msg=str(e))

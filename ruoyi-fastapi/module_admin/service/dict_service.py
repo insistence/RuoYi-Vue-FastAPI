@@ -3,7 +3,7 @@ import json
 from config.env import RedisInitKeyConfig
 from module_admin.entity.vo.dict_vo import *
 from module_admin.dao.dict_dao import *
-from utils.common_util import export_list2excel
+from utils.common_util import export_list2excel, CamelCaseUtil
 
 
 class DictTypeService:
@@ -240,7 +240,7 @@ class DictDataService:
         if dict_data_list_result:
             result = json.loads(dict_data_list_result)
 
-        return result
+        return CamelCaseUtil.transform_result(result)
 
     @classmethod
     async def add_dict_data_services(cls, request: Request, query_db: Session, page_object: DictDataModel):

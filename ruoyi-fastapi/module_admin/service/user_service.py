@@ -1,4 +1,7 @@
+from module_admin.service.role_service import RoleService
+from module_admin.service.post_service import PostService
 from module_admin.entity.vo.user_vo import *
+from module_admin.entity.vo.common_vo import CrudResponseModel
 from module_admin.dao.user_dao import *
 from utils.pwd_util import *
 from utils.common_util import *
@@ -18,7 +21,10 @@ class UserService:
         :param data_scope_sql: 数据权限对应的查询sql语句
         :return: 用户列表信息对象
         """
-        user_list_result = UserDao.get_user_list(query_db, query_object, data_scope_sql)
+        query_result = UserDao.get_user_list(query_db, query_object, data_scope_sql)
+        user_list_result = []
+        if query_result:
+            user_list_result = [{**CamelCaseUtil.transform_result(row[0]), 'dept': CamelCaseUtil.transform_result(row[1])} for row in query_result]
 
         return user_list_result
 
@@ -30,31 +36,27 @@ class UserService:
         :param page_object: 新增用户对象
         :return: 新增用户校验结果
         """
-        add_user = UserModel(**page_object.dict())
-        user = UserDao.get_user_by_info(query_db, UserModel(**dict(user_name=page_object.user_name)))
+        add_user = UserModel(**page_object.model_dump(by_alias=True))
+        user = UserDao.get_user_by_info(query_db, UserModel(userName=page_object.user_name))
         if user:
             result = dict(is_success=False, message='用户名已存在')
         else:
             try:
                 add_result = UserDao.add_user_dao(query_db, add_user)
                 user_id = add_result.user_id
-                if page_object.role_id:
-                    role_id_list = page_object.role_id.split(',')
-                    for role in role_id_list:
-                        role_dict = dict(user_id=user_id, role_id=role)
-                        UserDao.add_user_role_dao(query_db, UserRoleModel(**role_dict))
-                if page_object.post_id:
-                    post_id_list = page_object.post_id.split(',')
-                    for post in post_id_list:
-                        post_dict = dict(user_id=user_id, post_id=post)
-                        UserDao.add_user_post_dao(query_db, UserPostModel(**post_dict))
+                if page_object.role_ids:
+                    for role in page_object.role_ids:
+                        UserDao.add_user_role_dao(query_db, UserRoleModel(userId=user_id, roleId=role))
+                if page_object.post_ids:
+                    for post in page_object.post_ids:
+                        UserDao.add_user_post_dao(query_db, UserPostModel(userId=user_id, postId=post))
                 query_db.commit()
                 result = dict(is_success=True, message='新增成功')
             except Exception as e:
                 query_db.rollback()
                 result = dict(is_success=False, message=str(e))
 
-        return CrudUserResponse(**result)
+        return CrudResponseModel(**result)
 
     @classmethod
     def edit_user_services(cls, query_db: Session, page_object: AddUserModel):
@@ -64,35 +66,31 @@ class UserService:
         :param page_object: 编辑用户对象
         :return: 编辑用户校验结果
         """
-        edit_user = page_object.dict(exclude_unset=True)
-        if page_object.type != 'status' and page_object.type != 'avatar':
-            del edit_user['role_id']
-            del edit_user['post_id']
-        if page_object.type == 'status' or page_object.type == 'avatar':
+        edit_user = page_object.model_dump(exclude_unset=True)
+        if page_object.type != 'status' and page_object.type != 'avatar' and page_object.type != 'pwd':
+            del edit_user['role_ids']
+            del edit_user['post_ids']
+            del edit_user['role']
+        if page_object.type == 'status' or page_object.type == 'avatar' or page_object.type == 'pwd':
             del edit_user['type']
-        user_info = cls.detail_user_services(query_db, edit_user.get('user_id'))
+        user_info = cls.user_detail_services(query_db, edit_user.get('user_id'))
         if user_info:
-            if page_object.type != 'status' and page_object.type != 'avatar' and user_info.user.user_name != page_object.user_name:
-                user = UserDao.get_user_by_info(query_db, UserModel(**dict(user_name=page_object.user_name)))
+            if page_object.type != 'status' and page_object.type != 'avatar' and page_object.type == 'pwd' and user_info.data.user_name != page_object.user_name:
+                user = UserDao.get_user_by_info(query_db, UserModel(userName=page_object.user_name))
                 if user:
                     result = dict(is_success=False, message='用户名已存在')
-                    return CrudUserResponse(**result)
+                    return CrudResponseModel(**result)
             try:
                 UserDao.edit_user_dao(query_db, edit_user)
                 if page_object.type != 'status' and page_object.type != 'avatar':
-                    user_id_dict = dict(user_id=page_object.user_id)
-                    UserDao.delete_user_role_dao(query_db, UserRoleModel(**user_id_dict))
-                    UserDao.delete_user_post_dao(query_db, UserPostModel(**user_id_dict))
-                    if page_object.role_id:
-                        role_id_list = page_object.role_id.split(',')
-                        for role in role_id_list:
-                            role_dict = dict(user_id=page_object.user_id, role_id=role)
-                            UserDao.add_user_role_dao(query_db, UserRoleModel(**role_dict))
-                    if page_object.post_id:
-                        post_id_list = page_object.post_id.split(',')
-                        for post in post_id_list:
-                            post_dict = dict(user_id=page_object.user_id, post_id=post)
-                            UserDao.add_user_post_dao(query_db, UserPostModel(**post_dict))
+                    UserDao.delete_user_role_dao(query_db, UserRoleModel(userId=page_object.user_id))
+                    UserDao.delete_user_post_dao(query_db, UserPostModel(userId=page_object.user_id))
+                    if page_object.role_ids:
+                        for role in page_object.role_ids:
+                            UserDao.add_user_role_dao(query_db, UserRoleModel(userId=page_object.user_id, roleId=role))
+                    if page_object.post_ids:
+                        for post in page_object.post_ids:
+                            UserDao.add_user_post_dao(query_db, UserPostModel(userId=page_object.user_id, postId=post))
                 query_db.commit()
                 result = dict(is_success=True, message='更新成功')
             except Exception as e:
@@ -101,7 +99,7 @@ class UserService:
         else:
             result = dict(is_success=False, message='用户不存在')
 
-        return CrudUserResponse(**result)
+        return CrudResponseModel(**result)
 
     @classmethod
     def delete_user_services(cls, query_db: Session, page_object: DeleteUserModel):
@@ -115,7 +113,7 @@ class UserService:
             user_id_list = page_object.user_ids.split(',')
             try:
                 for user_id in user_id_list:
-                    user_id_dict = dict(user_id=user_id, update_by=page_object.update_by, update_time=page_object.update_time)
+                    user_id_dict = dict(userId=user_id, updateBy=page_object.update_by, updateTime=page_object.update_time)
                     UserDao.delete_user_role_dao(query_db, UserRoleModel(**user_id_dict))
                     UserDao.delete_user_post_dao(query_db, UserPostModel(**user_id_dict))
                     UserDao.delete_user_dao(query_db, UserModel(**user_id_dict))
@@ -126,23 +124,68 @@ class UserService:
                 result = dict(is_success=False, message=str(e))
         else:
             result = dict(is_success=False, message='传入用户id为空')
-        return CrudUserResponse(**result)
+        return CrudResponseModel(**result)
 
     @classmethod
-    def detail_user_services(cls, query_db: Session, user_id: int):
+    def user_detail_services(cls, query_db: Session, user_id: Union[int, str]):
         """
         获取用户详细信息service
         :param query_db: orm对象
         :param user_id: 用户id
         :return: 用户id对应的信息
         """
-        user = UserDao.get_user_detail_by_id(query_db, user_id=user_id)
+        posts = PostService.get_post_list_services(query_db, PostModel(**{}))
+        roles = RoleService.get_role_select_option_services(query_db)
+        if user_id != '':
+            query_user = UserDao.get_user_detail_by_id(query_db, user_id=user_id)
+            post_ids = ','.join([str(row.post_id) for row in query_user.get('user_post_info')])
+            post_ids_list = [row.post_id for row in query_user.get('user_post_info')]
+            role_ids = ','.join([str(row.role_id) for row in query_user.get('user_role_info')])
+            role_ids_list = [row.role_id for row in query_user.get('user_role_info')]
+
+            return UserDetailModel(
+                data=UserInfoModel(
+                    **CamelCaseUtil.transform_result(query_user.get('user_basic_info')),
+                    postIds=post_ids,
+                    roleIds=role_ids,
+                    dept=CamelCaseUtil.transform_result(query_user.get('user_dept_info')),
+                    role=CamelCaseUtil.transform_result(query_user.get('user_role_info'))
+                ),
+                postIds=post_ids_list,
+                posts=posts,
+                roleIds=role_ids_list,
+                roles=roles
+            )
 
         return UserDetailModel(
-            user=user.user_basic_info,
-            dept=user.user_dept_info,
-            role=user.user_role_info,
-            post=user.user_post_info
+            posts=posts,
+            roles=roles
+        )
+
+    @classmethod
+    def user_profile_services(cls, query_db: Session, user_id: int):
+        """
+        获取用户详细信息service
+        :param query_db: orm对象
+        :param user_id: 用户id
+        :return: 用户id对应的信息
+        """
+        query_user = UserDao.get_user_detail_by_id(query_db, user_id=user_id)
+        post_ids = ','.join([str(row.post_id) for row in query_user.get('user_post_info')])
+        post_group = ','.join([row.post_name for row in query_user.get('user_post_info')])
+        role_ids = ','.join([str(row.role_id) for row in query_user.get('user_role_info')])
+        role_group = ','.join([row.role_name for row in query_user.get('user_role_info')])
+
+        return UserProfileModel(
+            data=UserInfoModel(
+                **CamelCaseUtil.transform_result(query_user.get('user_basic_info')),
+                postIds=post_ids,
+                roleIds=role_ids,
+                dept=CamelCaseUtil.transform_result(query_user.get('user_dept_info')),
+                role=CamelCaseUtil.transform_result(query_user.get('user_role_info'))
+            ),
+            postGroup=post_group,
+            roleGroup=role_group
         )
 
     @classmethod
@@ -275,18 +318,18 @@ class UserService:
         """
         # 创建一个映射字典，将英文键映射到中文键
         mapping_dict = {
-            "user_id": "用户编号",
-            "user_name": "用户名称",
-            "nick_name": "用户昵称",
-            "dept_name": "部门",
+            "userId": "用户编号",
+            "userName": "用户名称",
+            "nickName": "用户昵称",
+            "deptName": "部门",
             "email": "邮箱地址",
             "phonenumber": "手机号码",
             "sex": "性别",
             "status": "状态",
-            "create_by": "创建者",
-            "create_time": "创建时间",
-            "update_by": "更新者",
-            "update_time": "更新时间",
+            "createBy": "创建者",
+            "createTime": "创建时间",
+            "updateBy": "更新者",
+            "updateTime": "更新时间",
             "remark": "备注",
         }
 

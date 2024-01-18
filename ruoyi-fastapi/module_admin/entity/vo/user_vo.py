@@ -2,6 +2,7 @@ from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
 from typing import Union, Optional, List
 from datetime import datetime
+from module_admin.entity.vo.dept_vo import DeptModel
 
 
 class TokenData(BaseModel):
@@ -56,28 +57,6 @@ class UserPostModel(BaseModel):
 
     user_id: Optional[int] = None
     post_id: Optional[int] = None
-
-
-class DeptModel(BaseModel):
-    """
-    部门表对应pydantic模型
-    """
-    model_config = ConfigDict(alias_generator=to_camel, from_attributes=True)
-
-    dept_id: Optional[int] = None
-    parent_id: Optional[int] = None
-    ancestors: Optional[str] = None
-    dept_name: Optional[str] = None
-    order_num: Optional[int] = None
-    leader: Optional[str] = None
-    phone: Optional[str] = None
-    email: Optional[str] = None
-    status: Optional[str] = None
-    del_flag: Optional[str] = None
-    create_by: Optional[str] = None
-    create_time: Optional[datetime] = None
-    update_by: Optional[str] = None
-    update_time: Optional[datetime] = None
 
 
 class RoleModel(BaseModel):
@@ -154,10 +133,22 @@ class UserDetailModel(BaseModel):
     """
     model_config = ConfigDict(alias_generator=to_camel)
 
-    user: Union[UserModel, None]
-    dept: Union[DeptModel, None]
-    role: List[Union[RoleModel, None]]
-    post: List[Union[PostModel, None]]
+    data: Optional[Union[UserInfoModel, None]] = None
+    post_ids: Optional[List] = None
+    posts: List[Union[PostModel, None]]
+    role_ids: Optional[List] = None
+    roles: List[Union[RoleModel, None]]
+
+
+class UserProfileModel(BaseModel):
+    """
+    获取个人信息响应模型
+    """
+    model_config = ConfigDict(alias_generator=to_camel)
+
+    data: Union[UserInfoModel, None]
+    post_group: Union[str, None]
+    role_group: Union[str, None]
 
 
 class CurrentUserInfoServiceResponse(UserDetailModel):
@@ -171,11 +162,11 @@ class UserQueryModel(UserModel):
     """
     用户管理不分页查询模型
     """
-    create_time_start: Optional[str] = None
-    create_time_end: Optional[str] = None
+    begin_time: Optional[str] = None
+    end_time: Optional[str] = None
 
 
-class UserPageObject(UserQueryModel):
+class UserPageQueryModel(UserQueryModel):
     """
     用户管理分页查询模型
     """
@@ -183,33 +174,20 @@ class UserPageObject(UserQueryModel):
     page_size: int
 
 
-class UserInfoJoinDept(UserModel):
-    """
-    数据库查询用户列表返回模型
-    """
-    dept_name: Optional[str] = None
-
-
-class UserPageObjectResponse(BaseModel):
-    """
-    用户管理列表分页查询返回模型
-    """
-    model_config = ConfigDict(alias_generator=to_camel)
-
-    rows: List[Union[UserInfoJoinDept, None]] = []
-    page_num: int
-    page_size: int
-    total: int
-    has_next: bool
-
-
 class AddUserModel(UserModel):
     """
     新增用户模型
     """
-    role_id: Optional[str] = None
-    post_id: Optional[str] = None
+    role_ids: Optional[List] = []
+    post_ids: Optional[List] = []
     type: Optional[str] = None
+
+
+class EditUserModel(AddUserModel):
+    """
+    编辑用户模型
+    """
+    role: Optional[List] = []
 
 
 class ResetUserModel(UserModel):
@@ -229,7 +207,7 @@ class DeleteUserModel(BaseModel):
 
     user_ids: str
     update_by: Optional[str] = None
-    update_time: Optional[str] = None
+    update_time: Optional[datetime] = None
 
 
 class UserRoleQueryModel(UserRoleModel):

@@ -1,6 +1,6 @@
 from module_admin.entity.vo.role_vo import *
 from module_admin.dao.role_dao import *
-from utils.common_util import export_list2excel
+from utils.common_util import export_list2excel, CamelCaseUtil
 
 
 class RoleService:
@@ -17,7 +17,7 @@ class RoleService:
         """
         role_list_result = RoleDao.get_role_select_option_dao(query_db)
 
-        return role_list_result
+        return CamelCaseUtil.transform_result(role_list_result)
 
     @classmethod
     def get_role_list_services(cls, query_db: Session, query_object: RoleQueryModel):
@@ -29,7 +29,7 @@ class RoleService:
         """
         role_list_result = RoleDao.get_role_list(query_db, query_object)
 
-        return role_list_result
+        return CamelCaseUtil.transform_result(role_list_result)
 
     @classmethod
     def add_role_services(cls, query_db: Session, page_object: AddRoleModel):
