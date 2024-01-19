@@ -62,7 +62,7 @@ async def login(request: Request, form_data: CustomOAuth2PasswordRequestForm = D
         return ResponseUtil.error(msg=str(e))
 
 
-@loginController.get("/getInfo", response_model=CurrentUserModel, dependencies=[Depends(CheckUserInterfaceAuth('common'))])
+@loginController.get("/getInfo", response_model=CurrentUserModel)
 async def get_login_user_info(request: Request, current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
     try:
         logger.info('获取成功')
@@ -72,7 +72,7 @@ async def get_login_user_info(request: Request, current_user: CurrentUserModel =
         return ResponseUtil.error(msg=str(e))
 
 
-@loginController.get("/getRouters", dependencies=[Depends(CheckUserInterfaceAuth('common'))])
+@loginController.get("/getRouters")
 async def get_login_user_routers(request: Request, current_user: CurrentUserModel = Depends(LoginService.get_current_user), query_db: Session = Depends(get_db)):
     try:
         logger.info('获取成功')

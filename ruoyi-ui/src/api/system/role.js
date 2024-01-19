@@ -1,11 +1,11 @@
 import request from '@/utils/request'
 
 // 查询角色列表
-export function listRole(query) {
+export function listRole(data) {
   return request({
     url: '/system/role/list',
-    method: 'get',
-    params: query
+    method: 'post',
+    data: data
   })
 }
 

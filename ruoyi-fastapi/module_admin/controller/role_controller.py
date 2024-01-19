@@ -1,19 +1,19 @@
 from fastapi import APIRouter, Request
 from fastapi import Depends
 from config.get_db import get_db
-from module_admin.service.login_service import get_current_user, CurrentUserInfoServiceResponse
+from module_admin.service.login_service import LoginService, CurrentUserModel
 from module_admin.service.role_service import *
 from module_admin.service.user_service import UserService, UserRoleQueryModel, UserRolePageObject, UserRolePageObjectResponse, CrudUserRoleModel
 from module_admin.entity.vo.role_vo import *
 from utils.response_util import *
 from utils.log_util import *
-from utils.page_util import get_page_obj
+from utils.page_util import *
 from utils.common_util import bytes2file_response
 from module_admin.aspect.interface_auth import CheckUserInterfaceAuth
 from module_admin.annotation.log_annotation import log_decorator
 
 
-roleController = APIRouter(dependencies=[Depends(get_current_user)])
+roleController = APIRouter(prefix='/system/role', dependencies=[Depends(LoginService.get_current_user)])
 
 
 @roleController.post("/role/forSelectOption", response_model=RoleSelectOptionResponseModel, dependencies=[Depends(CheckUserInterfaceAuth('common'))])
@@ -27,23 +27,23 @@ async def get_system_role_select(request: Request, query_db: Session = Depends(g
         return response_500(data="", message=str(e))
     
     
-@roleController.post("/role/get", response_model=RolePageObjectResponse, dependencies=[Depends(CheckUserInterfaceAuth('system:role:list'))])
-async def get_system_role_list(request: Request, role_page_query: RolePageObject, query_db: Session = Depends(get_db)):
+@roleController.post("/list", response_model=PageResponseModel, dependencies=[Depends(CheckUserInterfaceAuth('system:role:list'))])
+async def get_system_role_list(request: Request, role_page_query: RolePageQueryModel, query_db: Session = Depends(get_db)):
     try:
-        role_query = RoleQueryModel(**role_page_query.dict())
+        role_query = RoleQueryModel(**role_page_query.model_dump(by_alias=True))
         role_query_result = RoleService.get_role_list_services(query_db, role_query)
         # 分页操作
         role_page_query_result = get_page_obj(role_query_result, role_page_query.page_num, role_page_query.page_size)
         logger.info('获取成功')
-        return response_200(data=role_page_query_result, message="获取成功")
+        return ResponseUtil.success(model_content=role_page_query_result)
     except Exception as e:
         logger.exception(e)
-        return response_500(data="", message=str(e))
+        return ResponseUtil.error(msg=str(e))
     
     
 @roleController.post("/role/add", response_model=CrudRoleResponse, dependencies=[Depends(CheckUserInterfaceAuth('system:role:add'))])
 @log_decorator(title='角色管理', business_type=1)
-async def add_system_role(request: Request, add_role: AddRoleModel, query_db: Session = Depends(get_db), current_user: CurrentUserInfoServiceResponse = Depends(get_current_user)):
+async def add_system_role(request: Request, add_role: AddRoleModel, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
     try:
         add_role.create_by = current_user.user.user_name
         add_role.update_by = current_user.user.user_name
@@ -61,7 +61,7 @@ async def add_system_role(request: Request, add_role: AddRoleModel, query_db: Se
     
 @roleController.patch("/role/edit", response_model=CrudRoleResponse, dependencies=[Depends(CheckUserInterfaceAuth('system:role:edit'))])
 @log_decorator(title='角色管理', business_type=2)
-async def edit_system_role(request: Request, edit_role: AddRoleModel, query_db: Session = Depends(get_db), current_user: CurrentUserInfoServiceResponse = Depends(get_current_user)):
+async def edit_system_role(request: Request, edit_role: AddRoleModel, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
     try:
         edit_role.update_by = current_user.user.user_name
         edit_role.update_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -79,7 +79,7 @@ async def edit_system_role(request: Request, edit_role: AddRoleModel, query_db: 
 
 @roleController.patch("/role/dataScope", response_model=CrudRoleResponse, dependencies=[Depends(CheckUserInterfaceAuth('system:role:edit'))])
 @log_decorator(title='角色管理', business_type=4)
-async def edit_system_role_datascope(request: Request, role_data_scope: RoleDataScopeModel, query_db: Session = Depends(get_db), current_user: CurrentUserInfoServiceResponse = Depends(get_current_user)):
+async def edit_system_role_datascope(request: Request, role_data_scope: RoleDataScopeModel, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
     try:
         role_data_scope.update_by = current_user.user.user_name
         role_data_scope.update_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -97,7 +97,7 @@ async def edit_system_role_datascope(request: Request, role_data_scope: RoleData
     
 @roleController.post("/role/delete", response_model=CrudRoleResponse, dependencies=[Depends(CheckUserInterfaceAuth('system:role:remove'))])
 @log_decorator(title='角色管理', business_type=3)
-async def delete_system_role(request: Request, delete_role: DeleteRoleModel, query_db: Session = Depends(get_db), current_user: CurrentUserInfoServiceResponse = Depends(get_current_user)):
+async def delete_system_role(request: Request, delete_role: DeleteRoleModel, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
     try:
         delete_role.update_by = current_user.user.user_name
         delete_role.update_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -113,15 +113,15 @@ async def delete_system_role(request: Request, delete_role: DeleteRoleModel, que
         return response_500(data="", message=str(e))
     
     
-@roleController.get("/role/{role_id}", response_model=RoleDetailModel, dependencies=[Depends(CheckUserInterfaceAuth('system:role:query'))])
+@roleController.get("/{role_id}", response_model=RoleModel, dependencies=[Depends(CheckUserInterfaceAuth('system:role:query'))])
 async def query_detail_system_role(request: Request, role_id: int, query_db: Session = Depends(get_db)):
     try:
-        delete_role_result = RoleService.detail_role_services(query_db, role_id)
+        role_detail_result = RoleService.role_detail_services(query_db, role_id)
         logger.info(f'获取role_id为{role_id}的信息成功')
-        return response_200(data=delete_role_result, message='获取成功')
+        return ResponseUtil.success(data=role_detail_result.model_dump(by_alias=True))
     except Exception as e:
         logger.exception(e)
-        return response_500(data="", message=str(e))
+        return ResponseUtil.error(msg=str(e))
 
 
 @roleController.post("/role/export", dependencies=[Depends(CheckUserInterfaceAuth('system:role:export'))])

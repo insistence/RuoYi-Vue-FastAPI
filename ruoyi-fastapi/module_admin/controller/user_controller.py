@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Request
 from fastapi import Depends, File, Query
-import base64
 from config.get_db import get_db
 from module_admin.service.login_service import LoginService
 from module_admin.service.user_service import *
@@ -16,7 +15,7 @@ from module_admin.aspect.data_scope import GetDataScope
 from module_admin.annotation.log_annotation import log_decorator
 
 
-userController = APIRouter(prefix='/user', dependencies=[Depends(LoginService.get_current_user)])
+userController = APIRouter(prefix='/system/user', dependencies=[Depends(LoginService.get_current_user)])
 
 
 @userController.get("/deptTree", dependencies=[Depends(CheckUserInterfaceAuth('system:user:list'))])
@@ -123,6 +122,25 @@ async def reset_system_user_pwd(request: Request, edit_user: EditUserModel, quer
         return ResponseUtil.error(msg=str(e))
 
 
+@userController.put("/changeStatus", dependencies=[Depends(CheckUserInterfaceAuth('system:user:edit'))])
+@log_decorator(title='用户管理', business_type=2)
+async def reset_system_user_pwd(request: Request, edit_user: EditUserModel, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
+    try:
+        edit_user.update_by = current_user.user.user_name
+        edit_user.update_time = datetime.now()
+        edit_user.type = 'status'
+        edit_user_result = UserService.edit_user_services(query_db, edit_user)
+        if edit_user_result.is_success:
+            logger.info(edit_user_result.message)
+            return ResponseUtil.success(msg=edit_user_result.message)
+        else:
+            logger.warning(edit_user_result.message)
+            return ResponseUtil.failure(msg=edit_user_result.message)
+    except Exception as e:
+        logger.exception(e)
+        return ResponseUtil.error(msg=str(e))
+
+
 @userController.get("/profile", response_model=UserProfileModel)
 async def query_detail_system_user(request: Request, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
     try:
@@ -146,77 +164,80 @@ async def query_detail_system_user(request: Request, user_id: Optional[Union[int
         return ResponseUtil.error(msg=str(e))
 
 
-@userController.patch("/user/profile/changeAvatar", response_model=CrudUserResponse, dependencies=[Depends(CheckUserInterfaceAuth('common'))])
+@userController.post("/profile/avatar")
 @log_decorator(title='个人信息', business_type=2)
-async def change_system_user_profile_avatar(request: Request, edit_user: AddUserModel, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
+async def change_system_user_profile_avatar(request: Request, avatarfile: bytes = File(), query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
     try:
-        avatar = edit_user.avatar
-        # 去除 base64 字符串中的头部信息（data:image/jpeg;base64, 等等）
-        base64_string = avatar.split(',', 1)[1]
-        # 解码 base64 字符串
-        file_data = base64.b64decode(base64_string)
-        dir_path = os.path.join(CachePathConfig.PATH, 'avatar', current_user.user.user_name)
+        dir_path = os.path.join(CachePathConfig.PATH, 'profile', 'avatar')
         try:
             os.makedirs(dir_path)
         except FileExistsError:
             pass
-        filepath = os.path.join(dir_path, f'{current_user.user.user_name}_avatar.jpeg')
-        with open(filepath, 'wb') as f:
-            f.write(file_data)
-        edit_user.user_id = current_user.user.user_id
-        edit_user.avatar = f'/common/{CachePathConfig.PATHSTR}?taskPath=avatar&taskId={current_user.user.user_name}&filename={current_user.user.user_name}_avatar.jpeg'
-        edit_user.update_by = current_user.user.user_name
-        edit_user.update_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        avatar_name = f'blob_{datetime.now().strftime("%Y%m%d%H%M%S")}.jpeg'
+        avatar_path = os.path.join(dir_path, avatar_name)
+        with open(avatar_path, 'wb') as f:
+            f.write(avatarfile)
+        edit_user = EditUserModel(
+            userId=current_user.user.user_id,
+            avatar=f'/common/{CachePathConfig.PATHSTR}?taskPath=profile&taskId=avatar&filename={avatar_name}',
+            updateBy=current_user.user.user_name,
+            updateTime=datetime.now(),
+            type='avatar'
+        )
         edit_user_result = UserService.edit_user_services(query_db, edit_user)
         if edit_user_result.is_success:
             logger.info(edit_user_result.message)
-            return response_200(data=edit_user_result, message=edit_user_result.message)
+            return ResponseUtil.success(dict_content={'imgUrl': edit_user.avatar}, msg=edit_user_result.message)
         else:
             logger.warning(edit_user_result.message)
-            return response_400(data="", message=edit_user_result.message)
+            return ResponseUtil.failure(msg=edit_user_result.message)
     except Exception as e:
         logger.exception(e)
-        return response_500(data="", message=str(e))
+        return ResponseUtil.error(msg=str(e))
 
 
-@userController.patch("/user/profile/changeInfo", response_model=CrudUserResponse, dependencies=[Depends(CheckUserInterfaceAuth('common'))])
+@userController.put("/profile")
 @log_decorator(title='个人信息', business_type=2)
-async def change_system_user_profile_info(request: Request, edit_user: AddUserModel, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
+async def change_system_user_profile_info(request: Request, user_info: UserInfoModel, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
     try:
+        edit_user = EditUserModel(**user_info.model_dump(by_alias=True, exclude={'role_ids', 'post_ids'}), roleIds=user_info.role_ids.split(','), postIds=user_info.post_ids.split(','))
         edit_user.user_id = current_user.user.user_id
         edit_user.update_by = current_user.user.user_name
-        edit_user.update_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        edit_user.update_time = datetime.now()
+        print(edit_user.model_dump())
         edit_user_result = UserService.edit_user_services(query_db, edit_user)
         if edit_user_result.is_success:
             logger.info(edit_user_result.message)
-            return response_200(data=edit_user_result, message=edit_user_result.message)
+            return ResponseUtil.success(msg=edit_user_result.message)
         else:
             logger.warning(edit_user_result.message)
-            return response_400(data="", message=edit_user_result.message)
+            return ResponseUtil.failure(msg=edit_user_result.message)
     except Exception as e:
         logger.exception(e)
-        return response_500(data="", message=str(e))
+        return ResponseUtil.error(msg=str(e))
 
 
-@userController.patch("/user/profile/resetPwd", response_model=CrudUserResponse, dependencies=[Depends(CheckUserInterfaceAuth('common'))])
+@userController.put("/profile/updatePwd")
 @log_decorator(title='个人信息', business_type=2)
-async def reset_system_user_password(request: Request, reset_user: ResetUserModel, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
+async def reset_system_user_password(request: Request, old_password: str = Query(alias='oldPassword'), new_password: str = Query(alias='newPassword'), query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
     try:
-        if not reset_user.user_id and reset_user.old_password:
-            reset_user.user_id = current_user.user.user_id
-        reset_user.password = PwdUtil.get_password_hash(reset_user.password)
-        reset_user.update_by = current_user.user.user_name
-        reset_user.update_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        reset_user = ResetUserModel(
+            userId=current_user.user.user_id,
+            oldPassword=old_password,
+            password=PwdUtil.get_password_hash(new_password),
+            updateBy=current_user.user.user_name,
+            updateTime=datetime.now()
+        )
         reset_user_result = UserService.reset_user_services(query_db, reset_user)
         if reset_user_result.is_success:
             logger.info(reset_user_result.message)
-            return response_200(data=reset_user_result, message=reset_user_result.message)
+            return ResponseUtil.success(msg=reset_user_result.message)
         else:
             logger.warning(reset_user_result.message)
-            return response_400(data="", message=reset_user_result.message)
+            return ResponseUtil.failure(msg=reset_user_result.message)
     except Exception as e:
         logger.exception(e)
-        return response_500(data="", message=str(e))
+        return ResponseUtil.error(msg=str(e))
 
 
 @userController.post("/importData", dependencies=[Depends(CheckUserInterfaceAuth('system:user:import'))])
@@ -261,61 +282,28 @@ async def export_system_user_list(request: Request, user_page_query: UserPageQue
         return ResponseUtil.error(msg=str(e))
 
 
-@userController.post("/user/authRole/allocatedList", response_model=UserRolePageObjectResponse, dependencies=[Depends(CheckUserInterfaceAuth('common'))])
-async def get_system_allocated_role_list(request: Request, user_role: UserRolePageObject, query_db: Session = Depends(get_db)):
+@userController.get("/authRole/{user_id}", response_model=UserRoleResponseModel, dependencies=[Depends(CheckUserInterfaceAuth('system:user:query'))])
+async def get_system_allocated_role_list(request: Request, user_id: int, query_db: Session = Depends(get_db)):
     try:
-        user_role_query = UserRoleQueryModel(**user_role.dict())
+        user_role_query = UserRoleQueryModel(userId=user_id)
         user_role_allocated_query_result = UserService.get_user_role_allocated_list_services(query_db, user_role_query)
-        # 分页操作
-        user_role_allocated_page_query_result = get_page_obj(user_role_allocated_query_result, user_role.page_num, user_role.page_size)
         logger.info('获取成功')
-        return response_200(data=user_role_allocated_page_query_result, message="获取成功")
+        return ResponseUtil.success(model_content=user_role_allocated_query_result)
     except Exception as e:
         logger.exception(e)
-        return response_500(data="", message=str(e))
+        return ResponseUtil.error(msg=str(e))
 
 
-@userController.post("/user/authRole/unallocatedList", response_model=UserRolePageObjectResponse, dependencies=[Depends(CheckUserInterfaceAuth('common'))])
-async def get_system_unallocated_role_list(request: Request, user_role: UserRolePageObject, query_db: Session = Depends(get_db)):
+@userController.put("/authRole", response_model=UserRoleResponseModel, dependencies=[Depends(CheckUserInterfaceAuth('system:user:edit'))])
+async def update_system_role_user(request: Request, user_id: int = Query(alias='userId'), role_ids: str = Query(alias='roleIds'), query_db: Session = Depends(get_db)):
     try:
-        user_role_query = UserRoleQueryModel(**user_role.dict())
-        user_role_unallocated_query_result = UserService.get_user_role_unallocated_list_services(query_db, user_role_query)
-        # 分页操作
-        user_role_unallocated_page_query_result = get_page_obj(user_role_unallocated_query_result, user_role.page_num, user_role.page_size)
-        logger.info('获取成功')
-        return response_200(data=user_role_unallocated_page_query_result, message="获取成功")
-    except Exception as e:
-        logger.exception(e)
-        return response_500(data="", message=str(e))
-
-
-@userController.post("/user/authRole/selectAll", response_model=CrudUserResponse, dependencies=[Depends(CheckUserInterfaceAuth('system:user:edit'))])
-@log_decorator(title='用户管理', business_type=4)
-async def add_system_role_user(request: Request, add_user_role: CrudUserRoleModel, query_db: Session = Depends(get_db)):
-    try:
-        add_user_role_result = UserService.add_user_role_services(query_db, add_user_role)
+        add_user_role_result = UserService.add_user_role_services(query_db, CrudUserRoleModel(userId=user_id, roleIds=role_ids))
         if add_user_role_result.is_success:
             logger.info(add_user_role_result.message)
-            return response_200(data=add_user_role_result, message=add_user_role_result.message)
+            return ResponseUtil.success(msg=add_user_role_result.message)
         else:
             logger.warning(add_user_role_result.message)
-            return response_400(data="", message=add_user_role_result.message)
+            return ResponseUtil.failure(msg=add_user_role_result.message)
     except Exception as e:
         logger.exception(e)
-        return response_500(data="", message=str(e))
-
-
-@userController.post("/user/authRole/cancel", response_model=CrudUserResponse, dependencies=[Depends(CheckUserInterfaceAuth('system:user:edit'))])
-@log_decorator(title='用户管理', business_type=4)
-async def cancel_system_role_user(request: Request, cancel_user_role: CrudUserRoleModel, query_db: Session = Depends(get_db)):
-    try:
-        cancel_user_role_result = UserService.delete_user_role_services(query_db, cancel_user_role)
-        if cancel_user_role_result.is_success:
-            logger.info(cancel_user_role_result.message)
-            return response_200(data=cancel_user_role_result, message=cancel_user_role_result.message)
-        else:
-            logger.warning(cancel_user_role_result.message)
-            return response_400(data="", message=cancel_user_role_result.message)
-    except Exception as e:
-        logger.exception(e)
-        return response_500(data="", message=str(e))
+        return ResponseUtil.error(msg=str(e))

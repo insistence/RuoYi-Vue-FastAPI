@@ -75,11 +75,10 @@ class MenuDao:
         return list_format_datetime(menu_result)
 
     @classmethod
-    def get_menu_list_for_tree(cls, db: Session, menu_info: MenuModel, user_id: int, role: list):
+    def get_menu_list_for_tree(cls, db: Session, user_id: int, role: list):
         """
         根据角色信息获取所有在用菜单列表信息
         :param db: orm对象
-        :param menu_info: 菜单对象
         :param user_id: 用户id
         :param role: 用户角色列表信息
         :return: 菜单列表信息
@@ -87,8 +86,7 @@ class MenuDao:
         role_id_list = [item.role_id for item in role]
         if 1 in role_id_list:
             menu_query_all = db.query(SysMenu) \
-                .filter(SysMenu.status == 0,
-                        SysMenu.menu_name.like(f'%{menu_info.menu_name}%') if menu_info.menu_name else True) \
+                .filter(SysMenu.status == 0) \
                 .order_by(SysMenu.order_num) \
                 .distinct().all()
         else:
@@ -98,14 +96,25 @@ class MenuDao:
                 .outerjoin(SysRole,
                            and_(SysUserRole.role_id == SysRole.role_id, SysRole.status == 0, SysRole.del_flag == 0)) \
                 .outerjoin(SysRoleMenu, SysRole.role_id == SysRoleMenu.role_id) \
-                .join(SysMenu, and_(SysRoleMenu.menu_id == SysMenu.menu_id,
-                                    SysMenu.status == 0,
-                                    SysMenu.menu_name.like(
-                                        f'%{menu_info.menu_name}%') if menu_info.menu_name else True)) \
+                .join(SysMenu, and_(SysRoleMenu.menu_id == SysMenu.menu_id, SysMenu.status == 0,)) \
                 .order_by(SysMenu.order_num) \
                 .distinct().all()
 
-        return list_format_datetime(menu_query_all)
+        return menu_query_all
+
+    @classmethod
+    def get_role_menu_list(cls, db: Session, role_id: int):
+        """
+        根据角色id获取角色菜单关联列表信息
+        :param db: orm对象
+        :param role_id: 角色id
+        :return: 角色菜单关联列表信息
+        """
+        role_menu_query_all = db.query(SysRoleMenu) \
+            .filter(SysRoleMenu.role_id == role_id) \
+            .distinct().all()
+
+        return role_menu_query_all
 
     @classmethod
     def get_menu_list(cls, db: Session, page_object: MenuModel, user_id: int, role: list):

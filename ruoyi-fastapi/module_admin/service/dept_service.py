@@ -165,7 +165,7 @@ class DeptService:
         :return: 部门树形嵌套数据
         """
         permission_list = [dict(id=item.dept_id, label=item.dept_name, parentId=item.parent_id) for item in permission_list]
-        # 转成dept_id为key的字典
+        # 转成id为key的字典
         mapping: dict = dict(zip([i['id'] for i in permission_list], permission_list))
 
         # 树容器

@@ -2,6 +2,7 @@ from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
 from typing import Union, Optional, List
 from datetime import datetime
+from module_admin.entity.vo.role_vo import RoleModel
 from module_admin.entity.vo.dept_vo import DeptModel
 from module_admin.annotation.form_annotation import as_form
 
@@ -58,28 +59,6 @@ class UserPostModel(BaseModel):
 
     user_id: Optional[int] = None
     post_id: Optional[int] = None
-
-
-class RoleModel(BaseModel):
-    """
-    角色表对应pydantic模型
-    """
-    model_config = ConfigDict(alias_generator=to_camel, from_attributes=True)
-
-    role_id: Optional[int] = None
-    role_name: Optional[str] = None
-    role_key: Optional[str] = None
-    role_sort: Optional[int] = None
-    data_scope: Optional[str] = None
-    menu_check_strictly: Optional[int] = None
-    dept_check_strictly: Optional[int] = None
-    status: Optional[str] = None
-    del_flag: Optional[str] = None
-    create_by: Optional[str] = None
-    create_time: Optional[datetime] = None
-    update_by: Optional[str] = None
-    update_time: Optional[datetime] = None
-    remark: Optional[str] = None
 
 
 class PostModel(BaseModel):
@@ -230,6 +209,23 @@ class UserRolePageObject(UserRoleQueryModel):
     page_size: int
 
 
+class SelectedRoleModel(RoleModel):
+    """
+    是否选择角色模型
+    """
+    flag: Optional[bool] = False
+
+
+class UserRoleResponseModel(BaseModel):
+    """
+    用户角色关联管理列表返回模型
+    """
+    model_config = ConfigDict(alias_generator=to_camel)
+
+    roles: List[Union[SelectedRoleModel, None]] = []
+    user: UserInfoModel
+
+
 class UserRolePageObjectResponse(BaseModel):
     """
     用户角色关联管理列表分页查询返回模型
@@ -249,7 +245,9 @@ class CrudUserRoleModel(BaseModel):
     """
     model_config = ConfigDict(alias_generator=to_camel)
 
+    user_id: Optional[int] = None
     user_ids: Optional[str] = None
+    role_id: Optional[int] = None
     role_ids: Optional[str] = None
 
 

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request
-from fastapi import Depends, File, Form
+from fastapi import Depends, File, Form, Query
 from sqlalchemy.orm import Session
 from config.env import CachePathConfig
 from config.get_db import get_db
@@ -12,7 +12,7 @@ from module_admin.aspect.interface_auth import CheckUserInterfaceAuth
 from typing import Optional
 
 
-commonController = APIRouter()
+commonController = APIRouter(prefix='/common')
 
 
 @commonController.post("/upload", dependencies=[Depends(get_current_user), Depends(CheckUserInterfaceAuth('common'))])
@@ -64,10 +64,10 @@ async def editor_upload(request: Request, baseUrl: str = Form(), uploadId: str =
 
 
 @commonController.get(f"/{CachePathConfig.PATHSTR}")
-async def common_download(request: Request, taskPath: str, taskId: str, filename: str):
+async def common_download(request: Request, task_path: str = Query(alias='taskPath'), task_id: str = Query(alias='taskId'), filename: str = Query()):
     try:
         def generate_file():
-            with open(os.path.join(CachePathConfig.PATH, taskPath, taskId, filename), 'rb') as response_file:
+            with open(os.path.join(CachePathConfig.PATH, task_path, task_id, filename), 'rb') as response_file:
                 yield from response_file
         return streaming_response_200(data=generate_file())
     except Exception as e:

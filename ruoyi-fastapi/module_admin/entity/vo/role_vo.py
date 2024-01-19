@@ -1,41 +1,75 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic.alias_generators import to_camel
 from typing import Union, Optional, List
-from module_admin.entity.vo.user_vo import RoleModel
+from datetime import datetime
 from module_admin.entity.vo.dept_vo import DeptModel
 from module_admin.entity.vo.menu_vo import MenuModel
+
+
+class RoleModel(BaseModel):
+    """
+    角色表对应pydantic模型
+    """
+    model_config = ConfigDict(alias_generator=to_camel, from_attributes=True)
+
+    role_id: Optional[int] = None
+    role_name: Optional[str] = None
+    role_key: Optional[str] = None
+    role_sort: Optional[int] = None
+    data_scope: Optional[str] = None
+    menu_check_strictly: Optional[Union[int, bool]] = None
+    dept_check_strictly: Optional[Union[int, bool]] = None
+    status: Optional[str] = None
+    del_flag: Optional[str] = None
+    create_by: Optional[str] = None
+    create_time: Optional[datetime] = None
+    update_by: Optional[str] = None
+    update_time: Optional[datetime] = None
+    remark: Optional[str] = None
+
+    @field_validator('menu_check_strictly', 'dept_check_strictly')
+    @classmethod
+    def check_filed_mapping(cls, v: Union[int, bool]) -> Union[int, bool]:
+        if v == 1:
+            v = True
+        elif v == 0:
+            v = False
+        elif v is True:
+            v = 1
+        elif v is False:
+            v = 0
+        return v
 
 
 class RoleMenuModel(BaseModel):
     """
     角色和菜单关联表对应pydantic模型
     """
+    model_config = ConfigDict(alias_generator=to_camel, from_attributes=True)
+
     role_id: Optional[int]
     menu_id: Optional[int]
-
-    class Config:
-        from_attributes = True
 
 
 class RoleDeptModel(BaseModel):
     """
     角色和部门关联表对应pydantic模型
     """
+    model_config = ConfigDict(alias_generator=to_camel, from_attributes=True)
+
     role_id: Optional[int]
     dept_id: Optional[int]
-
-    class Config:
-        from_attributes = True
 
 
 class RoleQueryModel(RoleModel):
     """
     角色管理不分页查询模型
     """
-    create_time_start: Optional[str] = None
-    create_time_end: Optional[str] = None
+    begin_time: Optional[str] = None
+    end_time: Optional[str] = None
 
 
-class RolePageObject(RoleQueryModel):
+class RolePageQueryModel(RoleQueryModel):
     """
     角色管理分页查询模型
     """

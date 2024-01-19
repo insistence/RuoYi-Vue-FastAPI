@@ -224,7 +224,7 @@ class UserDao:
             )
         ).distinct().all()
 
-        return list_format_datetime(allocated_role_list)
+        return allocated_role_list
 
     @classmethod
     def get_user_role_unallocated_list_by_user_id(cls, db: Session, query_object: UserRoleQueryModel):

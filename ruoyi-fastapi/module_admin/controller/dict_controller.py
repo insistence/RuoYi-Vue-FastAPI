@@ -12,7 +12,7 @@ from module_admin.aspect.interface_auth import CheckUserInterfaceAuth
 from module_admin.annotation.log_annotation import log_decorator
 
 
-dictController = APIRouter(prefix='/dict', dependencies=[Depends(LoginService.get_current_user)])
+dictController = APIRouter(prefix='/system/dict', dependencies=[Depends(LoginService.get_current_user)])
 
 
 @dictController.get("/data/type/{dict_type}", dependencies=[Depends(CheckUserInterfaceAuth('system:dict:list'))])

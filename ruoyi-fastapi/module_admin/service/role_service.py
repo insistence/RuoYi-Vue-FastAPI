@@ -73,7 +73,7 @@ class RoleService:
             del edit_role['menu_id']
         if page_object.type == 'status':
             del edit_role['type']
-        role_info = cls.detail_role_services(query_db, edit_role.get('role_id'))
+        role_info = cls.role_detail_services(query_db, edit_role.get('role_id'))
         if role_info:
             if page_object.type != 'status' and role_info.role.role_name != page_object.role_name:
                 role = RoleDao.get_role_by_info(query_db, RoleModel(**dict(role_name=page_object.role_name)))
@@ -110,7 +110,7 @@ class RoleService:
         """
         edit_role = page_object.dict(exclude_unset=True)
         del edit_role['dept_id']
-        role_info = cls.detail_role_services(query_db, edit_role.get('role_id'))
+        role_info = cls.role_detail_services(query_db, edit_role.get('role_id'))
         if role_info:
             if role_info.role.role_name != page_object.role_name:
                 role = RoleDao.get_role_by_info(query_db, RoleModel(**dict(role_name=page_object.role_name)))
@@ -161,7 +161,7 @@ class RoleService:
         return CrudRoleResponse(**result)
 
     @classmethod
-    def detail_role_services(cls, query_db: Session, role_id: int):
+    def role_detail_services(cls, query_db: Session, role_id: int):
         """
         获取角色详细信息service
         :param query_db: orm对象
@@ -169,8 +169,9 @@ class RoleService:
         :return: 角色id对应的信息
         """
         role = RoleDao.get_role_detail_by_id(query_db, role_id=role_id)
+        result = RoleModel(**CamelCaseUtil.transform_result(role))
 
-        return role
+        return result
 
     @staticmethod
     def export_role_list_services(role_list: List):

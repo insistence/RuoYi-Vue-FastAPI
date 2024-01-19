@@ -1,4 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+from pydantic.alias_generators import to_camel
+from datetime import datetime
 from typing import Union, Optional, List
 
 
@@ -6,35 +8,44 @@ class MenuModel(BaseModel):
     """
     菜单表对应pydantic模型
     """
-    menu_id: Optional[int]
-    menu_name: Optional[str]
-    parent_id: Optional[int]
-    order_num: Optional[int]
-    path: Optional[str]
-    component: Optional[str]
-    query: Optional[str]
-    is_frame: Optional[int]
-    is_cache: Optional[int]
-    menu_type: Optional[str]
-    visible: Optional[str]
-    status: Optional[str]
-    perms: Optional[str]
-    icon: Optional[str]
-    create_by: Optional[str]
-    create_time: Optional[str]
-    update_by: Optional[str]
-    update_time: Optional[str]
-    remark: Optional[str]
+    model_config = ConfigDict(alias_generator=to_camel, from_attributes=True)
 
-    class Config:
-        from_attributes = True
+    menu_id: Optional[int] = None
+    menu_name: Optional[str] = None
+    parent_id: Optional[int] = None
+    order_num: Optional[int] = None
+    path: Optional[str] = None
+    component: Optional[str] = None
+    query: Optional[str] = None
+    is_frame: Optional[int] = None
+    is_cache: Optional[int] = None
+    menu_type: Optional[str] = None
+    visible: Optional[str] = None
+    status: Optional[str] = None
+    perms: Optional[str] = None
+    icon: Optional[str] = None
+    create_by: Optional[str] = None
+    create_time: Optional[datetime] = None
+    update_by: Optional[str] = None
+    update_time: Optional[datetime] = None
+    remark: Optional[str] = None
         
         
 class MenuTreeModel(MenuModel):
     """
     菜单树查询模型
     """
-    type: Optional[str]
+    type: Optional[str] = None
+
+
+class RoleMenuQueryModel(BaseModel):
+    """
+    角色菜单查询模型
+    """
+    model_config = ConfigDict(alias_generator=to_camel)
+
+    menus: List = []
+    checked_keys: List[int] = []
 
 
 class MenuPageObject(MenuModel):

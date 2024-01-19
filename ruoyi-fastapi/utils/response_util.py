@@ -178,6 +178,11 @@ class ResponseUtil:
 
     @classmethod
     def streaming(cls, *, data: Any = None):
+        """
+        流式响应方法
+        :param data: 流式传输的内容
+        :return: 流式响应结果
+        """
         return StreamingResponse(
             status_code=status.HTTP_200_OK,
             content=data

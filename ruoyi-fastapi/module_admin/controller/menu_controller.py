@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request
 from fastapi import Depends
 from config.get_db import get_db
-from module_admin.service.login_service import get_current_user
+from module_admin.service.login_service import LoginService
 from module_admin.service.menu_service import *
 from module_admin.entity.vo.menu_vo import *
 from module_admin.dao.menu_dao import *
@@ -11,22 +11,33 @@ from module_admin.aspect.interface_auth import CheckUserInterfaceAuth
 from module_admin.annotation.log_annotation import log_decorator
 
 
-menuController = APIRouter(dependencies=[Depends(get_current_user)])
+menuController = APIRouter(prefix='/system/menu', dependencies=[Depends(LoginService.get_current_user)])
 
 
-@menuController.post("/menu/tree", response_model=MenuTree, dependencies=[Depends(CheckUserInterfaceAuth('common'))])
-async def get_system_menu_tree(request: Request, menu_query: MenuTreeModel, query_db: Session = Depends(get_db), current_user: CurrentUserInfoServiceResponse = Depends(get_current_user)):
+@menuController.get("/treeselect", dependencies=[Depends(CheckUserInterfaceAuth('common'))])
+async def get_system_menu_tree(request: Request, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
     try:
-        menu_query_result = MenuService.get_menu_tree_services(query_db, menu_query, current_user)
+        menu_query_result = MenuService.get_menu_tree_services(query_db, current_user)
         logger.info('获取成功')
-        return response_200(data=menu_query_result, message="获取成功")
+        return ResponseUtil.success(data=menu_query_result)
     except Exception as e:
         logger.exception(e)
-        return response_500(data="", message=str(e))
+        return ResponseUtil.error(msg=str(e))
+
+
+@menuController.get("/roleMenuTreeselect/{role_id}", dependencies=[Depends(CheckUserInterfaceAuth('common'))])
+async def get_system_role_menu_tree(request: Request, role_id: int, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
+    try:
+        role_menu_query_result = MenuService.get_role_menu_tree_services(query_db, role_id, current_user)
+        logger.info('获取成功')
+        return ResponseUtil.success(model_content=role_menu_query_result)
+    except Exception as e:
+        logger.exception(e)
+        return ResponseUtil.error(msg=str(e))
 
 
 @menuController.post("/menu/forEditOption", response_model=MenuTree, dependencies=[Depends(CheckUserInterfaceAuth('common'))])
-async def get_system_menu_tree_for_edit_option(request: Request, menu_query: MenuModel, query_db: Session = Depends(get_db), current_user: CurrentUserInfoServiceResponse = Depends(get_current_user)):
+async def get_system_menu_tree_for_edit_option(request: Request, menu_query: MenuModel, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
     try:
         menu_query_result = MenuService.get_menu_tree_for_edit_option_services(query_db, menu_query, current_user)
         logger.info('获取成功')
@@ -37,7 +48,7 @@ async def get_system_menu_tree_for_edit_option(request: Request, menu_query: Men
 
 
 @menuController.post("/menu/get", response_model=MenuResponse, dependencies=[Depends(CheckUserInterfaceAuth('system:menu:list'))])
-async def get_system_menu_list(request: Request, menu_query: MenuModel, query_db: Session = Depends(get_db), current_user: CurrentUserInfoServiceResponse = Depends(get_current_user)):
+async def get_system_menu_list(request: Request, menu_query: MenuModel, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
     try:
         menu_query_result = MenuService.get_menu_list_services(query_db, menu_query, current_user)
         logger.info('获取成功')
@@ -49,7 +60,7 @@ async def get_system_menu_list(request: Request, menu_query: MenuModel, query_db
 
 @menuController.post("/menu/add", response_model=CrudMenuResponse, dependencies=[Depends(CheckUserInterfaceAuth('system:menu:add'))])
 @log_decorator(title='菜单管理', business_type=1)
-async def add_system_menu(request: Request, add_menu: MenuModel, query_db: Session = Depends(get_db), current_user: CurrentUserInfoServiceResponse = Depends(get_current_user)):
+async def add_system_menu(request: Request, add_menu: MenuModel, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
     try:
         add_menu.create_by = current_user.user.user_name
         add_menu.update_by = current_user.user.user_name
@@ -67,7 +78,7 @@ async def add_system_menu(request: Request, add_menu: MenuModel, query_db: Sessi
 
 @menuController.patch("/menu/edit", response_model=CrudMenuResponse, dependencies=[Depends(CheckUserInterfaceAuth('system:menu:edit'))])
 @log_decorator(title='菜单管理', business_type=2)
-async def edit_system_menu(request: Request, edit_menu: MenuModel, query_db: Session = Depends(get_db), current_user: CurrentUserInfoServiceResponse = Depends(get_current_user)):
+async def edit_system_menu(request: Request, edit_menu: MenuModel, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
     try:
         edit_menu.update_by = current_user.user.user_name
         edit_menu.update_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

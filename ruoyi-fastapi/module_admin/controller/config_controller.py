@@ -12,7 +12,7 @@ from module_admin.aspect.interface_auth import CheckUserInterfaceAuth
 from module_admin.annotation.log_annotation import log_decorator
 
 
-configController = APIRouter(prefix='/config', dependencies=[Depends(LoginService.get_current_user)])
+configController = APIRouter(prefix='/system/config', dependencies=[Depends(LoginService.get_current_user)])
 
 
 @configController.post("/config/get", response_model=ConfigPageObjectResponse, dependencies=[Depends(CheckUserInterfaceAuth('system:config:list'))])

@@ -67,26 +67,11 @@ class RoleDao:
         :param role_id: 角色id
         :return: 当前role_id的角色信息对象
         """
-        query_role_basic_info = db.query(SysRole) \
+        query_role_info = db.query(SysRole) \
             .filter(SysRole.del_flag == 0, SysRole.role_id == role_id) \
             .distinct().first()
-        query_role_menu_info = db.query(SysMenu).select_from(SysRole) \
-            .filter(SysRole.del_flag == 0, SysRole.role_id == role_id) \
-            .outerjoin(SysRoleMenu, SysRole.role_id == SysRoleMenu.role_id) \
-            .outerjoin(SysMenu, and_(SysRoleMenu.menu_id == SysMenu.menu_id, SysMenu.status == 0)) \
-            .distinct().all()
-        query_role_dept_info = db.query(SysDept).select_from(SysRole) \
-            .filter(SysRole.del_flag == 0, SysRole.role_id == role_id) \
-            .outerjoin(SysRoleDept, SysRole.role_id == SysRoleDept.role_id) \
-            .outerjoin(SysDept, and_(SysRoleDept.dept_id == SysDept.dept_id, SysDept.status == 0, SysDept.del_flag == 0)) \
-            .distinct().all()
-        results = dict(
-            role=object_format_datetime(query_role_basic_info),
-            menu=list_format_datetime(query_role_menu_info),
-            dept=list_format_datetime(query_role_dept_info),
-        )
 
-        return RoleDetailModel(**results)
+        return query_role_info
 
     @classmethod
     def get_role_select_option_dao(cls, db: Session):
@@ -115,9 +100,9 @@ class RoleDao:
                     SysRole.role_key.like(f'%{query_object.role_key}%') if query_object.role_key else True,
                     SysRole.status == query_object.status if query_object.status else True,
                     SysRole.create_time.between(
-                        datetime.combine(datetime.strptime(query_object.create_time_start, '%Y-%m-%d'), time(00, 00, 00)),
-                        datetime.combine(datetime.strptime(query_object.create_time_end, '%Y-%m-%d'), time(23, 59, 59)))
-                    if query_object.create_time_start and query_object.create_time_end else True
+                        datetime.combine(datetime.strptime(query_object.begin_time, '%Y-%m-%d'), time(00, 00, 00)),
+                        datetime.combine(datetime.strptime(query_object.end_time, '%Y-%m-%d'), time(23, 59, 59)))
+                    if query_object.begin_time and query_object.end_time else True
                     ) \
             .order_by(SysRole.role_sort) \
             .distinct().all()
