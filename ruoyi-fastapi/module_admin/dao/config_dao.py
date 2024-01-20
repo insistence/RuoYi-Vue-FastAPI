@@ -1,7 +1,6 @@
 from sqlalchemy.orm import Session
 from module_admin.entity.do.config_do import SysConfig
-from module_admin.entity.vo.config_vo import ConfigModel, ConfigQueryModel
-from utils.time_format_util import list_format_datetime
+from module_admin.entity.vo.config_vo import *
 from datetime import datetime, time
 
 
@@ -40,17 +39,6 @@ class ConfigDao:
         return config_info
 
     @classmethod
-    def get_all_config(cls, db: Session):
-        """
-        获取所有的参数配置信息
-        :param db: orm对象
-        :return: 参数配置信息列表对象
-        """
-        config_info = db.query(SysConfig).all()
-
-        return list_format_datetime(config_info)
-
-    @classmethod
     def get_config_list(cls, db: Session, query_object: ConfigQueryModel):
         """
         根据查询参数获取参数配置列表信息
@@ -63,13 +51,13 @@ class ConfigDao:
                     SysConfig.config_key.like(f'%{query_object.config_key}%') if query_object.config_key else True,
                     SysConfig.config_type == query_object.config_type if query_object.config_type else True,
                     SysConfig.create_time.between(
-                        datetime.combine(datetime.strptime(query_object.create_time_start, '%Y-%m-%d'), time(00, 00, 00)),
-                        datetime.combine(datetime.strptime(query_object.create_time_end, '%Y-%m-%d'), time(23, 59, 59)))
-                    if query_object.create_time_start and query_object.create_time_end else True
+                        datetime.combine(datetime.strptime(query_object.begin_time, '%Y-%m-%d'), time(00, 00, 00)),
+                        datetime.combine(datetime.strptime(query_object.end_time, '%Y-%m-%d'), time(23, 59, 59)))
+                    if query_object.begin_time and query_object.end_time else True
                     ) \
             .distinct().all()
 
-        return list_format_datetime(config_list)
+        return config_list
 
     @classmethod
     def add_config_dao(cls, db: Session, config: ConfigModel):
@@ -79,7 +67,7 @@ class ConfigDao:
         :param config: 参数配置对象
         :return:
         """
-        db_config = SysConfig(**config.dict())
+        db_config = SysConfig(**config.model_dump())
         db.add(db_config)
         db.flush()
 
