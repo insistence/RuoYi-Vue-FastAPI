@@ -26,9 +26,6 @@ service.interceptors.request.use(config => {
   const isToken = (config.headers || {}).isToken === false
   // 是否需要防止数据重复提交
   const isRepeatSubmit = (config.headers || {}).repeatSubmit === false
-  if (config.headers.contentType) {
-    config.headers['Content-Type'] = config.headers.contentType
-  }
   if (getToken() && !isToken) {
     config.headers['Authorization'] = 'Bearer ' + getToken() // 让每个请求携带自定义token 请根据实际情况自行修改
   }
@@ -44,6 +41,12 @@ service.interceptors.request.use(config => {
       url: config.url,
       data: typeof config.data === 'object' ? JSON.stringify(config.data) : config.data,
       time: new Date().getTime()
+    }
+    const requestSize = Object.keys(JSON.stringify(requestObj)).length; // 请求数据大小
+    const limitSize = 5 * 1024 * 1024; // 限制存放数据5M
+    if (requestSize >= limitSize) {
+      console.warn(`[${config.url}]: ` + '请求数据大小超出允许的5M限制，无法进行防重复提交验证。')
+      return config;
     }
     const sessionObj = cache.session.getJSON('sessionObj')
     if (sessionObj === undefined || sessionObj === null || sessionObj === '') {

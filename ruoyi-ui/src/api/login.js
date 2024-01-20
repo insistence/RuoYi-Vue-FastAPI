@@ -11,7 +11,7 @@ export function login(username, password, code, uuid) {
     url: '/login',
     headers: {
       isToken: false,
-      contentType: 'application/x-www-form-urlencoded'
+      repeatSubmit: false
     },
     method: 'post',
     data: data
