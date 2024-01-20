@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from module_admin.entity.do.log_do import SysOperLog, SysLogininfor
-from module_admin.entity.vo.log_vo import OperLogModel, LogininforModel, OperLogQueryModel, LoginLogQueryModel
+from module_admin.entity.vo.log_vo import *
 from utils.time_format_util import object_format_datetime, list_format_datetime
 from datetime import datetime, time
 
@@ -9,21 +9,6 @@ class OperationLogDao:
     """
     操作日志管理模块数据库操作层
     """
-
-    @classmethod
-    def get_operation_log_detail_by_id(cls, db: Session, oper_id: int):
-        """
-        根据操作日志id获取操作日志详细信息
-        :param db: orm对象
-        :param oper_id: 操作日志id
-        :return: 操作日志信息对象
-        """
-        operation_log_info = db.query(SysOperLog) \
-            .filter(SysOperLog.oper_id == oper_id) \
-            .first()
-
-        return object_format_datetime(operation_log_info)
-
     @classmethod
     def get_operation_log_list(cls, db: Session, query_object: OperLogQueryModel):
         """
@@ -38,13 +23,13 @@ class OperationLogDao:
                     SysOperLog.business_type == query_object.business_type if query_object.business_type else True,
                     SysOperLog.status == query_object.status if query_object.status else True,
                     SysOperLog.oper_time.between(
-                        datetime.combine(datetime.strptime(query_object.oper_time_start, '%Y-%m-%d'), time(00, 00, 00)),
-                        datetime.combine(datetime.strptime(query_object.oper_time_end, '%Y-%m-%d'), time(23, 59, 59)))
-                                if query_object.oper_time_start and query_object.oper_time_end else True
+                        datetime.combine(datetime.strptime(query_object.begin_time, '%Y-%m-%d'), time(00, 00, 00)),
+                        datetime.combine(datetime.strptime(query_object.end_time, '%Y-%m-%d'), time(23, 59, 59)))
+                                if query_object.begin_time and query_object.end_time else True
                     )\
             .distinct().all()
 
-        return list_format_datetime(operation_log_list)
+        return operation_log_list
 
     @classmethod
     def add_operation_log_dao(cls, db: Session, operation_log: OperLogModel):
@@ -101,13 +86,13 @@ class LoginLogDao:
                     SysLogininfor.user_name.like(f'%{query_object.user_name}%') if query_object.user_name else True,
                     SysLogininfor.status == query_object.status if query_object.status else True,
                     SysLogininfor.login_time.between(
-                        datetime.combine(datetime.strptime(query_object.login_time_start, '%Y-%m-%d'), time(00, 00, 00)),
-                        datetime.combine(datetime.strptime(query_object.login_time_end, '%Y-%m-%d'), time(23, 59, 59)))
-                                if query_object.login_time_start and query_object.login_time_end else True
+                        datetime.combine(datetime.strptime(query_object.begin_time, '%Y-%m-%d'), time(00, 00, 00)),
+                        datetime.combine(datetime.strptime(query_object.end_time, '%Y-%m-%d'), time(23, 59, 59)))
+                                if query_object.begin_time and query_object.end_time else True
                     )\
             .distinct().all()
 
-        return list_format_datetime(login_log_list)
+        return login_log_list
 
     @classmethod
     def add_login_log_dao(cls, db: Session, login_log: LogininforModel):

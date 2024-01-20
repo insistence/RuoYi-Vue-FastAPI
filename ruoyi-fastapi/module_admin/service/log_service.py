@@ -1,7 +1,7 @@
-from module_admin.entity.vo.log_vo import *
 from module_admin.dao.log_dao import *
 from module_admin.service.dict_service import Request, DictDataService
-from utils.common_util import export_list2excel
+from module_admin.entity.vo.common_vo import CrudResponseModel
+from utils.common_util import export_list2excel, CamelCaseUtil
 
 
 class OperationLogService:
@@ -19,7 +19,7 @@ class OperationLogService:
         """
         operation_log_list_result = OperationLogDao.get_operation_log_list(query_db, query_object)
 
-        return operation_log_list_result
+        return CamelCaseUtil.transform_result(operation_log_list_result)
 
     @classmethod
     def add_operation_log_services(cls, query_db: Session, page_object: OperLogModel):
@@ -37,7 +37,7 @@ class OperationLogService:
             query_db.rollback()
             result = dict(is_success=False, message=str(e))
 
-        return CrudLogResponse(**result)
+        return CrudResponseModel(**result)
 
     @classmethod
     def delete_operation_log_services(cls, query_db: Session, page_object: DeleteOperLogModel):
@@ -51,49 +51,32 @@ class OperationLogService:
             oper_id_list = page_object.oper_ids.split(',')
             try:
                 for oper_id in oper_id_list:
-                    oper_id_dict = dict(oper_id=oper_id)
-                    OperationLogDao.delete_operation_log_dao(query_db, OperLogModel(**oper_id_dict))
+                    OperationLogDao.delete_operation_log_dao(query_db, OperLogModel(operId=oper_id))
                 query_db.commit()
                 result = dict(is_success=True, message='删除成功')
             except Exception as e:
                 query_db.rollback()
-                result = dict(is_success=False, message=str(e))
+                raise e
         else:
             result = dict(is_success=False, message='传入操作日志id为空')
-        return CrudLogResponse(**result)
+        return CrudResponseModel(**result)
 
     @classmethod
-    def clear_operation_log_services(cls, query_db: Session, page_object: ClearOperLogModel):
+    def clear_operation_log_services(cls, query_db: Session):
         """
         清除操作日志信息service
         :param query_db: orm对象
-        :param page_object: 清除操作日志对象
         :return: 清除操作日志校验结果
         """
-        if page_object.oper_type == 'clear':
-            try:
-                OperationLogDao.clear_operation_log_dao(query_db)
-                query_db.commit()
-                result = dict(is_success=True, message='清除成功')
-            except Exception as e:
-                query_db.rollback()
-                result = dict(is_success=False, message=str(e))
-        else:
-            result = dict(is_success=False, message='清除标识不合法')
+        try:
+            OperationLogDao.clear_operation_log_dao(query_db)
+            query_db.commit()
+            result = dict(is_success=True, message='清除成功')
+        except Exception as e:
+            query_db.rollback()
+            raise e
 
-        return CrudLogResponse(**result)
-
-    @classmethod
-    def detail_operation_log_services(cls, query_db: Session, oper_id: int):
-        """
-        获取操作日志详细信息service
-        :param query_db: orm对象
-        :param oper_id: 操作日志id
-        :return: 操作日志id对应的信息
-        """
-        operation_log = OperationLogDao.get_operation_log_detail_by_id(query_db, oper_id=oper_id)
-
-        return operation_log
+        return CrudResponseModel(**result)
 
     @classmethod
     async def export_operation_log_list_services(cls, request: Request, operation_log_list: List):
@@ -105,25 +88,25 @@ class OperationLogService:
         """
         # 创建一个映射字典，将英文键映射到中文键
         mapping_dict = {
-            "oper_id": "日志编号",
+            "operId": "日志编号",
             "title": "系统模块",
-            "business_type": "操作类型",
+            "businessType": "操作类型",
             "method": "方法名称",
-            "request_method": "请求方式",
-            "oper_name": "操作人员",
-            "dept_name": "部门名称",
-            "oper_url": "请求URL",
-            "oper_ip": "操作地址",
-            "oper_location": "操作地点",
-            "oper_param": "请求参数",
-            "json_result": "返回参数",
+            "requestMethod": "请求方式",
+            "operName": "操作人员",
+            "deptName": "部门名称",
+            "operUrl": "请求URL",
+            "operIp": "操作地址",
+            "operLocation": "操作地点",
+            "operParam": "请求参数",
+            "jsonResult": "返回参数",
             "status": "操作状态",
             "error_msg": "错误消息",
-            "oper_time": "操作日期",
-            "cost_time": "消耗时间（毫秒）"
+            "operTime": "操作日期",
+            "costTime": "消耗时间（毫秒）"
         }
 
-        data = [OperLogModel(**vars(row)).dict() for row in operation_log_list]
+        data = operation_log_list
         operation_type_list = await DictDataService.query_dict_data_list_from_cache_services(request.app.state.redis, dict_type='sys_oper_type')
         operation_type_option = [dict(label=item.get('dict_label'), value=item.get('dict_value')) for item in operation_type_list]
         operation_type_option_dict = {item.get('value'): item for item in operation_type_option}
@@ -157,7 +140,7 @@ class LoginLogService:
         """
         operation_log_list_result = LoginLogDao.get_login_log_list(query_db, query_object)
 
-        return operation_log_list_result
+        return CamelCaseUtil.transform_result(operation_log_list_result)
 
     @classmethod
     def add_login_log_services(cls, query_db: Session, page_object: LogininforModel):
@@ -175,7 +158,7 @@ class LoginLogService:
             query_db.rollback()
             result = dict(is_success=False, message=str(e))
 
-        return CrudLogResponse(**result)
+        return CrudResponseModel(**result)
 
     @classmethod
     def delete_login_log_services(cls, query_db: Session, page_object: DeleteLoginLogModel):
@@ -189,37 +172,32 @@ class LoginLogService:
             info_id_list = page_object.info_ids.split(',')
             try:
                 for info_id in info_id_list:
-                    info_id_dict = dict(info_id=info_id)
-                    LoginLogDao.delete_login_log_dao(query_db, LogininforModel(**info_id_dict))
+                    LoginLogDao.delete_login_log_dao(query_db, LogininforModel(infoId=info_id))
                 query_db.commit()
                 result = dict(is_success=True, message='删除成功')
             except Exception as e:
                 query_db.rollback()
-                result = dict(is_success=False, message=str(e))
+                raise e
         else:
             result = dict(is_success=False, message='传入登录日志id为空')
-        return CrudLogResponse(**result)
+        return CrudResponseModel(**result)
 
     @classmethod
-    def clear_login_log_services(cls, query_db: Session, page_object: ClearLoginLogModel):
+    def clear_login_log_services(cls, query_db: Session):
         """
         清除操作日志信息service
         :param query_db: orm对象
-        :param page_object: 清除操作日志对象
         :return: 清除操作日志校验结果
         """
-        if page_object.oper_type == 'clear':
-            try:
-                LoginLogDao.clear_login_log_dao(query_db)
-                query_db.commit()
-                result = dict(is_success=True, message='清除成功')
-            except Exception as e:
-                query_db.rollback()
-                result = dict(is_success=False, message=str(e))
-        else:
-            result = dict(is_success=False, message='清除标识不合法')
+        try:
+            LoginLogDao.clear_login_log_dao(query_db)
+            query_db.commit()
+            result = dict(is_success=True, message='清除成功')
+        except Exception as e:
+            query_db.rollback()
+            raise e
 
-        return CrudLogResponse(**result)
+        return CrudResponseModel(**result)
 
     @classmethod
     async def unlock_user_services(cls, request: Request, unlock_user: UnlockUser):
@@ -229,7 +207,7 @@ class LoginLogService:
             result = dict(is_success=True, message='解锁成功')
         else:
             result = dict(is_success=False, message='该用户未锁定')
-        return CrudLogResponse(**result)
+        return CrudResponseModel(**result)
 
     @staticmethod
     def export_login_log_list_services(login_log_list: List):
@@ -240,18 +218,18 @@ class LoginLogService:
         """
         # 创建一个映射字典，将英文键映射到中文键
         mapping_dict = {
-            "info_id": "访问编号",
-            "user_name": "用户名称",
+            "infoId": "访问编号",
+            "userName": "用户名称",
             "ipaddr": "登录地址",
-            "login_location": "登录地点",
+            "loginLocation": "登录地点",
             "browser": "浏览器",
             "os": "操作系统",
             "status": "登录状态",
             "msg": "操作信息",
-            "login_time": "登录日期"
+            "loginTime": "登录日期"
         }
 
-        data = [LogininforModel(**vars(row)).dict() for row in login_log_list]
+        data = login_log_list
 
         for item in data:
             if item.get('status') == '0':

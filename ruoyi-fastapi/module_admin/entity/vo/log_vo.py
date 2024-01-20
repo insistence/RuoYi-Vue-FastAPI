@@ -2,6 +2,7 @@ from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
 from typing import Union, Optional, List
 from datetime import datetime
+from module_admin.annotation.pydantic_annotation import as_query, as_form
 
 
 class OperLogModel(BaseModel):
@@ -50,11 +51,13 @@ class OperLogQueryModel(OperLogModel):
     """
     操作日志管理不分页查询模型
     """
-    oper_time_start: Optional[str]
-    oper_time_end: Optional[str]
+    begin_time: Optional[str] = None
+    end_time: Optional[str] = None
 
 
-class OperLogPageObject(OperLogQueryModel):
+@as_query
+@as_form
+class OperLogPageQueryModel(OperLogQueryModel):
     """
     操作日志管理分页查询模型
     """
@@ -62,40 +65,27 @@ class OperLogPageObject(OperLogQueryModel):
     page_size: int
 
 
-class OperLogPageObjectResponse(BaseModel):
-    """
-    操作日志列表分页查询返回模型
-    """
-    rows: List[Union[OperLogModel, None]] = []
-    page_num: int
-    page_size: int
-    total: int
-    has_next: bool
-
-
 class DeleteOperLogModel(BaseModel):
     """
     删除操作日志模型
     """
+    model_config = ConfigDict(alias_generator=to_camel)
+
     oper_ids: str
-
-
-class ClearOperLogModel(BaseModel):
-    """
-    清除操作日志模型
-    """
-    oper_type: str
 
 
 class LoginLogQueryModel(LogininforModel):
     """
     登录日志管理不分页查询模型
     """
-    login_time_start: Optional[str]
-    login_time_end: Optional[str]
+    begin_time: Optional[str] = None
+    end_time: Optional[str] = None
 
 
-class LoginLogPageObject(LoginLogQueryModel):
+
+@as_query
+@as_form
+class LoginLogPageQueryModel(LoginLogQueryModel):
     """
     登录日志管理分页查询模型
     """
@@ -103,41 +93,19 @@ class LoginLogPageObject(LoginLogQueryModel):
     page_size: int
 
 
-class LoginLogPageObjectResponse(BaseModel):
-    """
-    登录日志列表分页查询返回模型
-    """
-    rows: List[Union[LogininforModel, None]] = []
-    page_num: int
-    page_size: int
-    total: int
-    has_next: bool
-
-
 class DeleteLoginLogModel(BaseModel):
     """
     删除登录日志模型
     """
+    model_config = ConfigDict(alias_generator=to_camel)
+
     info_ids: str
-
-
-class ClearLoginLogModel(BaseModel):
-    """
-    清除登录日志模型
-    """
-    oper_type: str
 
 
 class UnlockUser(BaseModel):
     """
     解锁用户模型
     """
+    model_config = ConfigDict(alias_generator=to_camel)
+
     user_name: str
-
-
-class CrudLogResponse(BaseModel):
-    """
-    操作各类日志响应模型
-    """
-    is_success: bool
-    message: str
