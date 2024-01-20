@@ -3,7 +3,7 @@ from fastapi import Depends, File, Form, Query
 from sqlalchemy.orm import Session
 from config.env import CachePathConfig
 from config.get_db import get_db
-from module_admin.service.login_service import get_current_user
+from module_admin.service.login_service import LoginService
 from module_admin.service.common_service import *
 from module_admin.service.config_service import ConfigService
 from utils.response_util import *
@@ -15,7 +15,7 @@ from typing import Optional
 commonController = APIRouter(prefix='/common')
 
 
-@commonController.post("/upload", dependencies=[Depends(get_current_user), Depends(CheckUserInterfaceAuth('common'))])
+@commonController.post("/upload", dependencies=[Depends(LoginService.get_current_user), Depends(CheckUserInterfaceAuth('common'))])
 async def common_upload(request: Request, taskPath: str = Form(), uploadId: str = Form(), file: UploadFile = File(...)):
     try:
         try:
@@ -30,7 +30,7 @@ async def common_upload(request: Request, taskPath: str = Form(), uploadId: str 
         return response_500(data="", message=str(e))
 
 
-@commonController.post("/uploadForEditor", dependencies=[Depends(get_current_user), Depends(CheckUserInterfaceAuth('common'))])
+@commonController.post("/uploadForEditor", dependencies=[Depends(LoginService.get_current_user), Depends(CheckUserInterfaceAuth('common'))])
 async def editor_upload(request: Request, baseUrl: str = Form(), uploadId: str = Form(), taskPath: str = Form(), file: UploadFile = File(...)):
     try:
         try:

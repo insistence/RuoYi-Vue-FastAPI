@@ -1,13 +1,13 @@
 from fastapi import APIRouter
 from fastapi import Depends
-from module_admin.service.login_service import get_current_user
+from module_admin.service.login_service import LoginService
 from module_admin.service.cache_service import *
 from utils.response_util import *
 from utils.log_util import *
 from module_admin.aspect.interface_auth import CheckUserInterfaceAuth
 
 
-cacheController = APIRouter(prefix='/cache', dependencies=[Depends(get_current_user)])
+cacheController = APIRouter(prefix='/cache', dependencies=[Depends(LoginService.get_current_user)])
 
 
 @cacheController.post("/statisticalInfo", response_model=CacheMonitorModel, dependencies=[Depends(CheckUserInterfaceAuth('monitor:cache:list'))])

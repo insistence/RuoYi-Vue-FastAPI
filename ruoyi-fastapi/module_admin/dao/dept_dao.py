@@ -1,8 +1,6 @@
-from sqlalchemy import or_, func
 from sqlalchemy.orm import Session
-from module_admin.entity.do.role_do import SysRoleDept
 from module_admin.entity.do.dept_do import SysDept
-from module_admin.entity.vo.dept_vo import DeptModel, DeptResponse, CrudDeptResponse
+from module_admin.entity.vo.dept_vo import *
 from utils.time_format_util import list_format_datetime
 
 
@@ -155,11 +153,7 @@ class DeptDao:
             .order_by(SysDept.order_num) \
             .distinct().all()
 
-        result = dict(
-            rows=list_format_datetime(dept_result),
-        )
-
-        return DeptResponse(**result)
+        return dept_result
 
     @classmethod
     def add_dept_dao(cls, db: Session, dept: DeptModel):

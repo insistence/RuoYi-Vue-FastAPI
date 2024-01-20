@@ -1,7 +1,6 @@
 from fastapi import UploadFile
 from module_admin.service.role_service import RoleService
 from module_admin.service.post_service import PostService
-from module_admin.entity.vo.user_vo import *
 from module_admin.entity.vo.common_vo import CrudResponseModel
 from module_admin.dao.user_dao import *
 from utils.pwd_util import *
@@ -55,7 +54,7 @@ class UserService:
                 result = dict(is_success=True, message='新增成功')
             except Exception as e:
                 query_db.rollback()
-                result = dict(is_success=False, message=str(e))
+                raise e
 
         return CrudResponseModel(**result)
 
@@ -96,7 +95,7 @@ class UserService:
                 result = dict(is_success=True, message='更新成功')
             except Exception as e:
                 query_db.rollback()
-                result = dict(is_success=False, message=str(e))
+                raise e
         else:
             result = dict(is_success=False, message='用户不存在')
 
@@ -122,7 +121,7 @@ class UserService:
                 result = dict(is_success=True, message='删除成功')
             except Exception as e:
                 query_db.rollback()
-                result = dict(is_success=False, message=str(e))
+                raise e
         else:
             result = dict(is_success=False, message='传入用户id为空')
         return CrudResponseModel(**result)
@@ -214,7 +213,7 @@ class UserService:
             result = dict(is_success=True, message='重置成功')
         except Exception as e:
             query_db.rollback()
-            result = dict(is_success=False, message=str(e))
+            raise e
 
         return CrudResponseModel(**result)
 
@@ -291,7 +290,7 @@ class UserService:
             result = dict(is_success=True, message='\n'.join(add_error_result))
         except Exception as e:
             query_db.rollback()
-            result = dict(is_success=False, message=str(e))
+            raise e
 
         return CrudResponseModel(**result)
 
@@ -381,22 +380,6 @@ class UserService:
         return result
 
     @classmethod
-    def get_user_role_unallocated_list_services(cls, query_db: Session, page_object: UserRoleQueryModel):
-        """
-        根据用户id获取未分配角色列表或根据角色id获取未分配用户列表
-        :param query_db: orm对象
-        :param page_object: 用户关联角色对象
-        :return: 未分配角色列表或未分配用户列表
-        """
-        unallocated_list = []
-        if page_object.user_id:
-            unallocated_list = UserDao.get_user_role_unallocated_list_by_user_id(query_db, page_object)
-        if page_object.role_id:
-            unallocated_list = UserDao.get_user_role_unallocated_list_by_role_id(query_db, page_object)
-
-        return unallocated_list
-
-    @classmethod
     def add_user_role_services(cls, query_db: Session, page_object: CrudUserRoleModel):
         """
         新增用户关联角色信息service
@@ -404,39 +387,44 @@ class UserService:
         :param page_object: 新增用户关联角色对象
         :return: 新增用户关联角色校验结果
         """
-        if (page_object.user_id and page_object.role_ids) or (page_object.user_ids and page_object.role_id):
-            if page_object.user_id and page_object.role_ids:
-                role_id_list = page_object.role_ids.split(',')
-                try:
-                    for role_id in role_id_list:
-                        user_role = cls.detail_user_role_services(query_db, UserRoleModel(userId=page_object.user_id, roleId=role_id))
-                        if user_role:
-                            continue
-                        else:
-                            UserDao.add_user_role_dao(query_db, UserRoleModel(userId=page_object.user_id, roleId=role_id))
-                    query_db.commit()
-                    result = dict(is_success=True, message='新增成功')
-                except Exception as e:
-                    query_db.rollback()
-                    result = dict(is_success=False, message=str(e))
-            elif page_object.user_ids and page_object.role_id:
-                user_id_list = page_object.user_ids.split(',')
-                try:
-                    for user_id in user_id_list:
-                        user_role = cls.detail_user_role_services(query_db, UserRoleModel(userId=user_id, roleId=page_object.role_id))
-                        if user_role:
-                            continue
-                        else:
-                            UserDao.add_user_role_dao(query_db, UserRoleModel(userId=user_id, roleId=page_object.role_id))
-                    query_db.commit()
-                    result = dict(is_success=True, message='新增成功')
-                except Exception as e:
-                    query_db.rollback()
-                    result = dict(is_success=False, message=str(e))
-            else:
-                result = dict(is_success=False, message='不满足新增条件')
+        if page_object.user_id and page_object.role_ids:
+            role_id_list = page_object.role_ids.split(',')
+            try:
+                for role_id in role_id_list:
+                    user_role = cls.detail_user_role_services(query_db, UserRoleModel(userId=page_object.user_id, roleId=role_id))
+                    if user_role:
+                        continue
+                    else:
+                        UserDao.add_user_role_dao(query_db, UserRoleModel(userId=page_object.user_id, roleId=role_id))
+                query_db.commit()
+                result = dict(is_success=True, message='分配成功')
+            except Exception as e:
+                query_db.rollback()
+                raise e
+        elif page_object.user_id and not page_object.role_ids:
+            try:
+                UserDao.delete_user_role_by_user_and_role_dao(query_db, UserRoleModel(userId=page_object.user_id))
+                query_db.commit()
+                result = dict(is_success=True, message='分配成功')
+            except Exception as e:
+                query_db.rollback()
+                raise e
+        elif page_object.user_ids and page_object.role_id:
+            user_id_list = page_object.user_ids.split(',')
+            try:
+                for user_id in user_id_list:
+                    user_role = cls.detail_user_role_services(query_db, UserRoleModel(userId=user_id, roleId=page_object.role_id))
+                    if user_role:
+                        continue
+                    else:
+                        UserDao.add_user_role_dao(query_db, UserRoleModel(userId=user_id, roleId=page_object.role_id))
+                query_db.commit()
+                result = dict(is_success=True, message='新增成功')
+            except Exception as e:
+                query_db.rollback()
+                raise e
         else:
-            result = dict(is_success=False, message='传入用户角色关联信息为空')
+            result = dict(is_success=False, message='不满足新增条件')
 
         return CrudResponseModel(**result)
 
@@ -448,33 +436,31 @@ class UserService:
         :param page_object: 删除用户关联角色对象
         :return: 删除用户关联角色校验结果
         """
-        if page_object.user_ids and page_object.role_ids:
-            user_id_list = page_object.user_ids.split(',')
-            role_id_list = page_object.role_ids.split(',')
-            if len(user_id_list) == 1 and len(role_id_list) >= 1:
+        if (page_object.user_id and page_object.role_id) or (page_object.user_ids and page_object.role_id):
+            if page_object.user_id and page_object.role_id:
                 try:
-                    for role_id in role_id_list:
-                        UserDao.delete_user_role_by_user_and_role_dao(query_db, UserRoleModel(**dict(user_id=page_object.user_ids, role_id=role_id)))
+                    UserDao.delete_user_role_by_user_and_role_dao(query_db, UserRoleModel(userId=page_object.user_id, roleId=page_object.role_id))
                     query_db.commit()
                     result = dict(is_success=True, message='删除成功')
                 except Exception as e:
                     query_db.rollback()
-                    result = dict(is_success=False, message=str(e))
-            elif len(user_id_list) >= 1 and len(role_id_list) == 1:
+                    raise e
+            elif page_object.user_ids and page_object.role_id:
+                user_id_list = page_object.user_ids.split(',')
                 try:
                     for user_id in user_id_list:
-                        UserDao.delete_user_role_by_user_and_role_dao(query_db, UserRoleModel(**dict(user_id=user_id, role_id=page_object.role_ids)))
+                        UserDao.delete_user_role_by_user_and_role_dao(query_db, UserRoleModel(userId=user_id, roleId=page_object.role_id))
                     query_db.commit()
                     result = dict(is_success=True, message='删除成功')
                 except Exception as e:
                     query_db.rollback()
-                    result = dict(is_success=False, message=str(e))
+                    raise e
             else:
                 result = dict(is_success=False, message='不满足删除条件')
         else:
             result = dict(is_success=False, message='传入用户角色关联信息为空')
 
-        return CrudUserResponse(**result)
+        return CrudResponseModel(**result)
 
     @classmethod
     def detail_user_role_services(cls, query_db: Session, page_object: UserRoleModel):

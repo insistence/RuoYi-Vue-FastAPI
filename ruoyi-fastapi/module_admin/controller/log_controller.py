@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from fastapi import Depends
 from config.get_db import get_db
-from module_admin.service.login_service import get_current_user
+from module_admin.service.login_service import LoginService
 from module_admin.service.log_service import *
 from module_admin.entity.vo.log_vo import *
 from utils.response_util import *
@@ -12,7 +12,7 @@ from module_admin.aspect.interface_auth import CheckUserInterfaceAuth
 from module_admin.annotation.log_annotation import log_decorator
 
 
-logController = APIRouter(prefix='/log', dependencies=[Depends(get_current_user)])
+logController = APIRouter(prefix='/log', dependencies=[Depends(LoginService.get_current_user)])
 
 
 @logController.post("/operation/get", response_model=OperLogPageObjectResponse, dependencies=[Depends(CheckUserInterfaceAuth('monitor:operlog:list'))])

@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Request
 from fastapi import Depends
-from module_admin.service.login_service import get_current_user
+from module_admin.service.login_service import LoginService
 from module_admin.service.server_service import *
 from utils.response_util import *
 from utils.log_util import *
 from module_admin.aspect.interface_auth import CheckUserInterfaceAuth
 
 
-serverController = APIRouter(prefix='/server', dependencies=[Depends(get_current_user)])
+serverController = APIRouter(prefix='/server', dependencies=[Depends(LoginService.get_current_user)])
 
 
 @serverController.post("/statisticalInfo", response_model=ServerMonitorModel, dependencies=[Depends(CheckUserInterfaceAuth('monitor:server:list'))])

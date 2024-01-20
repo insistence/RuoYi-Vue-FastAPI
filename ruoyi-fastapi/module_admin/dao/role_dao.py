@@ -1,10 +1,8 @@
-from sqlalchemy import and_, desc
+from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
 from module_admin.entity.do.role_do import SysRole, SysRoleMenu, SysRoleDept
 from module_admin.entity.do.dept_do import SysDept
-from module_admin.entity.do.menu_do import SysMenu
-from module_admin.entity.vo.role_vo import RoleModel, RoleMenuModel, RoleDeptModel, RoleQueryModel, RoleDetailModel
-from utils.time_format_util import list_format_datetime, object_format_datetime
+from module_admin.entity.vo.role_vo import *
 from datetime import datetime, time
 
 
@@ -148,6 +146,20 @@ class RoleDao:
             .update({SysRole.del_flag: '2', SysRole.update_by: role.update_by, SysRole.update_time: role.update_time})
 
     @classmethod
+    def get_role_menu_dao(cls, db: Session, role_id: int):
+        """
+        根据角色id获取角色菜单关联列表信息
+        :param db: orm对象
+        :param role_id: 角色id
+        :return: 角色菜单关联列表信息
+        """
+        role_menu_query_all = db.query(SysRoleMenu) \
+            .filter(SysRoleMenu.role_id == role_id) \
+            .distinct().all()
+
+        return role_menu_query_all
+
+    @classmethod
     def add_role_menu_dao(cls, db: Session, role_menu: RoleMenuModel):
         """
         新增角色菜单关联信息数据库操作
@@ -169,6 +181,22 @@ class RoleDao:
         db.query(SysRoleMenu) \
             .filter(SysRoleMenu.role_id == role_menu.role_id) \
             .delete()
+
+    @classmethod
+    def get_role_dept_dao(cls, db: Session, role_id: int):
+        """
+        根据角色id获取角色部门关联列表信息
+        :param db: orm对象
+        :param role_id: 角色id
+        :return: 角色部门关联列表信息
+        """
+        role_dept_query_all = db.query(SysRoleDept) \
+            .filter(SysRoleDept.role_id == role_id,
+                    ~db.query(SysDept).filter(func.find_in_set(SysRoleDept.dept_id, SysDept.ancestors)).exists()
+                    ) \
+            .distinct().all()
+
+        return role_dept_query_all
 
     @classmethod
     def add_role_dept_dao(cls, db: Session, role_dept: RoleDeptModel):

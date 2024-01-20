@@ -4,6 +4,7 @@ from typing import Union, Optional, List
 from datetime import datetime
 from module_admin.entity.vo.dept_vo import DeptModel
 from module_admin.entity.vo.menu_vo import MenuModel
+from module_admin.annotation.pydantic_annotation import as_query, as_form
 
 
 class RoleModel(BaseModel):
@@ -47,8 +48,8 @@ class RoleMenuModel(BaseModel):
     """
     model_config = ConfigDict(alias_generator=to_camel, from_attributes=True)
 
-    role_id: Optional[int]
-    menu_id: Optional[int]
+    role_id: Optional[int] = None
+    menu_id: Optional[int] = None
 
 
 class RoleDeptModel(BaseModel):
@@ -57,8 +58,8 @@ class RoleDeptModel(BaseModel):
     """
     model_config = ConfigDict(alias_generator=to_camel, from_attributes=True)
 
-    role_id: Optional[int]
-    dept_id: Optional[int]
+    role_id: Optional[int] = None
+    dept_id: Optional[int] = None
 
 
 class RoleQueryModel(RoleModel):
@@ -69,68 +70,51 @@ class RoleQueryModel(RoleModel):
     end_time: Optional[str] = None
 
 
+@as_query
+@as_form
 class RolePageQueryModel(RoleQueryModel):
     """
     角色管理分页查询模型
     """
     page_num: int
     page_size: int
-    
-    
-class RolePageObjectResponse(BaseModel):
-    """
-    角色管理列表分页查询返回模型
-    """
-    rows: List[Union[RoleModel, None]] = []
-    page_num: int
-    page_size: int
-    total: int
-    has_next: bool
 
 
-class RoleSelectOptionResponseModel(BaseModel):
+class RoleMenuQueryModel(BaseModel):
     """
-    角色管理不分页查询模型
+    角色菜单查询模型
     """
-    role: List[Union[RoleModel, None]]
-    
-    
-class CrudRoleResponse(BaseModel):
+    model_config = ConfigDict(alias_generator=to_camel)
+
+    menus: List = []
+    checked_keys: List[int] = []
+
+
+class RoleDeptQueryModel(BaseModel):
     """
-    操作角色响应模型
+    角色部门查询模型
     """
-    is_success: bool
-    message: str
+    model_config = ConfigDict(alias_generator=to_camel)
+
+    depts: List = []
+    checked_keys: List[int] = []
     
     
 class AddRoleModel(RoleModel):
     """
     新增角色模型
     """
-    menu_id: Optional[str]
-    type: Optional[str]
-
-
-class RoleDataScopeModel(RoleModel):
-    """
-    角色数据权限模型
-    """
-    dept_id: Optional[str]
+    dept_ids: List = []
+    menu_ids: List = []
+    type: Optional[str] = None
 
 
 class DeleteRoleModel(BaseModel):
     """
     删除角色模型
     """
+    model_config = ConfigDict(alias_generator=to_camel)
+
     role_ids: str
-    update_by: Optional[str]
-    update_time: Optional[str]
-    
-    
-class RoleDetailModel(BaseModel):
-    """
-    获取角色详情信息响应模型
-    """
-    role: Union[RoleModel, None]
-    menu: List[Union[MenuModel, None]]
-    dept: List[Union[DeptModel, None]]
+    update_by: Optional[str] = None
+    update_time: Optional[datetime] = None

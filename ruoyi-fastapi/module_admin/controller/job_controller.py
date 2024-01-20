@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from fastapi import Depends
 from config.get_db import get_db
-from module_admin.service.login_service import get_current_user, CurrentUserInfoServiceResponse
+from module_admin.service.login_service import LoginService, CurrentUserModel
 from module_admin.service.job_service import *
 from module_admin.service.job_log_service import *
 from module_admin.entity.vo.job_vo import *
@@ -13,7 +13,7 @@ from module_admin.aspect.interface_auth import CheckUserInterfaceAuth
 from module_admin.annotation.log_annotation import log_decorator
 
 
-jobController = APIRouter(dependencies=[Depends(get_current_user)])
+jobController = APIRouter(dependencies=[Depends(LoginService.get_current_user)])
 
 
 @jobController.post("/job/get", response_model=JobPageObjectResponse, dependencies=[Depends(CheckUserInterfaceAuth('monitor:job:list'))])
@@ -33,7 +33,7 @@ async def get_system_job_list(request: Request, job_page_query: JobPageObject, q
 
 @jobController.post("/job/add", response_model=CrudJobResponse, dependencies=[Depends(CheckUserInterfaceAuth('monitor:job:add'))])
 @log_decorator(title='定时任务管理', business_type=1)
-async def add_system_job(request: Request, add_job: JobModel, query_db: Session = Depends(get_db), current_user: CurrentUserInfoServiceResponse = Depends(get_current_user)):
+async def add_system_job(request: Request, add_job: JobModel, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
     try:
         add_job.create_by = current_user.user.user_name
         add_job.update_by = current_user.user.user_name
@@ -51,7 +51,7 @@ async def add_system_job(request: Request, add_job: JobModel, query_db: Session 
 
 @jobController.patch("/job/edit", response_model=CrudJobResponse, dependencies=[Depends(CheckUserInterfaceAuth('monitor:job:edit'))])
 @log_decorator(title='定时任务管理', business_type=2)
-async def edit_system_job(request: Request, edit_job: EditJobModel, query_db: Session = Depends(get_db), current_user: CurrentUserInfoServiceResponse = Depends(get_current_user)):
+async def edit_system_job(request: Request, edit_job: EditJobModel, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
     try:
         edit_job.update_by = current_user.user.user_name
         edit_job.update_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

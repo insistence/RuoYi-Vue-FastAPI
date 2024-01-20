@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from fastapi import Depends
 from config.get_db import get_db
-from module_admin.service.login_service import get_current_user, Session
+from module_admin.service.login_service import LoginService, Session
 from module_admin.service.online_service import *
 from utils.response_util import *
 from utils.log_util import *
@@ -10,7 +10,7 @@ from module_admin.aspect.interface_auth import CheckUserInterfaceAuth
 from module_admin.annotation.log_annotation import log_decorator
 
 
-onlineController = APIRouter(prefix='/online', dependencies=[Depends(get_current_user)])
+onlineController = APIRouter(prefix='/online', dependencies=[Depends(LoginService.get_current_user)])
 
 
 @onlineController.post("/get", response_model=OnlinePageObjectResponse, dependencies=[Depends(CheckUserInterfaceAuth('monitor:online:list'))])

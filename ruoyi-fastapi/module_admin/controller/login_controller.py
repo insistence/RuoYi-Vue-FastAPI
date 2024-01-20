@@ -5,7 +5,6 @@ from module_admin.dao.login_dao import *
 from config.env import JwtConfig, RedisInitKeyConfig
 from utils.response_util import *
 from utils.log_util import *
-from module_admin.aspect.interface_auth import CheckUserInterfaceAuth
 from module_admin.annotation.log_annotation import log_decorator
 from datetime import timedelta
 
@@ -98,7 +97,7 @@ async def get_sms_code(request: Request, user: ResetUserModel, query_db: Session
         return response_500(data="", message=str(e))
 
 
-@loginController.post("/forgetPwd", response_model=CrudUserResponse)
+@loginController.post("/forgetPwd", response_model=CrudResponseModel)
 async def forget_user_pwd(request: Request, forget_user: ResetUserModel, query_db: Session = Depends(get_db)):
     try:
         forget_user_result = await forget_user_services(request, query_db, forget_user)
@@ -108,16 +107,6 @@ async def forget_user_pwd(request: Request, forget_user: ResetUserModel, query_d
         else:
             logger.warning(forget_user_result.message)
             return response_400(data="", message=forget_user_result.message)
-    except Exception as e:
-        logger.exception(e)
-        return response_500(data="", message=str(e))
-
-
-@loginController.post("/getLoginUserInfo", response_model=CurrentUserInfoServiceResponse, dependencies=[Depends(CheckUserInterfaceAuth('common'))])
-async def get_login_user_info(request: Request, current_user: CurrentUserInfoServiceResponse = Depends(get_current_user)):
-    try:
-        logger.info('获取成功')
-        return response_200(data=current_user, message="获取成功")
     except Exception as e:
         logger.exception(e)
         return response_500(data="", message=str(e))

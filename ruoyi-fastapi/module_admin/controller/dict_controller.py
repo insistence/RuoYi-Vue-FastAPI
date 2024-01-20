@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from fastapi import Depends
 from config.get_db import get_db
-from module_admin.service.login_service import LoginService, CurrentUserInfoServiceResponse
+from module_admin.service.login_service import LoginService, CurrentUserModel
 from module_admin.service.dict_service import *
 from module_admin.entity.vo.dict_vo import *
 from utils.response_util import *
@@ -55,7 +55,7 @@ async def get_system_all_dict_type(request: Request, dict_type_query: DictTypeQu
 
 @dictController.post("/dictType/add", response_model=CrudDictResponse, dependencies=[Depends(CheckUserInterfaceAuth('system:dict:add'))])
 @log_decorator(title='字典管理', business_type=1)
-async def add_system_dict_type(request: Request, add_dict_type: DictTypeModel, query_db: Session = Depends(get_db), current_user: CurrentUserInfoServiceResponse = Depends(LoginService.get_current_user)):
+async def add_system_dict_type(request: Request, add_dict_type: DictTypeModel, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
     try:
         add_dict_type.create_by = current_user.user.user_name
         add_dict_type.update_by = current_user.user.user_name
@@ -73,7 +73,7 @@ async def add_system_dict_type(request: Request, add_dict_type: DictTypeModel, q
 
 @dictController.patch("/dictType/edit", response_model=CrudDictResponse, dependencies=[Depends(CheckUserInterfaceAuth('system:dict:edit'))])
 @log_decorator(title='字典管理', business_type=2)
-async def edit_system_dict_type(request: Request, edit_dict_type: DictTypeModel, query_db: Session = Depends(get_db), current_user: CurrentUserInfoServiceResponse = Depends(LoginService.get_current_user)):
+async def edit_system_dict_type(request: Request, edit_dict_type: DictTypeModel, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
     try:
         edit_dict_type.update_by = current_user.user.user_name
         edit_dict_type.update_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -175,7 +175,7 @@ async def query_system_dict_data_list(request: Request, dict_type: str, query_db
 
 @dictController.post("/dictData/add", response_model=CrudDictResponse, dependencies=[Depends(CheckUserInterfaceAuth('system:dict:add'))])
 @log_decorator(title='字典管理', business_type=1)
-async def add_system_dict_data(request: Request, add_dict_data: DictDataModel, query_db: Session = Depends(get_db), current_user: CurrentUserInfoServiceResponse = Depends(LoginService.get_current_user)):
+async def add_system_dict_data(request: Request, add_dict_data: DictDataModel, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
     try:
         add_dict_data.create_by = current_user.user.user_name
         add_dict_data.update_by = current_user.user.user_name
@@ -193,7 +193,7 @@ async def add_system_dict_data(request: Request, add_dict_data: DictDataModel, q
 
 @dictController.patch("/dictData/edit", response_model=CrudDictResponse, dependencies=[Depends(CheckUserInterfaceAuth('system:dict:edit'))])
 @log_decorator(title='字典管理', business_type=2)
-async def edit_system_dict_data(request: Request, edit_dict_data: DictDataModel, query_db: Session = Depends(get_db), current_user: CurrentUserInfoServiceResponse = Depends(LoginService.get_current_user)):
+async def edit_system_dict_data(request: Request, edit_dict_data: DictDataModel, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
     try:
         edit_dict_data.update_by = current_user.user.user_name
         edit_dict_data.update_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

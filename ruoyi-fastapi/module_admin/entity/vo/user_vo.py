@@ -4,7 +4,7 @@ from typing import Union, Optional, List
 from datetime import datetime
 from module_admin.entity.vo.role_vo import RoleModel
 from module_admin.entity.vo.dept_vo import DeptModel
-from module_admin.annotation.form_annotation import as_form
+from module_admin.annotation.pydantic_annotation import as_query, as_form
 
 
 class TokenData(BaseModel):
@@ -79,24 +79,11 @@ class PostModel(BaseModel):
     remark: Optional[str] = None
 
 
-class CurrentUserInfo(BaseModel):
-    """
-    数据库返回当前用户信息
-    """
-    model_config = ConfigDict(alias_generator=to_camel)
-
-    user_basic_info: List[Union[UserModel, None]]
-    user_dept_info: List[Union[DeptModel, None]]
-    user_role_info: List[Union[RoleModel, None]]
-    user_post_info: List[Union[PostModel, None]]
-    user_menu_info: Union[List, None]
-
-
 class UserInfoModel(UserModel):
-    post_ids: Union[str, None]
-    role_ids: Union[str, None]
-    dept: Union[DeptModel, None]
-    role: List[Union[RoleModel, None]]
+    post_ids: Optional[Union[str, None]] = None
+    role_ids: Optional[Union[str, None]] = None
+    dept: Optional[Union[DeptModel, None]] = None
+    role: Optional[List[Union[RoleModel, None]]] = []
 
 
 class CurrentUserModel(BaseModel):
@@ -131,13 +118,6 @@ class UserProfileModel(BaseModel):
     role_group: Union[str, None]
 
 
-class CurrentUserInfoServiceResponse(UserDetailModel):
-    """
-    获取当前用户信息响应模型
-    """
-    menu: Union[List, None]
-
-
 class UserQueryModel(UserModel):
     """
     用户管理不分页查询模型
@@ -146,6 +126,7 @@ class UserQueryModel(UserModel):
     end_time: Optional[str] = None
 
 
+@as_query
 @as_form
 class UserPageQueryModel(UserQueryModel):
     """
@@ -191,17 +172,15 @@ class DeleteUserModel(BaseModel):
     update_time: Optional[datetime] = None
 
 
-class UserRoleQueryModel(UserRoleModel):
+class UserRoleQueryModel(UserModel):
     """
     用户角色关联管理不分页查询模型
     """
-    user_name: Optional[str] = None
-    phonenumber: Optional[str] = None
-    role_name: Optional[str] = None
-    role_key: Optional[str] = None
+    role_id: Optional[int] = None
 
 
-class UserRolePageObject(UserRoleQueryModel):
+@as_query
+class UserRolePageQueryModel(UserRoleQueryModel):
     """
     用户角色关联管理分页查询模型
     """
@@ -226,19 +205,7 @@ class UserRoleResponseModel(BaseModel):
     user: UserInfoModel
 
 
-class UserRolePageObjectResponse(BaseModel):
-    """
-    用户角色关联管理列表分页查询返回模型
-    """
-    model_config = ConfigDict(alias_generator=to_camel)
-
-    rows: List = []
-    page_num: int
-    page_size: int
-    total: int
-    has_next: bool
-
-
+@as_query
 class CrudUserRoleModel(BaseModel):
     """
     新增、删除用户关联角色及角色关联用户模型
@@ -249,52 +216,3 @@ class CrudUserRoleModel(BaseModel):
     user_ids: Optional[str] = None
     role_id: Optional[int] = None
     role_ids: Optional[str] = None
-
-
-class ImportUserModel(BaseModel):
-    """
-    批量导入用户模型
-    """
-    model_config = ConfigDict(alias_generator=to_camel)
-
-    url: str
-    is_update: bool
-
-
-class CrudUserResponse(BaseModel):
-    """
-    操作用户响应模型
-    """
-    model_config = ConfigDict(alias_generator=to_camel)
-
-    is_success: bool
-    message: str
-
-
-class DeptInfo(BaseModel):
-    """
-    查询部门树
-    """
-    model_config = ConfigDict(alias_generator=to_camel)
-
-    dept_id: int
-    dept_name: str
-    ancestors: str
-
-
-class RoleInfo(BaseModel):
-    """
-    用户角色信息
-    """
-    model_config = ConfigDict(alias_generator=to_camel)
-
-    role_info: Union[List, None]
-
-
-class MenuList(BaseModel):
-    """
-    用户菜单信息
-    """
-    model_config = ConfigDict(alias_generator=to_camel)
-
-    menu_info: Union[List, None]

@@ -1,12 +1,12 @@
 from sqlalchemy import and_, or_, desc, func
 from sqlalchemy.orm import Session
 from module_admin.entity.do.user_do import SysUser, SysUserRole, SysUserPost
-from module_admin.entity.do.role_do import SysRole, SysRoleMenu, SysRoleDept
+from module_admin.entity.do.role_do import SysRole, SysRoleMenu
 from module_admin.entity.do.dept_do import SysDept
 from module_admin.entity.do.post_do import SysPost
 from module_admin.entity.do.menu_do import SysMenu
-from module_admin.entity.vo.user_vo import UserModel, UserRoleModel, UserPostModel, CurrentUserInfo, UserQueryModel, UserRoleQueryModel
-from utils.time_format_util import object_format_datetime, list_format_datetime
+from module_admin.entity.vo.user_vo import *
+from utils.time_format_util import list_format_datetime
 from datetime import datetime, time
 
 
@@ -266,7 +266,7 @@ class UserDao:
             )
         ).distinct().all()
 
-        return list_format_datetime(allocated_user_list)
+        return allocated_user_list
 
     @classmethod
     def get_user_role_unallocated_list_by_role_id(cls, db: Session, query_object: UserRoleQueryModel):
@@ -287,7 +287,7 @@ class UserDao:
             )
         ).distinct().all()
 
-        return list_format_datetime(unallocated_user_list)
+        return unallocated_user_list
 
     @classmethod
     def add_user_role_dao(cls, db: Session, user_role: UserRoleModel):
@@ -321,7 +321,8 @@ class UserDao:
         :return:
         """
         db.query(SysUserRole) \
-            .filter(SysUserRole.user_id == user_role.user_id, SysUserRole.role_id == user_role.role_id) \
+            .filter(SysUserRole.user_id == user_role.user_id,
+                    SysUserRole.role_id == user_role.role_id if user_role.role_id else True) \
             .delete()
 
     @classmethod

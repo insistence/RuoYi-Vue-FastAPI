@@ -2,6 +2,7 @@ from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
 from typing import Union, Optional, List
 from datetime import datetime
+from module_admin.annotation.pydantic_annotation import as_query
 
 
 class DeptModel(BaseModel):
@@ -26,40 +27,21 @@ class DeptModel(BaseModel):
     update_time: Optional[datetime] = None
 
 
-class DeptPageObject(DeptModel):
+@as_query
+class DeptQueryModel(DeptModel):
     """
-    部门管理分页查询模型
+    部门管理不分页查询模型
     """
-    page_num: int
-    page_size: int
-
-
-class DeptResponse(BaseModel):
-    """
-    用户管理列表不分页查询返回模型
-    """
-    rows: List[Union[DeptModel, None]] = []
-
-
-class DeptTree(BaseModel):
-    """
-    部门树响应模型
-    """
-    dept_tree: Union[List, None]
-
-
-class CrudDeptResponse(BaseModel):
-    """
-    操作部门响应模型
-    """
-    is_success: bool
-    message: str
+    begin_time: Optional[str] = None
+    end_time: Optional[str] = None
 
 
 class DeleteDeptModel(BaseModel):
     """
     删除部门模型
     """
+    model_config = ConfigDict(alias_generator=to_camel)
+
     dept_ids: str
-    update_by: Optional[str]
-    update_time: Optional[str]
+    update_by: Optional[str] = None
+    update_time: Optional[str] = None

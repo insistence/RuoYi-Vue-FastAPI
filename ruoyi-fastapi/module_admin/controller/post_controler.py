@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request
 from fastapi import Depends
 from config.get_db import get_db
-from module_admin.service.login_service import get_current_user, CurrentUserInfoServiceResponse
+from module_admin.service.login_service import LoginService, CurrentUserModel
 from module_admin.service.post_service import *
 from module_admin.entity.vo.post_vo import *
 from utils.response_util import *
@@ -12,7 +12,7 @@ from module_admin.aspect.interface_auth import CheckUserInterfaceAuth
 from module_admin.annotation.log_annotation import log_decorator
 
 
-postController = APIRouter(dependencies=[Depends(get_current_user)])
+postController = APIRouter(dependencies=[Depends(LoginService.get_current_user)])
 
 
 @postController.post("/post/forSelectOption", response_model=PostSelectOptionResponseModel, dependencies=[Depends(CheckUserInterfaceAuth('common'))])
@@ -43,7 +43,7 @@ async def get_system_post_list(request: Request, post_page_query: PostPageObject
 
 @postController.post("/post/add", response_model=CrudPostResponse, dependencies=[Depends(CheckUserInterfaceAuth('system:post:add'))])
 @log_decorator(title='岗位管理', business_type=1)
-async def add_system_post(request: Request, add_post: PostModel, query_db: Session = Depends(get_db), current_user: CurrentUserInfoServiceResponse = Depends(get_current_user)):
+async def add_system_post(request: Request, add_post: PostModel, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
     try:
         add_post.create_by = current_user.user.user_name
         add_post.update_by = current_user.user.user_name
@@ -61,7 +61,7 @@ async def add_system_post(request: Request, add_post: PostModel, query_db: Sessi
 
 @postController.patch("/post/edit", response_model=CrudPostResponse, dependencies=[Depends(CheckUserInterfaceAuth('system:post:edit'))])
 @log_decorator(title='岗位管理', business_type=2)
-async def edit_system_post(request: Request, edit_post: PostModel, query_db: Session = Depends(get_db), current_user: CurrentUserInfoServiceResponse = Depends(get_current_user)):
+async def edit_system_post(request: Request, edit_post: PostModel, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
     try:
         edit_post.update_by = current_user.user.user_name
         edit_post.update_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

@@ -2,6 +2,7 @@ from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
 from datetime import datetime
 from typing import Union, Optional, List
+from module_admin.annotation.pydantic_annotation import as_query
 
 
 class MenuModel(BaseModel):
@@ -29,68 +30,21 @@ class MenuModel(BaseModel):
     update_by: Optional[str] = None
     update_time: Optional[datetime] = None
     remark: Optional[str] = None
-        
-        
-class MenuTreeModel(MenuModel):
-    """
-    菜单树查询模型
-    """
-    type: Optional[str] = None
 
 
-class RoleMenuQueryModel(BaseModel):
+@as_query
+class MenuQueryModel(MenuModel):
     """
-    角色菜单查询模型
+    菜单管理不分页查询模型
     """
-    model_config = ConfigDict(alias_generator=to_camel)
-
-    menus: List = []
-    checked_keys: List[int] = []
-
-
-class MenuPageObject(MenuModel):
-    """
-    菜单管理分页查询模型
-    """
-    page_num: int
-    page_size: int
-
-
-class MenuPageObjectResponse(BaseModel):
-    """
-    菜单管理列表分页查询返回模型
-    """
-    rows: List[Union[MenuModel, None]] = []
-    page_num: int
-    page_size: int
-    total: int
-    has_next: bool
-
-
-class MenuResponse(BaseModel):
-    """
-    菜单管理列表不分页查询返回模型
-    """
-    rows: List[Union[MenuModel, None]] = []
-
-
-class MenuTree(BaseModel):
-    """
-    菜单树响应模型
-    """
-    menu_tree: Union[List, None]
-
-
-class CrudMenuResponse(BaseModel):
-    """
-    操作菜单响应模型
-    """
-    is_success: bool
-    message: str
+    begin_time: Optional[str] = None
+    end_time: Optional[str] = None
 
 
 class DeleteMenuModel(BaseModel):
     """
     删除菜单模型
     """
+    model_config = ConfigDict(alias_generator=to_camel)
+
     menu_ids: str

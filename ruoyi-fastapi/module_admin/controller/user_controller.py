@@ -4,8 +4,6 @@ from config.get_db import get_db
 from module_admin.service.login_service import LoginService
 from module_admin.service.user_service import *
 from module_admin.service.dept_service import DeptService
-from module_admin.entity.vo.user_vo import *
-from module_admin.dao.user_dao import *
 from utils.page_util import *
 from utils.response_util import *
 from utils.log_util import *
@@ -29,8 +27,8 @@ async def get_system_dept_tree(request: Request, query_db: Session = Depends(get
         return ResponseUtil.error(msg=str(e))
 
 
-@userController.post("/list", response_model=PageResponseModel, dependencies=[Depends(CheckUserInterfaceAuth('system:user:list'))])
-async def get_system_user_list(request: Request, user_page_query: UserPageQueryModel, query_db: Session = Depends(get_db), data_scope_sql: str = Depends(GetDataScope('SysUser'))):
+@userController.get("/list", response_model=PageResponseModel, dependencies=[Depends(CheckUserInterfaceAuth('system:user:list'))])
+async def get_system_user_list(request: Request, user_page_query: UserPageQueryModel = Depends(UserPageQueryModel.as_query), query_db: Session = Depends(get_db), data_scope_sql: str = Depends(GetDataScope('SysUser'))):
     try:
         user_query = UserQueryModel(**user_page_query.model_dump(by_alias=True))
         # 获取全量数据
@@ -124,7 +122,7 @@ async def reset_system_user_pwd(request: Request, edit_user: EditUserModel, quer
 
 @userController.put("/changeStatus", dependencies=[Depends(CheckUserInterfaceAuth('system:user:edit'))])
 @log_decorator(title='用户管理', business_type=2)
-async def reset_system_user_pwd(request: Request, edit_user: EditUserModel, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
+async def change_system_user_status(request: Request, edit_user: EditUserModel, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
     try:
         edit_user.update_by = current_user.user.user_name
         edit_user.update_time = datetime.now()
