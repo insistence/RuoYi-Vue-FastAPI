@@ -111,7 +111,7 @@ class MenuDao:
         :param menu: 菜单对象
         :return:
         """
-        db_menu = SysMenu(**menu.dict())
+        db_menu = SysMenu(**menu.model_dump())
         db.add(db_menu)
         db.flush()
 

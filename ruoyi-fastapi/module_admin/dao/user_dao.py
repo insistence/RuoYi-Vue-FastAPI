@@ -297,7 +297,7 @@ class UserDao:
         :param user_role: 用户角色关联对象
         :return:
         """
-        db_user_role = SysUserRole(**user_role.dict())
+        db_user_role = SysUserRole(**user_role.model_dump())
         db.add(db_user_role)
 
     @classmethod
@@ -347,7 +347,7 @@ class UserDao:
         :param user_post: 用户岗位关联对象
         :return:
         """
-        db_user_post = SysUserPost(**user_post.dict())
+        db_user_post = SysUserPost(**user_post.model_dump())
         db.add(db_user_post)
 
     @classmethod

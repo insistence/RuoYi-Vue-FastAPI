@@ -16,7 +16,7 @@ from utils.response_util import *
 from utils.message_util import *
 from config.get_db import get_db
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login/loginByAccount")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 
 class CustomOAuth2PasswordRequestForm(OAuth2PasswordRequestForm):

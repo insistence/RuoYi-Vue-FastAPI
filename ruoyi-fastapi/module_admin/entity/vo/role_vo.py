@@ -1,9 +1,7 @@
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 from pydantic.alias_generators import to_camel
 from typing import Union, Optional, List
 from datetime import datetime
-from module_admin.entity.vo.dept_vo import DeptModel
-from module_admin.entity.vo.menu_vo import MenuModel
 from module_admin.annotation.pydantic_annotation import as_query, as_form
 
 
@@ -27,6 +25,7 @@ class RoleModel(BaseModel):
     update_by: Optional[str] = None
     update_time: Optional[datetime] = None
     remark: Optional[str] = None
+    admin: Optional[bool] = False
 
     @field_validator('menu_check_strictly', 'dept_check_strictly')
     @classmethod
@@ -40,6 +39,14 @@ class RoleModel(BaseModel):
         elif v is False:
             v = 0
         return v
+
+    @model_validator(mode='after')
+    def check_admin(self) -> 'RoleModel':
+        if self.role_id == 1:
+            self.admin = True
+        else:
+            self.admin = False
+        return self
 
 
 class RoleMenuModel(BaseModel):
@@ -98,8 +105,8 @@ class RoleDeptQueryModel(BaseModel):
 
     depts: List = []
     checked_keys: List[int] = []
-    
-    
+
+
 class AddRoleModel(RoleModel):
     """
     新增角色模型

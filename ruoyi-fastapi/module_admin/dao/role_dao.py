@@ -115,7 +115,7 @@ class RoleDao:
         :param role: 角色对象
         :return:
         """
-        db_role = SysRole(**role.dict())
+        db_role = SysRole(**role.model_dump())
         db.add(db_role)
         db.flush()
 
@@ -167,7 +167,7 @@ class RoleDao:
         :param role_menu: 用户角色菜单关联对象
         :return:
         """
-        db_role_menu = SysRoleMenu(**role_menu.dict())
+        db_role_menu = SysRoleMenu(**role_menu.model_dump())
         db.add(db_role_menu)
 
     @classmethod

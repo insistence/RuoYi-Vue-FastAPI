@@ -163,7 +163,7 @@ class DeptDao:
         :param dept: 部门对象
         :return: 新增校验结果
         """
-        db_dept = SysDept(**dept.dict())
+        db_dept = SysDept(**dept.model_dump())
         db.add(db_dept)
         db.flush()
 

@@ -6,42 +6,31 @@ from module_admin.service.post_service import *
 from module_admin.entity.vo.post_vo import *
 from utils.response_util import *
 from utils.log_util import *
-from utils.page_util import get_page_obj
+from utils.page_util import *
 from utils.common_util import bytes2file_response
 from module_admin.aspect.interface_auth import CheckUserInterfaceAuth
 from module_admin.annotation.log_annotation import log_decorator
 
 
-postController = APIRouter(dependencies=[Depends(LoginService.get_current_user)])
+postController = APIRouter(prefix='/system/post', dependencies=[Depends(LoginService.get_current_user)])
 
 
-@postController.post("/post/forSelectOption", response_model=PostSelectOptionResponseModel, dependencies=[Depends(CheckUserInterfaceAuth('common'))])
-async def get_system_post_select(request: Request, query_db: Session = Depends(get_db)):
+@postController.get("/list", response_model=PageResponseModel, dependencies=[Depends(CheckUserInterfaceAuth('system:post:list'))])
+async def get_system_post_list(request: Request, post_page_query: PostPageQueryModel = Depends(PostPageQueryModel.as_query), query_db: Session = Depends(get_db)):
     try:
-        role_query_result = PostService.get_post_select_option_services(query_db)
-        logger.info('获取成功')
-        return response_200(data=role_query_result, message="获取成功")
-    except Exception as e:
-        logger.exception(e)
-        return response_500(data="", message=str(e))
-
-
-@postController.post("/post/get", response_model=PostPageObjectResponse, dependencies=[Depends(CheckUserInterfaceAuth('system:post:list'))])
-async def get_system_post_list(request: Request, post_page_query: PostPageObject, query_db: Session = Depends(get_db)):
-    try:
-        post_query = PostModel(**post_page_query.dict())
+        post_query = PostModel(**post_page_query.model_dump(by_alias=True))
         # 获取全量数据
         post_query_result = PostService.get_post_list_services(query_db, post_query)
         # 分页操作
         post_page_query_result = get_page_obj(post_query_result, post_page_query.page_num, post_page_query.page_size)
         logger.info('获取成功')
-        return response_200(data=post_page_query_result, message="获取成功")
+        return ResponseUtil.success(model_content=post_page_query_result)
     except Exception as e:
         logger.exception(e)
-        return response_500(data="", message=str(e))
+        return ResponseUtil.error(msg=str(e))
 
 
-@postController.post("/post/add", response_model=CrudPostResponse, dependencies=[Depends(CheckUserInterfaceAuth('system:post:add'))])
+@postController.post("", dependencies=[Depends(CheckUserInterfaceAuth('system:post:add'))])
 @log_decorator(title='岗位管理', business_type=1)
 async def add_system_post(request: Request, add_post: PostModel, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
     try:
@@ -50,69 +39,71 @@ async def add_system_post(request: Request, add_post: PostModel, query_db: Sessi
         add_post_result = PostService.add_post_services(query_db, add_post)
         if add_post_result.is_success:
             logger.info(add_post_result.message)
-            return response_200(data=add_post_result, message=add_post_result.message)
+            return ResponseUtil.success(msg=add_post_result.message)
         else:
             logger.warning(add_post_result.message)
-            return response_400(data="", message=add_post_result.message)
+            return ResponseUtil.failure(msg=add_post_result.message)
     except Exception as e:
         logger.exception(e)
-        return response_500(data="", message=str(e))
+        return ResponseUtil.error(msg=str(e))
 
 
-@postController.patch("/post/edit", response_model=CrudPostResponse, dependencies=[Depends(CheckUserInterfaceAuth('system:post:edit'))])
+@postController.put("", dependencies=[Depends(CheckUserInterfaceAuth('system:post:edit'))])
 @log_decorator(title='岗位管理', business_type=2)
 async def edit_system_post(request: Request, edit_post: PostModel, query_db: Session = Depends(get_db), current_user: CurrentUserModel = Depends(LoginService.get_current_user)):
     try:
         edit_post.update_by = current_user.user.user_name
-        edit_post.update_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        edit_post.update_time = datetime.now()
         edit_post_result = PostService.edit_post_services(query_db, edit_post)
         if edit_post_result.is_success:
             logger.info(edit_post_result.message)
-            return response_200(data=edit_post_result, message=edit_post_result.message)
+            return ResponseUtil.success(msg=edit_post_result.message)
         else:
             logger.warning(edit_post_result.message)
-            return response_400(data="", message=edit_post_result.message)
+            return ResponseUtil.failure(msg=edit_post_result.message)
     except Exception as e:
         logger.exception(e)
-        return response_500(data="", message=str(e))
+        return ResponseUtil.error(msg=str(e))
 
 
-@postController.post("/post/delete", response_model=CrudPostResponse, dependencies=[Depends(CheckUserInterfaceAuth('system:post:remove'))])
+@postController.delete("/{post_ids}", dependencies=[Depends(CheckUserInterfaceAuth('system:post:remove'))])
 @log_decorator(title='岗位管理', business_type=3)
-async def delete_system_post(request: Request, delete_post: DeletePostModel, query_db: Session = Depends(get_db)):
+async def delete_system_post(request: Request, post_ids: str, query_db: Session = Depends(get_db)):
     try:
+        delete_post = DeletePostModel(postIds=post_ids)
         delete_post_result = PostService.delete_post_services(query_db, delete_post)
         if delete_post_result.is_success:
             logger.info(delete_post_result.message)
-            return response_200(data=delete_post_result, message=delete_post_result.message)
+            return ResponseUtil.success(msg=delete_post_result.message)
         else:
             logger.warning(delete_post_result.message)
-            return response_400(data="", message=delete_post_result.message)
+            return ResponseUtil.failure(msg=delete_post_result.message)
     except Exception as e:
         logger.exception(e)
-        return response_500(data="", message=str(e))
+        return ResponseUtil.error(msg=str(e))
 
 
-@postController.get("/post/{post_id}", response_model=PostModel, dependencies=[Depends(CheckUserInterfaceAuth('system:post:query'))])
+@postController.get("/{post_id}", response_model=PostModel, dependencies=[Depends(CheckUserInterfaceAuth('system:post:query'))])
 async def query_detail_system_post(request: Request, post_id: int, query_db: Session = Depends(get_db)):
     try:
-        detail_post_result = PostService.detail_post_services(query_db, post_id)
+        post_detail_result = PostService.post_detail_services(query_db, post_id)
         logger.info(f'获取post_id为{post_id}的信息成功')
-        return response_200(data=detail_post_result, message='获取成功')
+        return ResponseUtil.success(data=post_detail_result)
     except Exception as e:
         logger.exception(e)
-        return response_500(data="", message=str(e))
+        return ResponseUtil.error(msg=str(e))
 
 
-@postController.post("/post/export", dependencies=[Depends(CheckUserInterfaceAuth('system:post:export'))])
+@postController.post("/export", dependencies=[Depends(CheckUserInterfaceAuth('system:post:export'))])
 @log_decorator(title='岗位管理', business_type=5)
-async def export_system_post_list(request: Request, post_query: PostModel, query_db: Session = Depends(get_db)):
+async def export_system_post_list(request: Request, post_page_query: PostPageQueryModel = Depends(PostPageQueryModel.as_form), query_db: Session = Depends(get_db)):
     try:
+        post_query = PostModel(**post_page_query.model_dump(by_alias=True))
         # 获取全量数据
         post_query_result = PostService.get_post_list_services(query_db, post_query)
         post_export_result = PostService.export_post_list_services(post_query_result)
         logger.info('导出成功')
-        return streaming_response_200(data=bytes2file_response(post_export_result))
+        return ResponseUtil.streaming(data=bytes2file_response(post_export_result))
     except Exception as e:
         logger.exception(e)
-        return response_500(data="", message=str(e))
+        return ResponseUtil.error(msg=str(e))

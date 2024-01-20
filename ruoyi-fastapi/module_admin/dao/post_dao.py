@@ -1,7 +1,6 @@
 from sqlalchemy.orm import Session
 from module_admin.entity.do.post_do import SysPost
-from module_admin.entity.vo.post_vo import PostModel
-from utils.common_util import CamelCaseUtil
+from module_admin.entity.vo.post_vo import *
 
 
 class PostDao:
@@ -55,19 +54,6 @@ class PostDao:
         return post_info
 
     @classmethod
-    def get_post_select_option_dao(cls, db: Session):
-        """
-        获取所有在用岗位信息
-        :param db: orm对象
-        :return: 在用岗位信息列表
-        """
-        post_info = db.query(SysPost) \
-            .filter(SysPost.status == 0) \
-            .all()
-
-        return post_info
-
-    @classmethod
     def get_post_list(cls, db: Session, query_object: PostModel):
         """
         根据查询参数获取岗位列表信息
@@ -83,7 +69,7 @@ class PostDao:
             .order_by(SysPost.post_sort) \
             .distinct().all()
 
-        return CamelCaseUtil.transform_result(post_list)
+        return post_list
 
     @classmethod
     def add_post_dao(cls, db: Session, post: PostModel):
@@ -93,7 +79,7 @@ class PostDao:
         :param post: 岗位对象
         :return:
         """
-        db_post = SysPost(**post.dict())
+        db_post = SysPost(**post.model_dump())
         db.add(db_post)
         db.flush()
 

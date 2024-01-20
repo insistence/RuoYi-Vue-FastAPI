@@ -1,24 +1,12 @@
-from module_admin.entity.vo.post_vo import *
 from module_admin.dao.post_dao import *
-from utils.common_util import export_list2excel
+from module_admin.entity.vo.common_vo import CrudResponseModel
+from utils.common_util import export_list2excel, CamelCaseUtil
 
 
 class PostService:
     """
     岗位管理模块服务层
     """
-
-    @classmethod
-    def get_post_select_option_services(cls, query_db: Session):
-        """
-        获取岗位列表不分页信息service
-        :param query_db: orm对象
-        :return: 岗位列表不分页信息对象
-        """
-        post_list_result = PostDao.get_post_select_option_dao(query_db)
-
-        return post_list_result
-
     @classmethod
     def get_post_list_services(cls, query_db: Session, query_object: PostModel):
         """
@@ -29,7 +17,7 @@ class PostService:
         """
         post_list_result = PostDao.get_post_list(query_db, query_object)
 
-        return post_list_result
+        return CamelCaseUtil.transform_result(post_list_result)
 
     @classmethod
     def add_post_services(cls, query_db: Session, page_object: PostModel):
@@ -39,7 +27,7 @@ class PostService:
         :param page_object: 新增岗位对象
         :return: 新增岗位校验结果
         """
-        post = PostDao.get_post_detail_by_info(query_db, PostModel(**dict(post_name=page_object.post_name)))
+        post = PostDao.get_post_detail_by_info(query_db, PostModel(postName=page_object.post_name))
         if post:
             result = dict(is_success=False, message='岗位名称已存在')
         else:
@@ -49,9 +37,9 @@ class PostService:
                 result = dict(is_success=True, message='新增成功')
             except Exception as e:
                 query_db.rollback()
-                result = dict(is_success=False, message=str(e))
+                raise e
 
-        return CrudPostResponse(**result)
+        return CrudResponseModel(**result)
 
     @classmethod
     def edit_post_services(cls, query_db: Session, page_object: PostModel):
@@ -61,25 +49,25 @@ class PostService:
         :param page_object: 编辑岗位对象
         :return: 编辑岗位校验结果
         """
-        edit_post = page_object.dict(exclude_unset=True)
-        post_info = cls.detail_post_services(query_db, edit_post.get('post_id'))
+        edit_post = page_object.model_dump(exclude_unset=True)
+        post_info = cls.post_detail_services(query_db, edit_post.get('post_id'))
         if post_info:
             if post_info.post_name != page_object.post_name:
-                post = PostDao.get_post_detail_by_info(query_db, PostModel(**dict(post_name=page_object.post_name)))
+                post = PostDao.get_post_detail_by_info(query_db, PostModel(postName=page_object.post_name))
                 if post:
                     result = dict(is_success=False, message='岗位名称已存在')
-                    return CrudPostResponse(**result)
+                    return CrudResponseModel(**result)
             try:
                 PostDao.edit_post_dao(query_db, edit_post)
                 query_db.commit()
                 result = dict(is_success=True, message='更新成功')
             except Exception as e:
                 query_db.rollback()
-                result = dict(is_success=False, message=str(e))
+                raise e
         else:
             result = dict(is_success=False, message='岗位不存在')
 
-        return CrudPostResponse(**result)
+        return CrudResponseModel(**result)
 
     @classmethod
     def delete_post_services(cls, query_db: Session, page_object: DeletePostModel):
@@ -93,19 +81,18 @@ class PostService:
             post_id_list = page_object.post_ids.split(',')
             try:
                 for post_id in post_id_list:
-                    post_id_dict = dict(post_id=post_id)
-                    PostDao.delete_post_dao(query_db, PostModel(**post_id_dict))
+                    PostDao.delete_post_dao(query_db, PostModel(postId=post_id))
                 query_db.commit()
                 result = dict(is_success=True, message='删除成功')
             except Exception as e:
                 query_db.rollback()
-                result = dict(is_success=False, message=str(e))
+                raise e
         else:
             result = dict(is_success=False, message='传入岗位id为空')
-        return CrudPostResponse(**result)
+        return CrudResponseModel(**result)
 
     @classmethod
-    def detail_post_services(cls, query_db: Session, post_id: int):
+    def post_detail_services(cls, query_db: Session, post_id: int):
         """
         获取岗位详细信息service
         :param query_db: orm对象
@@ -113,8 +100,9 @@ class PostService:
         :return: 岗位id对应的信息
         """
         post = PostDao.get_post_detail_by_id(query_db, post_id=post_id)
+        result = PostModel(**CamelCaseUtil.transform_result(post))
 
-        return post
+        return result
 
     @staticmethod
     def export_post_list_services(post_list: List):
@@ -125,19 +113,19 @@ class PostService:
         """
         # 创建一个映射字典，将英文键映射到中文键
         mapping_dict = {
-            "post_id": "岗位编号",
-            "post_code": "岗位编码",
-            "post_name": "岗位名称",
-            "post_sort": "显示顺序",
+            "postId": "岗位编号",
+            "postCode": "岗位编码",
+            "postName": "岗位名称",
+            "postSort": "显示顺序",
             "status": "状态",
-            "create_by": "创建者",
-            "create_time": "创建时间",
-            "update_by": "更新者",
-            "update_time": "更新时间",
+            "createBy": "创建者",
+            "createTime": "创建时间",
+            "updateBy": "更新者",
+            "updateTime": "更新时间",
             "remark": "备注",
         }
 
-        data = [PostModel(**vars(row)).dict() for row in post_list]
+        data = post_list
 
         for item in data:
             if item.get('status') == '0':
