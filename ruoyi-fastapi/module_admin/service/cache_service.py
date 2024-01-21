@@ -2,7 +2,7 @@ from fastapi import Request
 from module_admin.entity.vo.cache_vo import *
 from config.env import RedisInitKeyConfig
 from config.get_redis import RedisUtil
-
+from module_admin.entity.vo.common_vo import CrudResponseModel
 
 class CacheService:
     """
@@ -21,9 +21,13 @@ class CacheService:
         command_stats_dict = await request.app.state.redis.info('commandstats')
         command_stats = [dict(name=key.split('_')[1], value=str(value.get('calls'))) for key, value in
                          command_stats_dict.items()]
-        result = dict(command_stats=command_stats, db_size=db_size, info=info)
+        result = CacheMonitorModel(
+            commandStats=command_stats,
+            dbSize=db_size,
+            info=info
+        )
 
-        return CacheMonitorModel(**result)
+        return result
 
     @classmethod
     def get_cache_monitor_cache_name_services(cls):
@@ -36,9 +40,9 @@ class CacheService:
             if not attr_name.startswith('__') and isinstance(getattr(RedisInitKeyConfig, attr_name), dict):
                 name_list.append(
                     CacheInfoModel(
-                        cache_key="",
-                        cache_name=getattr(RedisInitKeyConfig, attr_name).get('key'),
-                        cache_value="",
+                        cacheKey="",
+                        cacheName=getattr(RedisInitKeyConfig, attr_name).get('key'),
+                        cacheValue="",
                         remark=getattr(RedisInitKeyConfig, attr_name).get('remark')
                     )
                 )
@@ -69,7 +73,7 @@ class CacheService:
         """
         cache_value = await request.app.state.redis.get(f"{cache_name}:{cache_key}")
 
-        return CacheInfoModel(cache_key=cache_key, cache_name=cache_name, cache_value=cache_value, remark="")
+        return CacheInfoModel(cacheKey=cache_key, cacheName=cache_name, cacheValue=cache_value, remark="")
 
     @classmethod
     async def clear_cache_monitor_cache_name_services(cls, request: Request, cache_name: str):
@@ -84,21 +88,22 @@ class CacheService:
             await request.app.state.redis.delete(*cache_keys)
         result = dict(is_success=True, message=f"{cache_name}对应键值清除成功")
 
-        return CrudCacheResponse(**result)
+        return CrudResponseModel(**result)
 
     @classmethod
-    async def clear_cache_monitor_cache_key_services(cls, request: Request, cache_name: str, cache_key: str):
+    async def clear_cache_monitor_cache_key_services(cls, request: Request, cache_key: str):
         """
         清除缓存名称对应所有键值service
         :param request: Request对象
-        :param cache_name: 缓存名称
         :param cache_key: 缓存键名
         :return: 操作缓存响应信息
         """
-        await request.app.state.redis.delete(f"{cache_name}:{cache_key}")
-        result = dict(is_success=True, message=f"{cache_name}:{cache_key}清除成功")
+        cache_keys = await request.app.state.redis.keys(f"*{cache_key}")
+        if cache_keys:
+            await request.app.state.redis.delete(*cache_keys)
+        result = dict(is_success=True, message=f"{cache_key}清除成功")
 
-        return CrudCacheResponse(**result)
+        return CrudResponseModel(**result)
 
     @classmethod
     async def clear_cache_monitor_all_services(cls, request: Request):
@@ -115,4 +120,4 @@ class CacheService:
         await RedisUtil.init_sys_dict(request.app.state.redis)
         await RedisUtil.init_sys_config(request.app.state.redis)
 
-        return CrudCacheResponse(**result)
+        return CrudResponseModel(**result)
