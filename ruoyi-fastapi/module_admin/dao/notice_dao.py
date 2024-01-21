@@ -1,7 +1,6 @@
 from sqlalchemy.orm import Session
 from module_admin.entity.do.notice_do import SysNotice
-from module_admin.entity.vo.notice_vo import NoticeModel, NoticeQueryModel, CrudNoticeResponse
-from utils.time_format_util import list_format_datetime, object_format_datetime
+from module_admin.entity.vo.notice_vo import *
 from datetime import datetime, time
 
 
@@ -22,7 +21,7 @@ class NoticeDao:
             .filter(SysNotice.notice_id == notice_id) \
             .first()
 
-        return object_format_datetime(notice_info)
+        return notice_info
 
     @classmethod
     def get_notice_detail_by_info(cls, db: Session, notice: NoticeModel):
@@ -53,13 +52,13 @@ class NoticeDao:
                     SysNotice.update_by.like(f'%{query_object.update_by}%') if query_object.update_by else True,
                     SysNotice.notice_type == query_object.notice_type if query_object.notice_type else True,
                     SysNotice.create_time.between(
-                        datetime.combine(datetime.strptime(query_object.create_time_start, '%Y-%m-%d'), time(00, 00, 00)),
-                        datetime.combine(datetime.strptime(query_object.create_time_end, '%Y-%m-%d'), time(23, 59, 59)))
-                                      if query_object.create_time_start and query_object.create_time_end else True
+                        datetime.combine(datetime.strptime(query_object.begin_time, '%Y-%m-%d'), time(00, 00, 00)),
+                        datetime.combine(datetime.strptime(query_object.end_time, '%Y-%m-%d'), time(23, 59, 59)))
+                                      if query_object.begin_time and query_object.end_time else True
                     ) \
             .distinct().all()
 
-        return list_format_datetime(notice_list)
+        return notice_list
 
     @classmethod
     def add_notice_dao(cls, db: Session, notice: NoticeModel):
@@ -69,7 +68,7 @@ class NoticeDao:
         :param notice: 通知公告对象
         :return:
         """
-        db_notice = SysNotice(**notice.dict())
+        db_notice = SysNotice(**notice.model_dump())
         db.add(db_notice)
         db.flush()
 
