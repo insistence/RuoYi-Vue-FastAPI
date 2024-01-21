@@ -152,11 +152,23 @@
             <el-form-item label="任务名称：">{{ form.jobName }}</el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="任务分组：">{{ form.jobGroup }}</el-form-item>
-            <el-form-item label="执行时间：">{{ form.createTime }}</el-form-item>
+            <el-form-item label="任务分组：">{{ jobGroupFormat(form) }}</el-form-item>
+            <el-form-item label="执行时间：">{{ parseTime(form.createTime) }}</el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="任务执行器：">{{ form.jobExecutor }}</el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="任务触发器：">{{ form.jobTrigger }}</el-form-item>
           </el-col>
           <el-col :span="24">
             <el-form-item label="调用方法：">{{ form.invokeTarget }}</el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="位置参数：">{{ form.jobArgs }}</el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="关键字参数：">{{ form.jobKwargs }}</el-form-item>
           </el-col>
           <el-col :span="24">
             <el-form-item label="日志信息：">{{ form.jobMessage }}</el-form-item>
@@ -238,6 +250,10 @@ export default {
           this.loading = false;
         }
       );
+    },
+    // 任务组名字典翻译
+    jobGroupFormat(row, column) {
+      return this.selectDictLabel(this.dict.type.sys_job_group, row.jobGroup);
     },
     // 返回按钮
     handleClose() {

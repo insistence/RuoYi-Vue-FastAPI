@@ -1,7 +1,6 @@
 from sqlalchemy.orm import Session
 from module_admin.entity.do.job_do import SysJob
-from module_admin.entity.vo.job_vo import JobModel
-from utils.time_format_util import list_format_datetime, object_format_datetime
+from module_admin.entity.vo.job_vo import *
 
 
 class JobDao:
@@ -21,7 +20,7 @@ class JobDao:
             .filter(SysJob.job_id == job_id) \
             .first()
 
-        return object_format_datetime(job_info)
+        return job_info
 
     @classmethod
     def get_job_detail_by_info(cls, db: Session, job: JobModel):
@@ -55,7 +54,7 @@ class JobDao:
                     ) \
             .distinct().all()
 
-        return list_format_datetime(job_list)
+        return job_list
 
     @classmethod
     def get_job_list_for_scheduler(cls, db: Session):
@@ -68,7 +67,7 @@ class JobDao:
             .filter(SysJob.status == 0) \
             .distinct().all()
 
-        return list_format_datetime(job_list)
+        return job_list
 
     @classmethod
     def add_job_dao(cls, db: Session, job: JobModel):
@@ -78,7 +77,7 @@ class JobDao:
         :param job: 定时任务对象
         :return:
         """
-        db_job = SysJob(**job.dict())
+        db_job = SysJob(**job.model_dump())
         db.add(db_job)
         db.flush()
 

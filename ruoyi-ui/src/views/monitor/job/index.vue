@@ -189,6 +189,16 @@
             </el-form-item>
           </el-col>
           <el-col :span="24">
+            <el-form-item label="位置参数" prop="jobArgs">
+              <el-input v-model="form.jobArgs" placeholder="请输入位置参数" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="关键字参数" prop="jobKwargs">
+              <el-input v-model="form.jobKwargs" placeholder="请输入关键字参数" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
             <el-form-item label="cron表达式" prop="cronExpression">
               <el-input v-model="form.cronExpression" placeholder="请输入cron执行表达式">
                 <template slot="append">
@@ -250,7 +260,7 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="任务分组：">{{ jobGroupFormat(form) }}</el-form-item>
-            <el-form-item label="创建时间：">{{ form.createTime }}</el-form-item>
+            <el-form-item label="创建时间：">{{ parseTime(form.createTime) }}</el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="cron表达式：">{{ form.cronExpression }}</el-form-item>
@@ -261,6 +271,12 @@
           <el-col :span="24">
             <el-form-item label="调用目标方法：">{{ form.invokeTarget }}</el-form-item>
           </el-col>
+          <el-col :span="24">
+            <el-form-item label="位置参数：">{{ form.jobArgs }}</el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="关键字参数：">{{ form.jobKwargs }}</el-form-item>
+          </el-col>
           <el-col :span="12">
             <el-form-item label="任务状态：">
               <div v-if="form.status == 0">正常</div>
@@ -269,16 +285,16 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="是否并发：">
-              <div v-if="form.concurrent == 0">允许</div>
-              <div v-else-if="form.concurrent == 1">禁止</div>
+              <div v-if="form.concurrent == '0'">允许</div>
+              <div v-else-if="form.concurrent == '1'">禁止</div>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="执行策略：">
-              <div v-if="form.misfirePolicy == 0">默认策略</div>
-              <div v-else-if="form.misfirePolicy == 1">立即执行</div>
-              <div v-else-if="form.misfirePolicy == 2">执行一次</div>
-              <div v-else-if="form.misfirePolicy == 3">放弃执行</div>
+              <div v-if="form.misfirePolicy == '0'">默认策略</div>
+              <div v-else-if="form.misfirePolicy == '1'">立即执行</div>
+              <div v-else-if="form.misfirePolicy == '2'">执行一次</div>
+              <div v-else-if="form.misfirePolicy == '3'">放弃执行</div>
             </el-form-item>
           </el-col>
         </el-row>
@@ -378,8 +394,8 @@ export default {
         jobGroup: undefined,
         invokeTarget: undefined,
         cronExpression: undefined,
-        misfirePolicy: 1,
-        concurrent: 1,
+        misfirePolicy: "1",
+        concurrent: "1",
         status: "0"
       };
       this.resetForm("form");
