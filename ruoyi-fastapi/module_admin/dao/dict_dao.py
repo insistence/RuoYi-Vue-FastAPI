@@ -1,7 +1,7 @@
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
 from module_admin.entity.do.dict_do import SysDictType, SysDictData
-from module_admin.entity.vo.dict_vo import DictTypeModel, DictTypeQueryModel, DictDataModel
+from module_admin.entity.vo.dict_vo import *
 from utils.time_format_util import list_format_datetime
 from datetime import datetime, time
 
@@ -64,13 +64,13 @@ class DictTypeDao:
                     SysDictType.dict_type.like(f'%{query_object.dict_type}%') if query_object.dict_type else True,
                     SysDictType.status == query_object.status if query_object.status else True,
                     SysDictType.create_time.between(
-                        datetime.combine(datetime.strptime(query_object.create_time_start, '%Y-%m-%d'), time(00, 00, 00)),
-                        datetime.combine(datetime.strptime(query_object.create_time_end, '%Y-%m-%d'), time(23, 59, 59)))
-                    if query_object.create_time_start and query_object.create_time_end else True
+                        datetime.combine(datetime.strptime(query_object.begin_time, '%Y-%m-%d'), time(00, 00, 00)),
+                        datetime.combine(datetime.strptime(query_object.end_time, '%Y-%m-%d'), time(23, 59, 59)))
+                    if query_object.begin_time and query_object.end_time else True
                     ) \
             .distinct().all()
 
-        return list_format_datetime(dict_type_list)
+        return dict_type_list
 
     @classmethod
     def add_dict_type_dao(cls, db: Session, dict_type: DictTypeModel):
@@ -162,7 +162,7 @@ class DictDataDao:
             .order_by(SysDictData.dict_sort) \
             .distinct().all()
 
-        return list_format_datetime(dict_data_list)
+        return dict_data_list
 
     @classmethod
     def query_dict_data_list(cls, db: Session, dict_type: str):
@@ -178,7 +178,7 @@ class DictDataDao:
             .order_by(SysDictData.dict_sort) \
             .distinct().all()
 
-        return list_format_datetime(dict_data_list)
+        return dict_data_list
 
     @classmethod
     def add_dict_data_dao(cls, db: Session, dict_data: DictDataModel):

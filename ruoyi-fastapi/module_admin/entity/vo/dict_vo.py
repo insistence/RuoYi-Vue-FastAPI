@@ -1,57 +1,60 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+from pydantic.alias_generators import to_camel
 from typing import Union, Optional, List
+from datetime import datetime
+from module_admin.annotation.pydantic_annotation import as_query, as_form
 
 
 class DictTypeModel(BaseModel):
     """
     字典类型表对应pydantic模型
     """
-    dict_id: Optional[int]
-    dict_name: Optional[str]
-    dict_type: Optional[str]
-    status: Optional[str]
-    create_by: Optional[str]
-    create_time: Optional[str]
-    update_by: Optional[str]
-    update_time: Optional[str]
-    remark: Optional[str]
+    model_config = ConfigDict(alias_generator=to_camel, from_attributes=True)
 
-    class Config:
-        from_attributes = True
+    dict_id: Optional[int] = None
+    dict_name: Optional[str] = None
+    dict_type: Optional[str] = None
+    status: Optional[str] = None
+    create_by: Optional[str] = None
+    create_time: Optional[datetime] = None
+    update_by: Optional[str] = None
+    update_time: Optional[datetime] = None
+    remark: Optional[str] = None
 
 
 class DictDataModel(BaseModel):
     """
     字典数据表对应pydantic模型
     """
-    dict_code: Optional[int]
-    dict_sort: Optional[int]
-    dict_label: Optional[str]
-    dict_value: Optional[str]
-    dict_type: Optional[str]
-    css_class: Optional[str]
-    list_class: Optional[str]
-    is_default: Optional[str]
-    status: Optional[str]
-    create_by: Optional[str]
-    create_time: Optional[str]
-    update_by: Optional[str]
-    update_time: Optional[str]
-    remark: Optional[str]
+    model_config = ConfigDict(alias_generator=to_camel, from_attributes=True)
 
-    class Config:
-        from_attributes = True
+    dict_code: Optional[int] = None
+    dict_sort: Optional[int] = None
+    dict_label: Optional[str] = None
+    dict_value: Optional[str] = None
+    dict_type: Optional[str] = None
+    css_class: Optional[str] = None
+    list_class: Optional[str] = None
+    is_default: Optional[str] = None
+    status: Optional[str] = None
+    create_by: Optional[str] = None
+    create_time: Optional[datetime] = None
+    update_by: Optional[str] = None
+    update_time: Optional[datetime] = None
+    remark: Optional[str] = None
 
 
 class DictTypeQueryModel(DictTypeModel):
     """
     字典类型管理不分页查询模型
     """
-    create_time_start: Optional[str]
-    create_time_end: Optional[str]
+    begin_time: Optional[str] = None
+    end_time: Optional[str] = None
 
 
-class DictTypePageObject(DictTypeQueryModel):
+@as_query
+@as_form
+class DictTypePageQueryModel(DictTypeQueryModel):
     """
     字典类型管理分页查询模型
     """
@@ -59,25 +62,26 @@ class DictTypePageObject(DictTypeQueryModel):
     page_size: int
 
 
-class DictTypePageObjectResponse(BaseModel):
-    """
-    字典类型管理列表分页查询返回模型
-    """
-    rows: List[Union[DictTypeModel, None]] = []
-    page_num: int
-    page_size: int
-    total: int
-    has_next: bool
-
-
 class DeleteDictTypeModel(BaseModel):
     """
     删除字典类型模型
     """
+    model_config = ConfigDict(alias_generator=to_camel)
+
     dict_ids: str
 
 
-class DictDataPageObject(DictDataModel):
+class DictDataQueryModel(DictTypeModel):
+    """
+    字典数据管理不分页查询模型
+    """
+    begin_time: Optional[str] = None
+    end_time: Optional[str] = None
+
+
+@as_query
+@as_form
+class DictDataPageQueryModel(DictDataQueryModel):
     """
     字典数据管理分页查询模型
     """
@@ -85,27 +89,10 @@ class DictDataPageObject(DictDataModel):
     page_size: int
 
 
-class DictDataPageObjectResponse(BaseModel):
-    """
-    字典数据管理列表分页查询返回模型
-    """
-    rows: List[Union[DictDataModel, None]] = []
-    page_num: int
-    page_size: int
-    total: int
-    has_next: bool
-
-
 class DeleteDictDataModel(BaseModel):
     """
     删除字典数据模型
     """
+    model_config = ConfigDict(alias_generator=to_camel)
+
     dict_codes: str
-
-
-class CrudDictResponse(BaseModel):
-    """
-    操作字典响应模型
-    """
-    is_success: bool
-    message: str
