@@ -1,5 +1,5 @@
 import math
-from typing import List
+from typing import Optional, List
 
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
@@ -34,10 +34,10 @@ class PageResponseModel(BaseModel):
     model_config = ConfigDict(alias_generator=to_camel)
 
     rows: List = []
-    page_num: int
-    page_size: int
+    page_num: Optional[int] = None
+    page_size: Optional[int] = None
     total: int
-    has_next: bool
+    has_next: Optional[bool] = None
 
 
 def get_page_info(offset: int, page_num: int, page_size: int, count: int):
