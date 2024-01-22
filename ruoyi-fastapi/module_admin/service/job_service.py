@@ -167,22 +167,27 @@ class JobService:
 
         data = job_list
         job_group_list = await DictDataService.query_dict_data_list_from_cache_services(request.app.state.redis, dict_type='sys_job_group')
-        job_group_option = [dict(label=item.get('dict_label'), value=item.get('dict_value')) for item in job_group_list]
+        job_group_option = [dict(label=item.get('dictLabel'), value=item.get('dictValue')) for item in job_group_list]
         job_group_option_dict = {item.get('value'): item for item in job_group_option}
+        job_executor_list = await DictDataService.query_dict_data_list_from_cache_services(request.app.state.redis, dict_type='sys_job_executor')
+        job_executor_option = [dict(label=item.get('dictLabel'), value=item.get('dictValue')) for item in job_executor_list]
+        job_executor_option_dict = {item.get('value'): item for item in job_executor_option}
 
         for item in data:
             if item.get('status') == '0':
                 item['status'] = '正常'
             else:
                 item['status'] = '暂停'
-            if str(item.get('job_group')) in job_group_option_dict.keys():
-                item['job_group'] = job_group_option_dict.get(str(item.get('job_group'))).get('label')
-            if item.get('misfire_policy') == '1':
-                item['misfire_policy'] = '立即执行'
-            elif item.get('misfire_policy') == '2':
-                item['misfire_policy'] = '执行一次'
+            if str(item.get('jobGroup')) in job_group_option_dict.keys():
+                item['jobGroup'] = job_group_option_dict.get(str(item.get('jobGroup'))).get('label')
+            if str(item.get('jobExecutor')) in job_executor_option_dict.keys():
+                item['jobExecutor'] = job_executor_option_dict.get(str(item.get('jobExecutor'))).get('label')
+            if item.get('misfirePolicy') == '1':
+                item['misfirePolicy'] = '立即执行'
+            elif item.get('misfirePolicy') == '2':
+                item['misfirePolicy'] = '执行一次'
             else:
-                item['misfire_policy'] = '放弃执行'
+                item['misfirePolicy'] = '放弃执行'
             if item.get('concurrent') == '0':
                 item['concurrent'] = '允许'
             else:

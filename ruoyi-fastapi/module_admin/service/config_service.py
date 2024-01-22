@@ -167,10 +167,10 @@ class ConfigService:
         data = config_list
 
         for item in data:
-            if item.get('config_type') == 'Y':
-                item['config_type'] = '是'
+            if item.get('configType') == 'Y':
+                item['configType'] = '是'
             else:
-                item['config_type'] = '否'
+                item['configType'] = '否'
         new_data = [{mapping_dict.get(key): value for key, value in item.items() if mapping_dict.get(key)} for item in data]
         binary_data = export_list2excel(new_data)
 

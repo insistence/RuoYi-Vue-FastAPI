@@ -108,7 +108,7 @@ class OperationLogService:
 
         data = operation_log_list
         operation_type_list = await DictDataService.query_dict_data_list_from_cache_services(request.app.state.redis, dict_type='sys_oper_type')
-        operation_type_option = [dict(label=item.get('dict_label'), value=item.get('dict_value')) for item in operation_type_list]
+        operation_type_option = [dict(label=item.get('dictLabel'), value=item.get('dictValue')) for item in operation_type_list]
         operation_type_option_dict = {item.get('value'): item for item in operation_type_option}
 
         for item in data:
@@ -116,8 +116,8 @@ class OperationLogService:
                 item['status'] = '成功'
             else:
                 item['status'] = '失败'
-            if str(item.get('business_type')) in operation_type_option_dict.keys():
-                item['business_type'] = operation_type_option_dict.get(str(item.get('business_type'))).get('label')
+            if str(item.get('businessType')) in operation_type_option_dict.keys():
+                item['businessType'] = operation_type_option_dict.get(str(item.get('businessType'))).get('label')
 
         new_data = [{mapping_dict.get(key): value for key, value in item.items() if mapping_dict.get(key)} for item in data]
         binary_data = export_list2excel(new_data)

@@ -353,10 +353,10 @@ class DictDataService:
                 item['status'] = '正常'
             else:
                 item['status'] = '停用'
-            if item.get('is_default') == 'Y':
-                item['is_default'] = '是'
+            if item.get('isDefault') == 'Y':
+                item['isDefault'] = '是'
             else:
-                item['is_default'] = '否'
+                item['isDefault'] = '否'
         new_data = [{mapping_dict.get(key): value for key, value in item.items() if mapping_dict.get(key)} for item in data]
         binary_data = export_list2excel(new_data)
 
