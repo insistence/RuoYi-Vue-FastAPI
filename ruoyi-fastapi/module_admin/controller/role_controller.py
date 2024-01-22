@@ -3,7 +3,7 @@ from fastapi import Depends
 from config.get_db import get_db
 from module_admin.service.login_service import LoginService, CurrentUserModel
 from module_admin.service.role_service import *
-from module_admin.service.dept_service import DeptService
+from module_admin.service.dept_service import DeptService, DeptModel
 from module_admin.service.user_service import UserService, UserRoleQueryModel, UserRolePageQueryModel, CrudUserRoleModel
 from utils.response_util import *
 from utils.log_util import *
