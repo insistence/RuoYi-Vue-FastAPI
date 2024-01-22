@@ -47,7 +47,7 @@ app = FastAPI(
     description='RuoYi-FastAPI接口文档',
     version='1.0.0',
     lifespan=lifespan,
-    openapi_prefix='/dev-api'
+    root_path='/dev-api'
 )
 
 # 前端页面url
