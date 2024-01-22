@@ -156,7 +156,7 @@
             <el-form-item label="执行时间：">{{ parseTime(form.createTime) }}</el-form-item>
           </el-col>
           <el-col :span="24">
-            <el-form-item label="任务执行器：">{{ form.jobExecutor }}</el-form-item>
+            <el-form-item label="任务执行器：">{{ jobExecutorFormat(form) }}</el-form-item>
           </el-col>
           <el-col :span="24">
             <el-form-item label="任务触发器：">{{ form.jobTrigger }}</el-form-item>
@@ -197,7 +197,7 @@ import { listJobLog, delJobLog, cleanJobLog } from "@/api/monitor/jobLog";
 
 export default {
   name: "JobLog",
-  dicts: ['sys_common_status', 'sys_job_group'],
+  dicts: ['sys_common_status', 'sys_job_group', 'sys_job_executor'],
   data() {
     return {
       // 遮罩层
@@ -254,6 +254,10 @@ export default {
     // 任务组名字典翻译
     jobGroupFormat(row, column) {
       return this.selectDictLabel(this.dict.type.sys_job_group, row.jobGroup);
+    },
+    // 任务执行器名字典翻译
+    jobExecutorFormat(row, column) {
+      return this.selectDictLabel(this.dict.type.sys_job_executor, row.jobGroup);
     },
     // 返回按钮
     handleClose() {

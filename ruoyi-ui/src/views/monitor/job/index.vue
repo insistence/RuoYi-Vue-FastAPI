@@ -155,7 +155,7 @@
     <el-dialog :title="title" :visible.sync="open" width="800px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="120px">
         <el-row>
-          <el-col :span="12">
+          <el-col :span="24">
             <el-form-item label="任务名称" prop="jobName">
               <el-input v-model="form.jobName" placeholder="请输入任务名称" />
             </el-form-item>
@@ -165,6 +165,18 @@
               <el-select v-model="form.jobGroup" placeholder="请选择任务分组">
                 <el-option
                   v-for="dict in dict.type.sys_job_group"
+                  :key="dict.value"
+                  :label="dict.label"
+                  :value="dict.value"
+                ></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="任务执行器" prop="jobGroup">
+              <el-select v-model="form.jobExecutor" placeholder="请选择任务执行器">
+                <el-option
+                  v-for="dict in dict.type.sys_job_executor"
                   :key="dict.value"
                   :label="dict.label"
                   :value="dict.value"
@@ -268,6 +280,9 @@
           <el-col :span="12">
             <el-form-item label="下次执行时间：">{{ parseTime(form.nextValidTime) }}</el-form-item>
           </el-col>
+          <el-col :span="12">
+            <el-form-item label="任务执行器：">{{ jobExecutorFormat(form) }}</el-form-item>
+          </el-col>
           <el-col :span="24">
             <el-form-item label="调用目标方法：">{{ form.invokeTarget }}</el-form-item>
           </el-col>
@@ -313,7 +328,7 @@ import Crontab from '@/components/Crontab'
 export default {
   components: { Crontab },
   name: "Job",
-  dicts: ['sys_job_group', 'sys_job_status'],
+  dicts: ['sys_job_group', 'sys_job_status', 'sys_job_executor'],
   data() {
     return {
       // 遮罩层
@@ -380,6 +395,10 @@ export default {
     // 任务组名字典翻译
     jobGroupFormat(row, column) {
       return this.selectDictLabel(this.dict.type.sys_job_group, row.jobGroup);
+    },
+    // 任务执行器名字典翻译
+    jobExecutorFormat(row, column) {
+      return this.selectDictLabel(this.dict.type.sys_job_executor, row.jobGroup);
     },
     // 取消按钮
     cancel() {
