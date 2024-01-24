@@ -1,5 +1,8 @@
 <template>
-  <i-frame :src="url" />
+  <!-- <i-frame :src="url" /> -->
+  <div>
+    <div>我是数据监控</div>
+  </div>
 </template>
 <script>
 import iFrame from "@/components/iFrame/index";
