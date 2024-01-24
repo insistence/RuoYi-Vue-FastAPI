@@ -398,7 +398,7 @@ export default {
     },
     // 任务执行器名字典翻译
     jobExecutorFormat(row, column) {
-      return this.selectDictLabel(this.dict.type.sys_job_executor, row.jobGroup);
+      return this.selectDictLabel(this.dict.type.sys_job_executor, row.jobExecutor);
     },
     // 取消按钮
     cancel() {
