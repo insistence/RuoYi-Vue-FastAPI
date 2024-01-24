@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
-from typing import Optional
+from typing import Optional, Any
 
 
 class CrudResponseModel(BaseModel):
@@ -9,6 +9,7 @@ class CrudResponseModel(BaseModel):
     """
     is_success: bool
     message: str
+    result: Optional[Any] = None
 
 
 class UploadResponseModel(BaseModel):

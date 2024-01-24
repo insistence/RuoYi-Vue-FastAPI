@@ -52,10 +52,13 @@ class UploadConfig:
         # pdf
         "pdf"
     ]
+    DOWNLOAD_PATH = 'vf_admin/download_path'
 
     def __init__(self):
         if not os.path.exists(self.UPLOAD_PATH):
             os.makedirs(self.UPLOAD_PATH)
+        if not os.path.exists(self.DOWNLOAD_PATH):
+            os.makedirs(self.DOWNLOAD_PATH)
 
 
 class CachePathConfig:
