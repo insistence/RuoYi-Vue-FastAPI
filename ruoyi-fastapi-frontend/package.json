@@ -33,7 +33,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://gitee.com/insistence2022/RuoYi-Vue-FastAPI"
+    "url": "https://gitee.com/insistence2022/RuoYi-Vue-FastAPI.git"
   },
   "dependencies": {
     "@riophae/vue-treeselect": "0.4.0",
