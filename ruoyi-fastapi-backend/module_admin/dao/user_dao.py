@@ -6,6 +6,7 @@ from module_admin.entity.do.dept_do import SysDept
 from module_admin.entity.do.post_do import SysPost
 from module_admin.entity.do.menu_do import SysMenu
 from module_admin.entity.vo.user_vo import *
+from utils.page_util import PageUtil
 from utils.time_format_util import list_format_datetime
 from datetime import datetime, time
 
@@ -137,15 +138,16 @@ class UserDao:
         return results
 
     @classmethod
-    def get_user_list(cls, db: Session, query_object: UserQueryModel, data_scope_sql: str):
+    def get_user_list(cls, db: Session, query_object: UserPageQueryModel, data_scope_sql: str, is_page: bool = False):
         """
         根据查询参数获取用户列表信息
         :param db: orm对象
         :param query_object: 查询参数对象
         :param data_scope_sql: 数据权限对应的查询sql语句
+        :param is_page: 是否开启分页
         :return: 用户列表信息对象
         """
-        user_list = db.query(SysUser, SysDept) \
+        query = db.query(SysUser, SysDept) \
             .filter(SysUser.del_flag == 0,
                     or_(SysUser.dept_id == query_object.dept_id, SysUser.dept_id.in_(
                         db.query(SysDept.dept_id).filter(func.find_in_set(query_object.dept_id, SysDept.ancestors))
@@ -163,7 +165,8 @@ class UserDao:
                     eval(data_scope_sql)
                     ) \
             .outerjoin(SysDept, and_(SysUser.dept_id == SysDept.dept_id, SysDept.status == 0, SysDept.del_flag == 0)) \
-            .distinct().all()
+            .distinct()
+        user_list = PageUtil.paginate(query, query_object.page_num, query_object.page_size, is_page)
 
         return user_list
 
