@@ -7,7 +7,6 @@ from module_admin.entity.do.post_do import SysPost
 from module_admin.entity.do.menu_do import SysMenu
 from module_admin.entity.vo.user_vo import *
 from utils.page_util import PageUtil
-from utils.time_format_util import list_format_datetime
 from datetime import datetime, time
 
 
@@ -230,35 +229,15 @@ class UserDao:
         return allocated_role_list
 
     @classmethod
-    def get_user_role_unallocated_list_by_user_id(cls, db: Session, query_object: UserRoleQueryModel):
-        """
-        根据用户id获取用户未分配的角色列表信息数据库操作
-        :param db: orm对象
-        :param query_object: 用户角色查询对象
-        :return: 用户未分配的角色列表信息
-        """
-        unallocated_role_list = db.query(SysRole) \
-            .filter(
-            SysRole.del_flag == 0,
-            SysRole.role_id != 1,
-            SysRole.role_name == query_object.role_name if query_object.role_name else True,
-            SysRole.role_key == query_object.role_key if query_object.role_key else True,
-            ~SysRole.role_id.in_(
-                db.query(SysUserRole.role_id).filter(SysUserRole.user_id == query_object.user_id)
-            )
-        ).distinct().all()
-
-        return list_format_datetime(unallocated_role_list)
-
-    @classmethod
-    def get_user_role_allocated_list_by_role_id(cls, db: Session, query_object: UserRoleQueryModel):
+    def get_user_role_allocated_list_by_role_id(cls, db: Session, query_object: UserRolePageQueryModel, is_page: bool = False):
         """
         根据角色id获取已分配的用户列表信息
         :param db: orm对象
         :param query_object: 用户角色查询对象
+        :param is_page: 是否开启分页
         :return: 角色已分配的用户列表信息
         """
-        allocated_user_list = db.query(SysUser) \
+        query = db.query(SysUser) \
             .filter(
             SysUser.del_flag == 0,
             SysUser.user_id != 1,
@@ -267,19 +246,21 @@ class UserDao:
             SysUser.user_id.in_(
                 db.query(SysUserRole.user_id).filter(SysUserRole.role_id == query_object.role_id)
             )
-        ).distinct().all()
+        ).distinct()
+        allocated_user_list = PageUtil.paginate(query, query_object.page_num, query_object.page_size, is_page)
 
         return allocated_user_list
 
     @classmethod
-    def get_user_role_unallocated_list_by_role_id(cls, db: Session, query_object: UserRoleQueryModel):
+    def get_user_role_unallocated_list_by_role_id(cls, db: Session, query_object: UserRolePageQueryModel, is_page: bool = False):
         """
         根据角色id获取未分配的用户列表信息
         :param db: orm对象
         :param query_object: 用户角色查询对象
+        :param is_page: 是否开启分页
         :return: 角色未分配的用户列表信息
         """
-        unallocated_user_list = db.query(SysUser) \
+        query = db.query(SysUser) \
             .filter(
             SysUser.del_flag == 0,
             SysUser.user_id != 1,
@@ -288,7 +269,8 @@ class UserDao:
             ~SysUser.user_id.in_(
                 db.query(SysUserRole.user_id).filter(SysUserRole.role_id == query_object.role_id)
             )
-        ).distinct().all()
+        ).distinct()
+        unallocated_user_list = PageUtil.paginate(query, query_object.page_num, query_object.page_size, is_page)
 
         return unallocated_user_list
 
