@@ -191,7 +191,7 @@ async def export_system_job_log_list(request: Request, job_log_page_query: JobLo
     try:
         # 获取全量数据
         job_log_query_result = JobLogService.get_job_log_list_services(query_db, job_log_page_query, is_page=False)
-        job_log_export_result = JobLogService.export_job_log_list_services(query_db, job_log_query_result)
+        job_log_export_result = await JobLogService.export_job_log_list_services(request, job_log_query_result)
         logger.info('导出成功')
         return ResponseUtil.streaming(data=bytes2file_response(job_log_export_result))
     except Exception as e:
