@@ -48,6 +48,9 @@ module.exports = {
     loaderOptions: {
       sass: {
         sassOptions: { outputStyle: "expanded" }
+      },
+      less:{
+        javascriptEnabled: true
       }
     }
   },
