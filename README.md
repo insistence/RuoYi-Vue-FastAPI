@@ -21,12 +21,12 @@ RuoYi-Vue-FastAPI是一套全部开源的快速开发平台，毫无保留给个
 * 权限认证使用OAuth2 & Jwt，支持多终端认证系统。
 * 支持加载动态权限菜单，多方式轻松权限控制。
 * Vue3版本：
-  - Gitte仓库地址：https://gitee.com/insistence2022/RuoYi-Vue3-FastAPI。
-  - GitHub仓库地址：https://github.com/insistence/RuoYi-Vue3-FastAPI。
+  - Gitte仓库地址：https://gitee.com/insistence2022/RuoYi-Vue3-FastAPI
+  - GitHub仓库地址：https://github.com/insistence/RuoYi-Vue3-FastAPI
 * 纯Python版本：
-  - Gitte仓库地址：https://gitee.com/insistence2022/dash-fastapi-admin。
-  - GitHub仓库地址：https://github.com/insistence/Dash-FastAPI-Admin。
-* 特别鸣谢：<u>[RuoYi-Vue](https://gitee.com/y_project/RuoYi-Vue)</u>。
+  - Gitte仓库地址：https://gitee.com/insistence2022/dash-fastapi-admin
+  - GitHub仓库地址：https://github.com/insistence/Dash-FastAPI-Admin
+* 特别鸣谢：<u>[RuoYi-Vue](https://gitee.com/y_project/RuoYi-Vue)</u>
 
 ## 内置功能
 

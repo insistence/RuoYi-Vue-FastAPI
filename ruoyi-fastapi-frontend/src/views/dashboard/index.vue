@@ -157,6 +157,7 @@ import {
   Row,
   Statistic,
 } from "ant-design-vue";
+import 'ant-design-vue/dist/antd.css';
 import Vue from "vue";
 
 Vue.component(Avatar.name, Avatar);
