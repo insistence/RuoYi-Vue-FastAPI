@@ -372,8 +372,8 @@ export default {
         icon: undefined,
         menuType: "M",
         orderNum: undefined,
-        isFrame: "1",
-        isCache: "0",
+        isFrame: 1,
+        isCache: 0,
         visible: "0",
         status: "0"
       };
