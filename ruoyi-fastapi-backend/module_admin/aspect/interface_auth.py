@@ -56,3 +56,4 @@ class CheckRoleInterfaceAuth:
                 if any([role_key_str in user_role_key_list for role_key_str in self.role_key]):
                     return True
         raise PermissionException(data="", message="该用户无此接口权限")
+
