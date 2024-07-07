@@ -2,7 +2,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 from typing import Union, Optional, List
 from datetime import datetime
-from module_admin.annotation.check_annotation import NotBlank, Size
+from module_admin.annotation.validate_annotation import NotBlank, Size
 from module_admin.annotation.pydantic_annotation import as_query, as_form
 
 
