@@ -7,7 +7,8 @@ from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict, List, Optional, Union
 from config.constant import CommonConstant, MenuConstant
-from config.env import AppConfig, JwtConfig, RedisInitKeyConfig
+from config.enums import RedisInitKeyConfig
+from config.env import AppConfig, JwtConfig
 from config.get_db import get_db
 from exceptions.exception import LoginException, AuthException, ServiceException
 from module_admin.dao.login_dao import login_by_account
@@ -31,16 +32,16 @@ class CustomOAuth2PasswordRequestForm(OAuth2PasswordRequestForm):
     """
 
     def __init__(
-            self,
-            grant_type: str = Form(default=None, regex='password'),
-            username: str = Form(),
-            password: str = Form(),
-            scope: str = Form(default=''),
-            client_id: Optional[str] = Form(default=None),
-            client_secret: Optional[str] = Form(default=None),
-            code: Optional[str] = Form(default=''),
-            uuid: Optional[str] = Form(default=''),
-            login_info: Optional[Dict[str, str]] = Form(default=None),
+        self,
+        grant_type: str = Form(default=None, regex='password'),
+        username: str = Form(),
+        password: str = Form(),
+        scope: str = Form(default=''),
+        client_id: Optional[str] = Form(default=None),
+        client_secret: Optional[str] = Form(default=None),
+        code: Optional[str] = Form(default=''),
+        uuid: Optional[str] = Form(default=''),
+        login_info: Optional[Dict[str, str]] = Form(default=None),
     ):
         super().__init__(
             grant_type=grant_type,
@@ -72,7 +73,7 @@ class LoginService:
         """
         await cls.__check_login_ip(request)
         account_lock = await request.app.state.redis.get(
-            f"{RedisInitKeyConfig.ACCOUNT_LOCK.get('key')}:{login_user.user_name}"
+            f'{RedisInitKeyConfig.ACCOUNT_LOCK.key}:{login_user.user_name}'
         )
         if login_user.user_name == account_lock:
             logger.warning('账号已锁定，请稍后再试')
@@ -86,7 +87,7 @@ class LoginService:
         )
         # 判断是否开启验证码，开启则验证，否则不验证（dev模式下来自API文档的登录请求不检验）
         if not login_user.captcha_enabled or (
-                (request_from_swagger or request_from_redoc) and AppConfig.app_env == 'dev'
+            (request_from_swagger or request_from_redoc) and AppConfig.app_env == 'dev'
         ):
             pass
         else:
@@ -97,23 +98,23 @@ class LoginService:
             raise LoginException(data='', message='用户不存在')
         if not PwdUtil.verify_password(login_user.password, user[0].password):
             cache_password_error_count = await request.app.state.redis.get(
-                f"{RedisInitKeyConfig.PASSWORD_ERROR_COUNT.get('key')}:{login_user.user_name}"
+                f'{RedisInitKeyConfig.PASSWORD_ERROR_COUNT.key}:{login_user.user_name}'
             )
             password_error_counted = 0
             if cache_password_error_count:
                 password_error_counted = cache_password_error_count
             password_error_count = int(password_error_counted) + 1
             await request.app.state.redis.set(
-                f"{RedisInitKeyConfig.PASSWORD_ERROR_COUNT.get('key')}:{login_user.user_name}",
+                f'{RedisInitKeyConfig.PASSWORD_ERROR_COUNT.key}:{login_user.user_name}',
                 password_error_count,
                 ex=timedelta(minutes=10),
             )
             if password_error_count > 5:
                 await request.app.state.redis.delete(
-                    f"{RedisInitKeyConfig.PASSWORD_ERROR_COUNT.get('key')}:{login_user.user_name}"
+                    f'{RedisInitKeyConfig.PASSWORD_ERROR_COUNT.key}:{login_user.user_name}'
                 )
                 await request.app.state.redis.set(
-                    f"{RedisInitKeyConfig.ACCOUNT_LOCK.get('key')}:{login_user.user_name}",
+                    f'{RedisInitKeyConfig.ACCOUNT_LOCK.key}:{login_user.user_name}',
                     login_user.user_name,
                     ex=timedelta(minutes=10),
                 )
@@ -124,9 +125,7 @@ class LoginService:
         if user[0].status == '1':
             logger.warning('用户已停用')
             raise LoginException(data='', message='用户已停用')
-        await request.app.state.redis.delete(
-            f"{RedisInitKeyConfig.PASSWORD_ERROR_COUNT.get('key')}:{login_user.user_name}"
-        )
+        await request.app.state.redis.delete(f'{RedisInitKeyConfig.PASSWORD_ERROR_COUNT.key}:{login_user.user_name}')
         return user
 
     @classmethod
@@ -137,9 +136,7 @@ class LoginService:
         :param request: Request对象
         :return: 校验结果
         """
-        black_ip_value = await request.app.state.redis.get(
-            f"{RedisInitKeyConfig.SYS_CONFIG.get('key')}:sys.login.blackIPList"
-        )
+        black_ip_value = await request.app.state.redis.get(f'{RedisInitKeyConfig.SYS_CONFIG.key}:sys.login.blackIPList')
         black_ip_list = black_ip_value.split(',') if black_ip_value else []
         if request.headers.get('X-Forwarded-For') in black_ip_list:
             logger.warning('当前IP禁止登录')
@@ -155,9 +152,7 @@ class LoginService:
         :param login_user: 登录用户对象
         :return: 校验结果
         """
-        captcha_value = await request.app.state.redis.get(
-            f"{RedisInitKeyConfig.CAPTCHA_CODES.get('key')}:{login_user.uuid}"
-        )
+        captcha_value = await request.app.state.redis.get(f'{RedisInitKeyConfig.CAPTCHA_CODES.key}:{login_user.uuid}')
         if not captcha_value:
             logger.warning('验证码已失效')
             raise LoginException(data='', message='验证码已失效')
@@ -186,8 +181,7 @@ class LoginService:
 
     @classmethod
     async def get_current_user(
-            cls, request: Request = Request, token: str = Depends(oauth2_scheme),
-            query_db: AsyncSession = Depends(get_db)
+        cls, request: Request = Request, token: str = Depends(oauth2_scheme), query_db: AsyncSession = Depends(get_db)
     ):
         """
         根据token获取当前用户信息
@@ -219,24 +213,22 @@ class LoginService:
             logger.warning('用户token不合法')
             raise AuthException(data='', message='用户token不合法')
         if AppConfig.app_same_time_login:
-            redis_token = await request.app.state.redis.get(
-                f"{RedisInitKeyConfig.ACCESS_TOKEN.get('key')}:{session_id}"
-            )
+            redis_token = await request.app.state.redis.get(f'{RedisInitKeyConfig.ACCESS_TOKEN.key}:{session_id}')
         else:
             # 此方法可实现同一账号同一时间只能登录一次
             redis_token = await request.app.state.redis.get(
-                f"{RedisInitKeyConfig.ACCESS_TOKEN.get('key')}:{query_user.get('user_basic_info').user_id}"
+                f"{RedisInitKeyConfig.ACCESS_TOKEN.key}:{query_user.get('user_basic_info').user_id}"
             )
         if token == redis_token:
             if AppConfig.app_same_time_login:
                 await request.app.state.redis.set(
-                    f"{RedisInitKeyConfig.ACCESS_TOKEN.get('key')}:{session_id}",
+                    f'{RedisInitKeyConfig.ACCESS_TOKEN.key}:{session_id}',
                     redis_token,
                     ex=timedelta(minutes=JwtConfig.jwt_redis_expire_minutes),
                 )
             else:
                 await request.app.state.redis.set(
-                    f"{RedisInitKeyConfig.ACCESS_TOKEN.get('key')}:{query_user.get('user_basic_info').user_id}",
+                    f"{RedisInitKeyConfig.ACCESS_TOKEN.key}:{query_user.get('user_basic_info').user_id}",
                     redis_token,
                     ex=timedelta(minutes=JwtConfig.jwt_redis_expire_minutes),
                 )
@@ -387,23 +379,21 @@ class LoginService:
         """
         register_enabled = (
             True
-            if await request.app.state.redis.get(f"{RedisInitKeyConfig.SYS_CONFIG.get('key')}:sys.account.registerUser")
-               == 'true'
+            if await request.app.state.redis.get(f'{RedisInitKeyConfig.SYS_CONFIG.key}:sys.account.registerUser')
+            == 'true'
             else False
         )
         captcha_enabled = (
             True
-            if await request.app.state.redis.get(
-                f"{RedisInitKeyConfig.SYS_CONFIG.get('key')}:sys.account.captchaEnabled"
-            )
-               == 'true'
+            if await request.app.state.redis.get(f'{RedisInitKeyConfig.SYS_CONFIG.key}:sys.account.captchaEnabled')
+            == 'true'
             else False
         )
         if user_register.password == user_register.confirm_password:
             if register_enabled:
                 if captcha_enabled:
                     captcha_value = await request.app.state.redis.get(
-                        f"{RedisInitKeyConfig.CAPTCHA_CODES.get('key')}:{user_register.uuid}"
+                        f'{RedisInitKeyConfig.CAPTCHA_CODES.key}:{user_register.uuid}'
                     )
                     if not captcha_value:
                         raise ServiceException(message='验证码已失效')
@@ -431,9 +421,7 @@ class LoginService:
         :param user: 用户对象
         :return: 短信验证码对象
         """
-        redis_sms_result = await request.app.state.redis.get(
-            f"{RedisInitKeyConfig.SMS_CODE.get('key')}:{user.session_id}"
-        )
+        redis_sms_result = await request.app.state.redis.get(f'{RedisInitKeyConfig.SMS_CODE.key}:{user.session_id}')
         if redis_sms_result:
             return SmsCode(**dict(is_success=False, sms_code='', session_id='', message='短信验证码仍在有效期内'))
         is_user = await UserDao.get_user_by_name(query_db, user.user_name)
@@ -441,7 +429,7 @@ class LoginService:
             sms_code = str(random.randint(100000, 999999))
             session_id = str(uuid.uuid4())
             await request.app.state.redis.set(
-                f"{RedisInitKeyConfig.SMS_CODE.get('key')}:{session_id}", sms_code, ex=timedelta(minutes=2)
+                f'{RedisInitKeyConfig.SMS_CODE.key}:{session_id}', sms_code, ex=timedelta(minutes=2)
             )
             # 此处模拟调用短信服务
             message_service(sms_code)
@@ -461,7 +449,7 @@ class LoginService:
         :return: 重置结果
         """
         redis_sms_result = await request.app.state.redis.get(
-            f"{RedisInitKeyConfig.SMS_CODE.get('key')}:{forget_user.session_id}"
+            f'{RedisInitKeyConfig.SMS_CODE.key}:{forget_user.session_id}'
         )
         if forget_user.sms_code == redis_sms_result:
             forget_user.password = PwdUtil.get_password_hash(forget_user.password)
@@ -471,7 +459,7 @@ class LoginService:
         elif not redis_sms_result:
             result = dict(is_success=False, message='短信验证码已过期')
         else:
-            await request.app.state.redis.delete(f"{RedisInitKeyConfig.SMS_CODE.get('key')}:{forget_user.session_id}")
+            await request.app.state.redis.delete(f'{RedisInitKeyConfig.SMS_CODE.key}:{forget_user.session_id}')
             result = dict(is_success=False, message='短信验证码不正确')
 
         return CrudResponseModel(**result)
@@ -485,7 +473,7 @@ class LoginService:
         :param session_id: 会话编号
         :return: 退出登录结果
         """
-        await request.app.state.redis.delete(f"{RedisInitKeyConfig.ACCESS_TOKEN.get('key')}:{session_id}")
+        await request.app.state.redis.delete(f'{RedisInitKeyConfig.ACCESS_TOKEN.key}:{session_id}')
         # await request.app.state.redis.delete(f'{current_user.user.user_id}_access_token')
         # await request.app.state.redis.delete(f'{current_user.user.user_id}_session_id')
 
@@ -569,7 +557,7 @@ class RouterUtil:
         :return: 是否为菜单内部跳转
         """
         return (
-                menu.parent_id == 0 and menu.menu_type == MenuConstant.TYPE_MENU and menu.is_frame == MenuConstant.NO_FRAME
+            menu.parent_id == 0 and menu.menu_type == MenuConstant.TYPE_MENU and menu.is_frame == MenuConstant.NO_FRAME
         )
 
     @classmethod
