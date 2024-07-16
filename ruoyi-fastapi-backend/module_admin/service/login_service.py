@@ -31,16 +31,16 @@ class CustomOAuth2PasswordRequestForm(OAuth2PasswordRequestForm):
     """
 
     def __init__(
-        self,
-        grant_type: str = Form(default=None, regex='password'),
-        username: str = Form(),
-        password: str = Form(),
-        scope: str = Form(default=''),
-        client_id: Optional[str] = Form(default=None),
-        client_secret: Optional[str] = Form(default=None),
-        code: Optional[str] = Form(default=''),
-        uuid: Optional[str] = Form(default=''),
-        login_info: Optional[Dict[str, str]] = Form(default=None),
+            self,
+            grant_type: str = Form(default=None, regex='password'),
+            username: str = Form(),
+            password: str = Form(),
+            scope: str = Form(default=''),
+            client_id: Optional[str] = Form(default=None),
+            client_secret: Optional[str] = Form(default=None),
+            code: Optional[str] = Form(default=''),
+            uuid: Optional[str] = Form(default=''),
+            login_info: Optional[Dict[str, str]] = Form(default=None),
     ):
         super().__init__(
             grant_type=grant_type,
@@ -86,7 +86,7 @@ class LoginService:
         )
         # 判断是否开启验证码，开启则验证，否则不验证（dev模式下来自API文档的登录请求不检验）
         if not login_user.captcha_enabled or (
-            (request_from_swagger or request_from_redoc) and AppConfig.app_env == 'dev'
+                (request_from_swagger or request_from_redoc) and AppConfig.app_env == 'dev'
         ):
             pass
         else:
@@ -186,7 +186,8 @@ class LoginService:
 
     @classmethod
     async def get_current_user(
-        cls, request: Request = Request, token: str = Depends(oauth2_scheme), query_db: AsyncSession = Depends(get_db)
+            cls, request: Request = Request, token: str = Depends(oauth2_scheme),
+            query_db: AsyncSession = Depends(get_db)
     ):
         """
         根据token获取当前用户信息
@@ -341,7 +342,7 @@ class LoginService:
                 children = RouterModel(
                     path=permission.path,
                     component=permission.component,
-                    name=permission.path.capitalize(),
+                    name=RouterUtil.get_route_name(permission.route_name, permission.path),
                     meta=MetaModel(
                         title=permission.menu_name,
                         icon=permission.icon,
@@ -360,7 +361,7 @@ class LoginService:
                 children = RouterModel(
                     path=router_path,
                     component=MenuConstant.INNER_LINK,
-                    name=router_path.capitalize(),
+                    name=RouterUtil.get_route_name(permission.route_name, permission.path),
                     meta=MetaModel(
                         title=permission.menu_name,
                         icon=permission.icon,
@@ -387,7 +388,7 @@ class LoginService:
         register_enabled = (
             True
             if await request.app.state.redis.get(f"{RedisInitKeyConfig.SYS_CONFIG.get('key')}:sys.account.registerUser")
-            == 'true'
+               == 'true'
             else False
         )
         captcha_enabled = (
@@ -395,7 +396,7 @@ class LoginService:
             if await request.app.state.redis.get(
                 f"{RedisInitKeyConfig.SYS_CONFIG.get('key')}:sys.account.captchaEnabled"
             )
-            == 'true'
+               == 'true'
             else False
         )
         if user_register.password == user_register.confirm_password:
@@ -504,11 +505,23 @@ class RouterUtil:
         :param menu: 菜单数对象
         :return: 路由名称
         """
-        router_name = menu.path.capitalize()
+        # 非外链并且是一级目录（类型为目录）
         if cls.is_menu_frame(menu):
-            router_name = ''
+            return ''
 
-        return router_name
+        return cls.get_route_name(menu.route_name, menu.path)
+
+    @classmethod
+    def get_route_name(cls, name: str, path: str):
+        """
+        获取路由名称，如没有配置路由名称则取路由地址
+
+        :param name: 路由名称
+        :param path: 路由地址
+        :return: 路由名称（驼峰格式）
+        """
+        router_name = name if name else path
+        return router_name.capitalize()
 
     @classmethod
     def get_router_path(cls, menu: MenuTreeModel):
@@ -556,7 +569,7 @@ class RouterUtil:
         :return: 是否为菜单内部跳转
         """
         return (
-            menu.parent_id == 0 and menu.menu_type == MenuConstant.TYPE_MENU and menu.is_frame == MenuConstant.NO_FRAME
+                menu.parent_id == 0 and menu.menu_type == MenuConstant.TYPE_MENU and menu.is_frame == MenuConstant.NO_FRAME
         )
 
     @classmethod
