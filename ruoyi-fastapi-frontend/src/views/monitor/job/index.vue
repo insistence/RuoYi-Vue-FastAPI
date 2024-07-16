@@ -415,7 +415,7 @@ export default {
         cronExpression: undefined,
         misfirePolicy: "1",
         concurrent: "1",
-        status: "0"
+        status: "1"
       };
       this.resetForm("form");
     },
