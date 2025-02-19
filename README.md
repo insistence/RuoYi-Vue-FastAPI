@@ -1,12 +1,12 @@
 <p align="center">
 	<img alt="logo" src="https://oscimg.oschina.net/oscnet/up-d3d0a9303e11d522a06cd263f3079027715.png">
 </p>
-<h1 align="center" style="margin: 30px 0 30px; font-weight: bold;">RuoYi-Vue-FastAPI v1.5.1</h1>
+<h1 align="center" style="margin: 30px 0 30px; font-weight: bold;">RuoYi-Vue-FastAPI v1.6.0</h1>
 <h4 align="center">基于RuoYi-Vue+FastAPI前后端分离的快速开发框架</h4>
 <p align="center">
 	<a href="https://gitee.com/insistence2022/RuoYi-Vue-FastAPI/stargazers"><img src="https://gitee.com/insistence2022/RuoYi-Vue-FastAPI/badge/star.svg?theme=dark"></a>
     <a href="https://github.com/insistence/RuoYi-Vue-FastAPI"><img src="https://img.shields.io/github/stars/insistence/RuoYi-Vue-FastAPI?style=social"></a>
-	<a href="https://gitee.com/insistence2022/RuoYi-Vue-FastAPI"><img src="https://img.shields.io/badge/RuoYiVueFastAPI-v1.5.1-brightgreen.svg"></a>
+	<a href="https://gitee.com/insistence2022/RuoYi-Vue-FastAPI"><img src="https://img.shields.io/badge/RuoYiVueFastAPI-v1.6.0-brightgreen.svg"></a>
 	<a href="https://gitee.com/insistence2022/RuoYi-Vue-FastAPI/blob/master/LICENSE"><img src="https://img.shields.io/github/license/mashape/apistatus.svg"></a>
     <img src="https://img.shields.io/badge/python-≥3.9-blue">
     <img src="https://img.shields.io/badge/MySQL-≥5.7-blue">
@@ -46,6 +46,7 @@ RuoYi-Vue-FastAPI是一套全部开源的快速开发平台，毫无保留给个
 14. 缓存监控：对系统的缓存信息查询，命令统计等。
 15. 在线构建器：拖动表单元素生成相应的HTML代码。
 16. 系统接口：根据业务代码自动生成相关的api接口文档。
+17. 代码生成：配置数据库表信息一键生成前后端代码（python、sql、vue、js），支持下载。
 
 ## 演示图
 
@@ -88,6 +89,9 @@ RuoYi-Vue-FastAPI是一套全部开源的快速开发平台，毫无保留给个
     </tr>
     <tr>
         <td><img src="https://gitee.com/insistence2022/RuoYi-Vue-FastAPI/raw/master/demo-pictures/api.png"></td>
+        <td><img src="https://gitee.com/insistence2022/RuoYi-Vue-FastAPI/raw/master/demo-pictures/gen.png"/></td>
+    </tr>
+    <tr>
         <td><img src="https://gitee.com/insistence2022/RuoYi-Vue-FastAPI/raw/master/demo-pictures/profile.png"/></td>
     </tr>
 </table>

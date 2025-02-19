@@ -1,7 +1,6 @@
 <template>
   <div class="app-container">
-    我是代码生成
-    <!-- <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="表名称" prop="tableName">
         <el-input
           v-model="queryParams.tableName"
@@ -42,9 +41,20 @@
           plain
           icon="el-icon-download"
           size="mini"
+          :disabled="multiple"
           @click="handleGenTable"
           v-hasPermi="['tool:gen:code']"
         >生成</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="primary"
+          plain
+          icon="el-icon-plus"
+          size="mini"
+          @click="openCreateTable"
+          v-hasRole="['admin']"
+        >创建</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -157,14 +167,14 @@
       :page.sync="queryParams.pageNum"
       :limit.sync="queryParams.pageSize"
       @pagination="getList"
-    /> -->
+    />
     <!-- 预览界面 -->
-    <!-- <el-dialog :title="preview.title" :visible.sync="preview.open" width="80%" top="5vh" append-to-body class="scrollbar">
+    <el-dialog :title="preview.title" :visible.sync="preview.open" width="80%" top="5vh" append-to-body class="scrollbar">
       <el-tabs v-model="preview.activeName">
         <el-tab-pane
           v-for="(value, key) in preview.data"
-          :label="key.substring(key.lastIndexOf('/')+1,key.indexOf('.vm'))"
-          :name="key.substring(key.lastIndexOf('/')+1,key.indexOf('.vm'))"
+          :label="key.substring(key.lastIndexOf('/')+1,key.indexOf('.jinja2'))"
+          :name="key.substring(key.lastIndexOf('/')+1,key.indexOf('.jinja2'))"
           :key="key"
         >
           <el-link :underline="false" icon="el-icon-document-copy" v-clipboard:copy="value" v-clipboard:success="clipboardSuccess" style="float:right">复制</el-link>
@@ -172,17 +182,18 @@
         </el-tab-pane>
       </el-tabs>
     </el-dialog>
-    <import-table ref="import" @ok="handleQuery" /> -->
+    <import-table ref="import" @ok="handleQuery" />
+    <create-table ref="create" @ok="handleQuery" />
   </div>
 </template>
 
 <script>
 import { listTable, previewTable, delTable, genCode, synchDb } from "@/api/tool/gen";
 import importTable from "./importTable";
+import createTable from "./createTable";
 import hljs from "highlight.js/lib/highlight";
 import "highlight.js/styles/github-gist.css";
-hljs.registerLanguage("java", require("highlight.js/lib/languages/java"));
-hljs.registerLanguage("xml", require("highlight.js/lib/languages/xml"));
+hljs.registerLanguage("py", require("highlight.js/lib/languages/python"));
 hljs.registerLanguage("html", require("highlight.js/lib/languages/xml"));
 hljs.registerLanguage("vue", require("highlight.js/lib/languages/xml"));
 hljs.registerLanguage("javascript", require("highlight.js/lib/languages/javascript"));
@@ -190,7 +201,7 @@ hljs.registerLanguage("sql", require("highlight.js/lib/languages/sql"));
 
 export default {
   name: "Gen",
-  components: { importTable },
+  components: { importTable, createTable },
   data() {
     return {
       // 遮罩层
@@ -225,12 +236,12 @@ export default {
         open: false,
         title: "代码预览",
         data: {},
-        activeName: "domain.java"
+        activeName: "do.py"
       }
     };
   },
   created() {
-    // this.getList();
+    this.getList();
   },
   activated() {
     const time = this.$route.query.t;
@@ -268,7 +279,7 @@ export default {
           this.$modal.msgSuccess("成功生成到自定义路径：" + row.genPath);
         });
       } else {
-        this.$download.zip("/tool/gen/batchGenCode?tables=" + tableNames, "ruoyi.zip");
+        this.$download.zip("/tool/gen/batchGenCode?tables=" + tableNames, "vfadmin.zip");
       }
     },
     /** 同步数据库操作 */
@@ -284,6 +295,10 @@ export default {
     openImportTable() {
       this.$refs.import.show();
     },
+    /** 打开创建表弹窗 */
+    openCreateTable() {
+      this.$refs.create.show();
+    },
     /** 重置按钮操作 */
     resetQuery() {
       this.dateRange = [];
@@ -295,12 +310,12 @@ export default {
       previewTable(row.tableId).then(response => {
         this.preview.data = response.data;
         this.preview.open = true;
-        this.preview.activeName = "domain.java";
+        this.preview.activeName = "do.py";
       });
     },
     /** 高亮显示 */
     highlightedCode(code, key) {
-      const vmName = key.substring(key.lastIndexOf("/") + 1, key.indexOf(".vm"));
+      const vmName = key.substring(key.lastIndexOf("/") + 1, key.indexOf(".jinja2"));
       var language = vmName.substring(vmName.indexOf(".") + 1, vmName.length);
       const result = hljs.highlight(language, code || "", true);
       return result.value || '&nbsp;';
