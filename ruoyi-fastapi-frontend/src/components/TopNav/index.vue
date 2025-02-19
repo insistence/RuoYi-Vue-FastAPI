@@ -96,9 +96,8 @@ export default {
       let activePath = path;
       if (path !== undefined && path.lastIndexOf("/") > 0 && hideList.indexOf(path) === -1) {
         const tmpPath = path.substring(1, path.length);
-        activePath = "/" + tmpPath.substring(0, tmpPath.indexOf("/"));
         if (!this.$route.meta.link) {
-          this.$store.dispatch('app/toggleSideBarHide', false);
+          activePath = "/" + tmpPath.substring(0, tmpPath.indexOf("/"));
         }
       } else if(!this.$route.children) {
         activePath = path;
