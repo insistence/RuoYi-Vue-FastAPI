@@ -147,6 +147,7 @@ export default {
           key: 'dynamicTitle',
           value: val
         })
+        this.$store.dispatch('settings/setTitle', this.$store.state.settings.title)
       }
     },
   },
