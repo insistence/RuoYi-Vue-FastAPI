@@ -25,16 +25,16 @@
 
       </template>
 
-      <el-dropdown class="avatar-container right-menu-item hover-effect" trigger="click">
+      <el-dropdown class="avatar-container right-menu-item hover-effect" trigger="hover">
         <div class="avatar-wrapper">
           <img :src="avatar" class="user-avatar">
-          <i class="el-icon-caret-bottom" />
+          <span class="user-nickname"> {{ nickName }} </span>
         </div>
         <el-dropdown-menu slot="dropdown">
           <router-link to="/user/profile">
             <el-dropdown-item>个人中心</el-dropdown-item>
           </router-link>
-          <el-dropdown-item @click.native="setting = true">
+          <el-dropdown-item @click.native="setLayout" v-if="setting">
             <span>布局设置</span>
           </el-dropdown-item>
           <el-dropdown-item divided @click.native="logout">
@@ -58,6 +58,7 @@ import RuoYiGit from '@/components/RuoYi/Git'
 import RuoYiDoc from '@/components/RuoYi/Doc'
 
 export default {
+  emits: ['setLayout'],
   components: {
     Breadcrumb,
     TopNav,
@@ -72,17 +73,12 @@ export default {
     ...mapGetters([
       'sidebar',
       'avatar',
-      'device'
+      'device',
+      'nickName'
     ]),
     setting: {
       get() {
         return this.$store.state.settings.showSettings
-      },
-      set(val) {
-        this.$store.dispatch('settings/changeSetting', {
-          key: 'showSettings',
-          value: val
-        })
       }
     },
     topNav: {
@@ -94,6 +90,9 @@ export default {
   methods: {
     toggleSideBar() {
       this.$store.dispatch('app/toggleSideBar')
+    },
+    setLayout(event) {
+      this.$emit('setLayout')
     },
     logout() {
       this.$confirm('确定注销并退出系统吗？', '提示', {
@@ -173,17 +172,27 @@ export default {
     }
 
     .avatar-container {
-      margin-right: 30px;
+      margin-right: 0px;
+      padding-right: 0px;
 
       .avatar-wrapper {
-        // margin-top: 5px;
+        // margin-top: 10px;
+        right: 8px;
         position: relative;
 
         .user-avatar {
           cursor: pointer;
-          width: 40px;
-          height: 40px;
-          border-radius: 10px;
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+        }
+
+        .user-nickname{
+          position: relative;
+          // bottom: 10px;
+          left: 2px;
+          font-size: 14px;
+          font-weight: bold;
         }
 
         .el-icon-caret-bottom {
