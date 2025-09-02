@@ -103,7 +103,7 @@ export default {
     };
   },
   mounted() {
-    if (this.drag) {
+    if (this.drag && !this.disabled) {
       this.$nextTick(() => {
         const element = this.$refs.uploadFileList?.$el || this.$refs.uploadFileList
         Sortable.create(element, {
