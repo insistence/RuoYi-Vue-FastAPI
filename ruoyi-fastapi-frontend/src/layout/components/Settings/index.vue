@@ -1,5 +1,5 @@
 <template>
-  <el-drawer size="280px" :visible="visible" :with-header="false" :append-to-body="true" :show-close="false">
+  <el-drawer size="280px" :visible="showSettings" :with-header="false" :append-to-body="true" :before-close="closeSetting" :lock-scroll="false">
     <div class="drawer-container">
       <div>
         <div class="setting-drawer-content">
@@ -50,6 +50,11 @@
         </div>
 
         <div class="drawer-item">
+          <span>显示页签图标</span>
+          <el-switch v-model="tagsIcon" :disabled="!tagsView" class="drawer-switch" />
+        </div>
+
+        <div class="drawer-item">
           <span>固定 Header</span>
           <el-switch v-model="fixedHeader" class="drawer-switch" />
         </div>
@@ -62,6 +67,11 @@
         <div class="drawer-item">
           <span>动态标题</span>
           <el-switch v-model="dynamicTitle" class="drawer-switch" />
+        </div>
+
+        <div class="drawer-item">
+          <span>底部版权</span>
+          <el-switch v-model="footerVisible" class="drawer-switch" />
         </div>
 
         <el-divider/>
@@ -78,18 +88,15 @@ import ThemePicker from '@/components/ThemePicker'
 
 export default {
   components: { ThemePicker },
+  expose: ['openSetting'],
   data() {
     return {
       theme: this.$store.state.settings.theme,
-      sideTheme: this.$store.state.settings.sideTheme
+      sideTheme: this.$store.state.settings.sideTheme,
+      showSettings: false
     };
   },
   computed: {
-    visible: {
-      get() {
-        return this.$store.state.settings.showSettings
-      }
-    },
     fixedHeader: {
       get() {
         return this.$store.state.settings.fixedHeader
@@ -127,6 +134,17 @@ export default {
         })
       }
     },
+    tagsIcon: {
+      get() {
+        return this.$store.state.settings.tagsIcon
+      },
+      set(val) {
+        this.$store.dispatch('settings/changeSetting', {
+          key: 'tagsIcon',
+          value: val
+        })
+      }
+    },
     sidebarLogo: {
       get() {
         return this.$store.state.settings.sidebarLogo
@@ -147,8 +165,20 @@ export default {
           key: 'dynamicTitle',
           value: val
         })
+        this.$store.dispatch('settings/setTitle', this.$store.state.settings.title)
       }
     },
+    footerVisible: {
+      get() {
+        return this.$store.state.settings.footerVisible
+      },
+      set(val) {
+        this.$store.dispatch('settings/changeSetting', {
+          key: 'footerVisible',
+          value: val
+        })
+      }
+    }
   },
   methods: {
     themeChange(val) {
@@ -165,6 +195,12 @@ export default {
       })
       this.sideTheme = val;
     },
+    openSetting() {
+      this.showSettings = true
+    },
+    closeSetting(){
+      this.showSettings = false
+    },
     saveSetting() {
       this.$modal.loading("正在保存到本地，请稍候...");
       this.$cache.local.set(
@@ -172,9 +208,11 @@ export default {
         `{
             "topNav":${this.topNav},
             "tagsView":${this.tagsView},
+            "tagsIcon":${this.tagsIcon},
             "fixedHeader":${this.fixedHeader},
             "sidebarLogo":${this.sidebarLogo},
             "dynamicTitle":${this.dynamicTitle},
+            "footerVisible":${this.footerVisible},
             "sideTheme":"${this.sideTheme}",
             "theme":"${this.theme}"
           }`

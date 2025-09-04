@@ -2,10 +2,12 @@
   <div class="component-upload-image">
     <el-upload
       multiple
+      :disabled="disabled"
       :action="uploadImgUrl"
       list-type="picture-card"
       :on-success="handleUploadSuccess"
       :before-upload="handleBeforeUpload"
+      :data="data"
       :limit="limit"
       :on-error="handleUploadError"
       :on-exceed="handleExceed"
@@ -21,7 +23,7 @@
     </el-upload>
 
     <!-- 上传提示 -->
-    <div class="el-upload__tip" slot="tip" v-if="showTip">
+    <div class="el-upload__tip" slot="tip" v-if="showTip && !disabled">
       请上传
       <template v-if="fileSize"> 大小不超过 <b style="color: #f56c6c">{{ fileSize }}MB</b> </template>
       <template v-if="fileType"> 格式为 <b style="color: #f56c6c">{{ fileType.join("/") }}</b> </template>
@@ -45,27 +47,47 @@
 <script>
 import { getToken } from "@/utils/auth";
 import { isExternal } from "@/utils/validate";
+import Sortable from 'sortablejs';
 
 export default {
   props: {
     value: [String, Object, Array],
+    // 上传接口地址
+    action: {
+      type: String,
+      default: "/common/upload"
+    },
+    // 上传携带的参数
+    data: {
+      type: Object
+    },
     // 图片数量限制
     limit: {
       type: Number,
-      default: 5,
+      default: 5
     },
     // 大小限制(MB)
     fileSize: {
        type: Number,
-      default: 5,
+      default: 5
     },
     // 文件类型, 例如['png', 'jpg', 'jpeg']
     fileType: {
       type: Array,
-      default: () => ["png", "jpg", "jpeg"],
+      default: () => ["png", "jpg", "jpeg"]
     },
     // 是否显示提示
     isShowTip: {
+      type: Boolean,
+      default: true
+    },
+    // 禁用组件（仅查看图片）
+    disabled: {
+      type: Boolean,
+      default: false
+    },
+    // 拖动排序
+    drag: {
       type: Boolean,
       default: true
     }
@@ -78,12 +100,26 @@ export default {
       dialogVisible: false,
       hideUpload: false,
       baseUrl: process.env.VUE_APP_BASE_API,
-      uploadImgUrl: process.env.VUE_APP_BASE_API + "/common/upload", // 上传的图片服务器地址
+      uploadImgUrl: process.env.VUE_APP_BASE_API + this.action, // 上传的图片服务器地址
       headers: {
         Authorization: "Bearer " + getToken(),
       },
       fileList: []
     };
+  },
+  mounted() {
+    if (this.drag && !this.disabled) {
+      this.$nextTick(() => {
+        const element = this.$refs.imageUpload?.$el?.querySelector('.el-upload-list')
+        Sortable.create(element, {
+          onEnd: (evt) => {
+            const movedItem = this.fileList.splice(evt.oldIndex, 1)[0]
+            this.fileList.splice(evt.newIndex, 0, movedItem)
+            this.$emit("input", this.listToString(this.fileList))
+          }
+        })
+      })
+    }
   },
   watch: {
     value: {
@@ -215,12 +251,17 @@ export default {
 <style scoped lang="scss">
 // .el-upload--picture-card 控制加号部分
 ::v-deep.hide .el-upload--picture-card {
-    display: none;
+  display: none;
 }
+
+::v-deep .el-upload-list--picture-card.is-disabled + .el-upload--picture-card {
+  display: none !important;
+} 
+
 // 去掉动画效果
 ::v-deep .el-list-enter-active,
 ::v-deep .el-list-leave-active {
-    transition: all 0s;
+  transition: all 0s;
 }
 
 ::v-deep .el-list-enter, .el-list-leave-active {

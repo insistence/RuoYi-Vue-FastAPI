@@ -5,6 +5,7 @@
       :action="uploadFileUrl"
       :before-upload="handleBeforeUpload"
       :file-list="fileList"
+      :data="data"
       :limit="limit"
       :on-error="handleUploadError"
       :on-exceed="handleExceed"
@@ -27,7 +28,7 @@
     </el-upload>
 
     <!-- 文件列表 -->
-    <transition-group class="upload-file-list el-upload-list el-upload-list--text" name="el-fade-in-linear" tag="ul">
+    <transition-group ref="uploadFileList" class="upload-file-list el-upload-list el-upload-list--text" name="el-fade-in-linear" tag="ul">
       <li :key="file.url" class="el-upload-list__item ele-upload-list__item-content" v-for="(file, index) in fileList">
         <el-link :href="`${baseUrl}${file.url}`" :underline="false" target="_blank">
           <span class="el-icon-document"> {{ getFileName(file.name) }} </span>
@@ -42,12 +43,22 @@
 
 <script>
 import { getToken } from "@/utils/auth";
+import Sortable from 'sortablejs';
 
 export default {
   name: "FileUpload",
   props: {
     // 值
     value: [String, Object, Array],
+    // 上传接口地址
+    action: {
+      type: String,
+      default: "/common/upload"
+    },
+    // 上传携带的参数
+    data: {
+      type: Object
+    },
     // 数量限制
     limit: {
       type: Number,
@@ -72,6 +83,11 @@ export default {
     disabled: {
       type: Boolean,
       default: false
+    },
+    // 拖动排序
+    drag: {
+      type: Boolean,
+      default: true
     }
   },
   data() {
@@ -79,12 +95,27 @@ export default {
       number: 0,
       uploadList: [],
       baseUrl: process.env.VUE_APP_BASE_API,
-      uploadFileUrl: process.env.VUE_APP_BASE_API + "/common/upload", // 上传文件服务器地址
+      uploadFileUrl: process.env.VUE_APP_BASE_API + this.action, // 上传文件服务器地址
       headers: {
         Authorization: "Bearer " + getToken(),
       },
       fileList: [],
     };
+  },
+  mounted() {
+    if (this.drag && !this.disabled) {
+      this.$nextTick(() => {
+        const element = this.$refs.uploadFileList?.$el || this.$refs.uploadFileList
+        Sortable.create(element, {
+          ghostClass: 'file-upload-darg',
+          onEnd: (evt) => {
+            const movedItem = this.fileList.splice(evt.oldIndex, 1)[0]
+            this.fileList.splice(evt.newIndex, 0, movedItem)
+            this.$emit("input", this.listToString(this.fileList))
+          }
+        })
+      })
+    }
   },
   watch: {
     value: {
@@ -206,6 +237,10 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.file-upload-darg {
+  opacity: 0.5;
+  background: #c8ebfb;
+}
 .upload-file-uploader {
   margin-bottom: 5px;
 }
