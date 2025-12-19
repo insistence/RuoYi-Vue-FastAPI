@@ -76,6 +76,11 @@ export default {
       top: 0;
     }
   }
+  
+  .main-container:has(.fixed-header) {
+    height: 100vh;
+    overflow: hidden;
+  }
 
   .drawer-bg {
     background: #000;
