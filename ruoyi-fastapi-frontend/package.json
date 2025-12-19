@@ -1,12 +1,13 @@
 {
   "name": "vfadmin",
-  "version": "1.7.1",
+  "version": "1.8.0",
   "description": "vfadmin管理系统",
   "author": "insistence",
   "license": "MIT",
   "scripts": {
     "dev": "vue-cli-service serve",
     "build:prod": "vue-cli-service build",
+    "build:docker": "vue-cli-service build --mode docker",
     "build:stage": "vue-cli-service build --mode staging",
     "preview": "node build/index.js --preview"
   },

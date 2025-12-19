@@ -279,7 +279,8 @@ export default {
           this.$modal.msgSuccess("成功生成到自定义路径：" + row.genPath);
         });
       } else {
-        this.$download.zip("/tool/gen/batchGenCode?tables=" + tableNames, "vfadmin.zip");
+        const zipName = Array.isArray(tableNames) ? "vfadmin.zip" : tableNames + ".zip"
+        this.$download.zip("/tool/gen/batchGenCode?tables=" + tableNames, zipName)
       }
     },
     /** 同步数据库操作 */
