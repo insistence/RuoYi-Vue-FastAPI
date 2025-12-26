@@ -1,6 +1,6 @@
 # 更新日志
 
-## 未发布
+## RuoYi-Vue-FastAPI v1.8.1
 
 ### BUG修复
 
