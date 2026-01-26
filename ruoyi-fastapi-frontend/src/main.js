@@ -5,6 +5,14 @@ import Cookies from 'js-cookie'
 import Element from 'element-ui'
 import './assets/styles/element-variables.scss'
 
+import {
+  MarkdownCodeBlockNode,
+  setCustomComponents,
+  VueRendererMarkdown
+} from 'markstream-vue2'
+import 'markstream-vue2/dist/index.css'
+import 'katex/dist/katex.min.css'
+
 import '@/assets/styles/index.scss' // global css
 import '@/assets/styles/ruoyi.scss' // ruoyi css
 import App from './App'
@@ -72,6 +80,9 @@ DictData.install()
 Vue.use(Element, {
   size: Cookies.get('size') || 'medium' // set element-ui default size
 })
+
+setCustomComponents({ code_block: MarkdownCodeBlockNode })
+Vue.use(VueRendererMarkdown)
 
 Vue.config.productionTip = false
 
