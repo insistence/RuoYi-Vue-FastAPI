@@ -1,8 +1,162 @@
 'use strict'
+const fs = require('fs')
 const path = require('path')
+const CopyWebpackPlugin = require('copy-webpack-plugin')
+const webpack = require('webpack')
 
 function resolve(dir) {
   return path.join(__dirname, dir)
+}
+
+function tryResolve(specifier) {
+  try {
+    return require.resolve(specifier)
+  } catch {
+    return null
+  }
+}
+
+function resolveNodeModulesPackageRoot(pkgName) {
+  const candidates = [
+    path.join(__dirname, 'node_modules', pkgName),
+    path.resolve(__dirname, '../node_modules', pkgName)
+  ]
+  for (const candidate of candidates) {
+    try {
+      if (fs.existsSync(candidate)) {
+        return candidate
+      }
+    } catch {}
+  }
+  return null
+}
+
+function resolvePackageRoot(pkgName) {
+  const entry = tryResolve(pkgName)
+  if (!entry) {
+    return null
+  }
+  return path.dirname(path.dirname(entry))
+}
+
+function resolveSiblingPackagePath(fromPkgRoot, siblingPkgName) {
+  if (!fromPkgRoot) {
+    return null
+  }
+  const candidate = path.join(path.dirname(fromPkgRoot), siblingPkgName)
+  try {
+    if (fs.existsSync(candidate)) {
+      return candidate
+    }
+  } catch {}
+  return null
+}
+
+function setAliasIfResolved(alias, key, specifier) {
+  const resolved = tryResolve(specifier)
+  if (resolved) {
+    alias[key] = resolved
+  }
+}
+
+function setAliasIfExists(alias, key, filePath) {
+  if (!filePath) {
+    return
+  }
+  alias[key] = filePath
+}
+
+const markstreamVue2Root = resolvePackageRoot('markstream-vue2')
+const streamMonacoRoot = resolvePackageRoot('stream-monaco')
+const streamMarkdownRoot = resolvePackageRoot('stream-markdown') || resolveNodeModulesPackageRoot('stream-markdown')
+const monacoEditorRoot = resolveSiblingPackagePath(streamMonacoRoot, 'monaco-editor')
+const shikiRoot = resolvePackageRoot('shiki')
+const shikijsLangsRoot = resolvePackageRoot('@shikijs/langs')
+const shikijsThemesRoot = resolvePackageRoot('@shikijs/themes')
+const shikijsOnigurumaRoot = resolvePackageRoot('@shikijs/engine-oniguruma')
+const shikijsMonacoRoot = resolvePackageRoot('@shikijs/monaco')
+
+const markstreamAlias = {}
+setAliasIfResolved(markstreamAlias, 'vue$', 'vue/dist/vue.runtime.esm.js')
+setAliasIfExists(
+  markstreamAlias,
+  'markstream-vue2$',
+  markstreamVue2Root ? path.join(markstreamVue2Root, 'dist/index.cjs') : null
+)
+setAliasIfExists(markstreamAlias, 'markstream-vue2/index.css', markstreamVue2Root ? path.join(markstreamVue2Root, 'dist/index.css') : null)
+setAliasIfExists(markstreamAlias, 'markstream-vue2/index.tailwind.css', markstreamVue2Root ? path.join(markstreamVue2Root, 'dist/index.tailwind.css') : null)
+setAliasIfExists(markstreamAlias, 'markstream-vue2/workers/katexRenderer.worker', markstreamVue2Root ? path.join(markstreamVue2Root, 'dist/workers/katexRenderer.worker.js') : null)
+setAliasIfExists(markstreamAlias, 'markstream-vue2/workers/mermaidParser.worker', markstreamVue2Root ? path.join(markstreamVue2Root, 'dist/workers/mermaidParser.worker.js') : null)
+setAliasIfExists(
+  markstreamAlias,
+  'stream-monaco/legacy',
+  streamMonacoRoot ? path.join(streamMonacoRoot, 'dist/index.legacy.js') : null
+)
+setAliasIfExists(markstreamAlias, 'stream-monaco$', streamMonacoRoot ? path.join(streamMonacoRoot, 'dist/index.js') : null)
+setAliasIfExists(markstreamAlias, 'stream-monaco', streamMonacoRoot ? path.join(streamMonacoRoot, 'dist') : null)
+setAliasIfExists(markstreamAlias, 'monaco-editor', monacoEditorRoot)
+setAliasIfExists(markstreamAlias, '@shikijs/langs', shikijsLangsRoot ? path.join(shikijsLangsRoot, 'dist') : null)
+setAliasIfExists(markstreamAlias, '@shikijs/themes', shikijsThemesRoot ? path.join(shikijsThemesRoot, 'dist') : null)
+setAliasIfExists(markstreamAlias, '@shikijs/engine-oniguruma', shikijsOnigurumaRoot ? path.join(shikijsOnigurumaRoot, 'dist') : null)
+setAliasIfExists(markstreamAlias, '@shikijs/engine-oniguruma$', shikijsOnigurumaRoot ? path.join(shikijsOnigurumaRoot, 'dist/index.mjs') : null)
+setAliasIfExists(markstreamAlias, '@shikijs/engine-oniguruma/wasm-inlined', shikijsOnigurumaRoot ? path.join(shikijsOnigurumaRoot, 'dist/wasm-inlined.mjs') : null)
+setAliasIfExists(markstreamAlias, '@shikijs/engine-oniguruma/wasm-inlined$', shikijsOnigurumaRoot ? path.join(shikijsOnigurumaRoot, 'dist/wasm-inlined.mjs') : null)
+setAliasIfExists(markstreamAlias, '@shikijs/monaco', shikijsMonacoRoot ? path.join(shikijsMonacoRoot, 'dist') : null)
+setAliasIfExists(markstreamAlias, 'shiki$', shikiRoot ? path.join(shikiRoot, 'dist/index.mjs') : null)
+setAliasIfExists(markstreamAlias, 'shiki', shikiRoot ? path.join(shikiRoot, 'dist') : null)
+setAliasIfExists(markstreamAlias, 'shiki/wasm', shikiRoot ? path.join(shikiRoot, 'dist/wasm.mjs') : null)
+setAliasIfExists(markstreamAlias, 'stream-markdown$', streamMarkdownRoot ? path.join(streamMarkdownRoot, 'dist/index.js') : null)
+setAliasIfExists(markstreamAlias, 'stream-markdown', streamMarkdownRoot ? path.join(streamMarkdownRoot, 'dist') : null)
+setAliasIfResolved(markstreamAlias, 'alien-signals$', 'alien-signals/esm')
+setAliasIfResolved(markstreamAlias, 'alien-signals', 'alien-signals/esm')
+setAliasIfResolved(markstreamAlias, '@antv/infographic/jsx-runtime', '@antv/infographic/jsx-runtime')
+setAliasIfResolved(markstreamAlias, '@antv/infographic/jsx-dev-runtime', '@antv/infographic/jsx-dev-runtime')
+setAliasIfResolved(markstreamAlias, 'measury/fonts/AlibabaPuHuiTi-Regular', 'measury/fonts/AlibabaPuHuiTi-Regular')
+
+function createOptionalIgnoreRegex() {
+  const alwaysIgnore = [
+    'mermaid',
+    '@mermaid-js/parser',
+    'langium',
+    '@antv/infographic',
+    '@antv/hierarchy'
+  ]
+  const maybeIgnore = []
+  if (!streamMarkdownRoot) {
+    maybeIgnore.push('stream-markdown')
+  }
+  if (!tryResolve('stream-monaco')) {
+    maybeIgnore.push('stream-monaco')
+  }
+  if (!monacoEditorRoot) {
+    maybeIgnore.push('monaco-editor')
+  }
+  if (!tryResolve('shiki')) {
+    maybeIgnore.push('shiki')
+  }
+  if (!tryResolve('@shikijs/langs')) {
+    maybeIgnore.push('@shikijs/langs')
+  }
+  if (!tryResolve('@shikijs/themes')) {
+    maybeIgnore.push('@shikijs/themes')
+  }
+  const combined = [...alwaysIgnore, ...maybeIgnore]
+  return new RegExp(`^(${combined.join('|')})$`)
+}
+
+function createMonacoAssetCopyPlugins() {
+  if (!monacoEditorRoot) {
+    return []
+  }
+  const from = path.join(monacoEditorRoot, 'esm/vs')
+  if (!fs.existsSync(from)) {
+    return []
+  }
+  return [
+    new CopyWebpackPlugin([
+      { from, to: 'monaco/vs' }
+    ])
+  ]
 }
 
 const CompressionPlugin = require('compression-webpack-plugin')
@@ -25,7 +179,25 @@ module.exports = {
   assetsDir: 'static',
   // 如果你不需要生产环境的 source map，可以将其设置为 false 以加速生产环境构建。
   productionSourceMap: false,
-  transpileDependencies: ['quill'],
+  transpileDependencies: [
+    'quill',
+    'markstream-vue2',
+    'stream-markdown-parser',
+    'stream-markdown',
+    'stream-monaco',
+    'monaco-editor',
+    'shiki',
+    '@shikijs/core',
+    '@shikijs/engine-javascript',
+    '@shikijs/engine-oniguruma',
+    '@shikijs/types',
+    '@shikijs/vscode-textmate',
+    '@shikijs/monaco',
+    '@shikijs/langs',
+    '@shikijs/themes',
+    'oniguruma-to-es',
+    '@antv/infographic'
+  ],
   // webpack-dev-server 相关配置
   devServer: {
     host: '0.0.0.0',
@@ -56,11 +228,35 @@ module.exports = {
   configureWebpack: {
     name: name,
     resolve: {
+      symlinks: false,
+      modules: [
+        'node_modules',
+        path.resolve(__dirname, '../node_modules')
+      ],
       alias: {
-        '@': resolve('src')
+        '@': resolve('src'),
+        ...markstreamAlias
       }
     },
     plugins: [
+      new webpack.IgnorePlugin({
+        resourceRegExp: createOptionalIgnoreRegex()
+      }),
+      new CopyWebpackPlugin([
+        {
+          from: path.resolve(__dirname, 'node_modules/mermaid/dist/mermaid.min.js'),
+          to: 'mermaid/mermaid.min.js'
+        },
+        {
+          from: path.resolve(__dirname, 'node_modules/katex/dist/katex.min.js'),
+          to: 'katex/katex.min.js'
+        },
+        {
+          from: path.resolve(__dirname, 'node_modules/katex/dist/contrib/mhchem.min.js'),
+          to: 'katex/contrib/mhchem.min.js'
+        }
+      ]),
+      ...createMonacoAssetCopyPlugins(),
       // http://doc.ruoyi.vip/ruoyi-vue/other/faq.html#使用gzip解压缩静态文件
       new CompressionPlugin({
         cache: false,                                  // 不启用文件缓存
