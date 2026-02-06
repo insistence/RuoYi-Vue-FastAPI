@@ -1,7 +1,5 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
-.idea/
-.vscode/
 *.py[cod]
 *$py.class
 
@@ -138,3 +136,19 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# PyCharm
+.idea/
+
+# VSCode
+.vscode/
+
+# AI Editor
+.agent/
+.claude/
+.codebuddy/
+.codex/
+.cursor/
+.opencode/
+.qoder/
+.trae/
