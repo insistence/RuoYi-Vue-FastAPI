@@ -1,16 +1,51 @@
 # 更新日志
 
+## RuoYi-Vue-FastAPI v1.9.0
+
+### 项目依赖
+
+前后端依赖均有升级，请升级依赖或重新创建环境。
+
+### 新增功能
+
+1.新增AI管理模块 ([#15](https://github.com/insistence/RuoYi-Vue-FastAPI/pull/15))。
+2.新增移动端模块 ([#19](https://github.com/insistence/RuoYi-Vue-FastAPI/pull/19))。
+3.新增多worker运行支持 ([#21](https://github.com/insistence/RuoYi-Vue-FastAPI/pull/21))。
+4.应用新增演示模式 ([#23](https://github.com/insistence/RuoYi-Vue-FastAPI/pull/23))。
+
+### BUG修复
+
+1.修复代码生成controller模板删除接口query_db参数异常的问题 ([#12](https://github.com/insistence/RuoYi-Vue-FastAPI/pull/12))。
+2.修复登录接口response_model声明错误 ([#17](https://github.com/insistence/RuoYi-Vue-FastAPI/pull/17))。
+3.修复无法直接通过后端地址访问API文档的问题 ([#20](https://github.com/insistence/RuoYi-Vue-FastAPI/pull/20))。
+4.修复create_app重复执行的问题 ([#27](https://github.com/insistence/RuoYi-Vue-FastAPI/pull/27))。
+
+### 代码重构
+
+1.移除对python3.9的支持 ([#13](https://github.com/insistence/RuoYi-Vue-FastAPI/pull/13))。
+
+### 代码优化
+
+1.优化alembic处理表模型逻辑，避免无关表影响 ([#14](https://github.com/insistence/RuoYi-Vue-FastAPI/pull/14))。
+2.优化代码生成后端模板 ([#18](https://github.com/insistence/RuoYi-Vue-FastAPI/pull/18))。
+3.自动注册路由出错时抛出异常以便于调试 ([#24](https://github.com/insistence/RuoYi-Vue-FastAPI/pull/24))。
+4.优化部分页面字段tooltip说明 ([#25](https://github.com/insistence/RuoYi-Vue-FastAPI/pull/25))。
+5.优化项目启动速度 ([#26](https://github.com/insistence/RuoYi-Vue-FastAPI/pull/26))。
+6.优化热重载模式或单worker下scheduler的任务状态同步机制 ([#28](https://github.com/insistence/RuoYi-Vue-FastAPI/pull/28))。
+7.优化防重提交间隔时间可自定义 ([#29](https://github.com/insistence/RuoYi-Vue-FastAPI/pull/29))。
+8.优化验证码计算结果为非负数 ([#30](https://github.com/insistence/RuoYi-Vue-FastAPI/pull/30))。
+
 ## RuoYi-Vue-FastAPI v1.8.1
 
 ### BUG修复
 
-1.修复新增和编辑部门无法使用已删除的部门名称问题 (#10)。
+1.修复新增和编辑部门无法使用已删除的部门名称问题 ([#10](https://github.com/insistence/RuoYi-Vue-FastAPI/pull/10))。
 
 ### 代码优化
 
-1.优化数据权限依赖 (#8)。
-2.动态导入定时任务函数，移除eval (#9)。
-3.优化pg版本的docker compose配置文件 (#11)。
+1.优化数据权限依赖 ([#8](https://github.com/insistence/RuoYi-Vue-FastAPI/pull/8))。
+2.动态导入定时任务函数，移除eval ([#9](https://github.com/insistence/RuoYi-Vue-FastAPI/pull/9))。
+3.优化pg版本的docker compose配置文件 ([#11](https://github.com/insistence/RuoYi-Vue-FastAPI/pull/11))。
 
 ## RuoYi-Vue-FastAPI v1.8.0
 
@@ -71,7 +106,7 @@
 ### BUG修复
 
 1.修复代码生成controller模板编辑接口异常生成字段的问题。
-2.移除passlib直接使用bcrypt修复密码校验异常的问题 #ID124V。
+2.移除passlib直接使用bcrypt修复密码校验异常的问题 [#ID124V](https://gitee.com/insistence2022/RuoYi-Vue-FastAPI/issues/ID124V)。
 
 ### 代码优化
 
@@ -118,7 +153,7 @@
 
 ### 代码重构
 
-1.重构IP归属区域查询为异步调用 #7。
+1.重构IP归属区域查询为异步调用 [#7](https://github.com/insistence/RuoYi-Vue-FastAPI/issues/7)。
 2.调整do与sql使其相互适配以支持alembic。
 3.富文本复制粘贴图片上传至url。
 
@@ -406,11 +441,11 @@ pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 ### 新增功能
 
-1.配置文件新增数据库连接池相关配置 #3。
+1.配置文件新增数据库连接池相关配置 [#3](https://github.com/insistence/RuoYi-Vue-FastAPI/issues/3)。
 
 ### BUG修复
 
-1.修复个人中心修改密码后端异常的问题 #3。
+1.修复个人中心修改密码后端异常的问题 [#3](https://github.com/insistence/RuoYi-Vue-FastAPI/issues/3)。
 
 ### 代码及性能优化
 
@@ -448,7 +483,7 @@ pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ### BUG修复
 
 1.修复外链菜单无法打开的问题 #I95LBY。
-2.修复添加和编辑菜单页面中是否缓存和是否外链字段回显异常的问题 #I95LDI。
+2.修复添加和编辑菜单页面中是否缓存和是否外链字段回显异常的问题 [#I95LDI](https://gitee.com/insistence2022/RuoYi-Vue-FastAPI/issues/I95LDI)。
 
 ## RuoYi-Vue-FastAPI v1.0.2
 
