@@ -30,7 +30,12 @@
     <!-- 文件列表 -->
     <transition-group ref="uploadFileList" class="upload-file-list el-upload-list el-upload-list--text" name="el-fade-in-linear" tag="ul">
       <li :key="file.url" class="el-upload-list__item ele-upload-list__item-content" v-for="(file, index) in fileList">
-        <el-link :href="`${baseUrl}${file.url}`" :underline="false" target="_blank">
+        <el-link
+          :href="`${baseUrl}${file.url}`"
+          :underline="false"
+          target="_blank"
+          @click="handleFileDownload($event, file)"
+        >
           <span class="el-icon-document"> {{ getFileName(file.name) }} </span>
         </el-link>
         <div class="ele-upload-list__item-content-action">
@@ -54,6 +59,11 @@ export default {
     action: {
       type: String,
       default: "/common/upload"
+    },
+    // 是否上传受保护文件
+    isPrivate: {
+      type: Boolean,
+      default: false
     },
     // 上传携带的参数
     data: {
@@ -91,11 +101,14 @@ export default {
     }
   },
   data() {
+    const uploadAction = this.isPrivate && this.action === "/common/upload"
+      ? "/common/files/upload"
+      : this.action;
     return {
       number: 0,
       uploadList: [],
       baseUrl: process.env.VUE_APP_BASE_API,
-      uploadFileUrl: process.env.VUE_APP_BASE_API + this.action, // 上传文件服务器地址
+      uploadFileUrl: process.env.VUE_APP_BASE_API + uploadAction, // 上传文件服务器地址
       headers: {
         Authorization: "Bearer " + getToken(),
       },
@@ -197,6 +210,13 @@ export default {
         this.$modal.msgError(res.msg);
         this.$refs.fileUpload.handleRemove(file);
         this.uploadedSuccessfully();
+      }
+    },
+    // 下载受保护文件
+    handleFileDownload(event, file) {
+      if (typeof file.url === "string" && file.url.startsWith("/common/files/")) {
+        event.preventDefault();
+        this.$download.file(file.url);
       }
     },
     // 删除文件
