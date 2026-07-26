@@ -21,7 +21,8 @@
           :disabled="privateMultiple"
           @click="handleAcl()"
           v-hasPermi="['system:file:edit']"
-        >授权</el-button>
+          >授权</el-button
+        >
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -32,7 +33,8 @@
           :disabled="activeMultiple"
           @click="handleTransfer()"
           v-hasPermi="['system:file:transfer']"
-        >转移</el-button>
+          >转移</el-button
+        >
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -43,7 +45,8 @@
           :disabled="restoreMultiple"
           @click="handleRestore()"
           v-hasPermi="['system:file:restore']"
-        >恢复</el-button>
+          >恢复</el-button
+        >
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -54,7 +57,8 @@
           :disabled="purgeMultiple"
           @click="handlePurge()"
           v-hasPermi="['system:file:purge']"
-        >清理</el-button>
+          >清理</el-button
+        >
       </el-col>
       <el-col :span="1.5">
         <el-tooltip
@@ -71,7 +75,8 @@
               :disabled="deleteMultiple"
               @click="handleDelete()"
               v-hasPermi="['system:file:remove']"
-            >删除</el-button>
+              >删除</el-button
+            >
           </span>
         </el-tooltip>
       </el-col>
@@ -83,7 +88,19 @@
           icon="el-icon-timer"
           @click="$refs.retentionPolicyDrawer.open()"
           v-hasPermi="['system:file:edit']"
-        >策略</el-button>
+          >策略</el-button
+        >
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="info"
+          plain
+          size="mini"
+          icon="el-icon-connection"
+          @click="$refs.reconcileDrawer.open()"
+          v-hasPermi="['system:file:reconcile']"
+          >对账</el-button
+        >
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -93,12 +110,10 @@
           icon="el-icon-bell"
           @click="$refs.retentionReminderDrawer.open()"
           v-hasPermi="['system:file:list']"
-        >提醒</el-button>
+          >提醒</el-button
+        >
       </el-col>
-      <right-toolbar
-        :show-search.sync="showSearch"
-        @queryTable="getList"
-      />
+      <right-toolbar :show-search.sync="showSearch" @queryTable="getList" />
     </el-row>
 
     <file-table
@@ -138,6 +153,7 @@
     <file-acl-drawer ref="aclDrawer" @refresh="getList" />
     <file-transfer-dialog ref="transferDialog" @refresh="getList" />
     <file-audit-drawer ref="auditDrawer" />
+    <file-reconcile-drawer ref="reconcileDrawer" @refresh="getList" />
   </div>
 </template>
 
@@ -149,12 +165,13 @@ import {
   getFileStats,
   listFile,
   purgeFile,
-  restoreFile
+  restoreFile,
 } from "@/api/system/file";
 import FileAclDrawer from "./components/FileAclDrawer.vue";
 import FileAuditDrawer from "./components/FileAuditDrawer.vue";
 import FileDetailDialog from "./components/FileDetailDialog.vue";
 import FileReferenceDrawer from "./components/FileReferenceDrawer.vue";
+import FileReconcileDrawer from "./components/FileReconcileDrawer.vue";
 import FileRetentionPolicyDrawer from "./components/FileRetentionPolicyDrawer.vue";
 import FileRetentionReminderDrawer from "./components/FileRetentionReminderDrawer.vue";
 import FileSearchForm from "./components/FileSearchForm.vue";
@@ -169,12 +186,13 @@ export default {
     FileAuditDrawer,
     FileDetailDialog,
     FileReferenceDrawer,
+    FileReconcileDrawer,
     FileRetentionPolicyDrawer,
     FileRetentionReminderDrawer,
     FileSearchForm,
     FileStatistics,
     FileTable,
-    FileTransferDialog
+    FileTransferDialog,
   },
   data() {
     return {
@@ -203,7 +221,7 @@ export default {
         deletedCount: 0,
         expiredCount: 0,
         retentionExpiringCount: 0,
-        aclExpiringCount: 0
+        aclExpiringCount: 0,
       },
       queryParams: {
         pageNum: 1,
@@ -214,13 +232,13 @@ export default {
         createBy: undefined,
         ownerName: undefined,
         deptId: undefined,
-        expirationStatus: undefined
-      }
+        expirationStatus: undefined,
+      },
     };
   },
   created() {
     this.getList();
-    getFileAclDeptTree().then(response => {
+    getFileAclDeptTree().then((response) => {
       this.fileDeptOptions = response.data;
     });
   },
@@ -228,19 +246,16 @@ export default {
     /** 查询文件列表 */
     getList() {
       this.loading = true;
-      const query = this.addDateRange(
-        { ...this.queryParams },
-        this.dateRange
-      );
+      const query = this.addDateRange({ ...this.queryParams }, this.dateRange);
       listFile(query)
-        .then(response => {
+        .then((response) => {
           this.fileList = response.rows;
           this.total = response.total;
         })
         .finally(() => {
           this.loading = false;
         });
-      getFileStats(query).then(response => {
+      getFileStats(query).then((response) => {
         Object.assign(this.fileStats, response.data);
       });
     },
@@ -256,27 +271,30 @@ export default {
     },
     /** 多选框选中数据 */
     handleSelectionChange(selection) {
-      this.ids = selection.map(item => item.fileId);
+      this.ids = selection.map((item) => item.fileId);
       this.privateIds = selection
-        .filter(item => item.status === "active" && item.accessType === "private")
-        .map(item => item.fileId);
+        .filter(
+          (item) => item.status === "active" && item.accessType === "private"
+        )
+        .map((item) => item.fileId);
       this.selectedReferencedCount = selection.filter(
-        item => item.referenceCount > 0
+        (item) => item.referenceCount > 0
       ).length;
       this.activeMultiple =
-        !selection.length || selection.some(item => item.status !== "active");
+        !selection.length || selection.some((item) => item.status !== "active");
       this.deleteMultiple =
         this.activeMultiple || this.selectedReferencedCount > 0;
       this.privateMultiple = !this.privateIds.length;
       this.restoreMultiple =
-        !selection.length || selection.some(item => item.status !== "deleted");
+        !selection.length ||
+        selection.some((item) => item.status !== "deleted");
       this.purgeMultiple =
         !selection.length ||
-        selection.some(item => !["deleted", "purging"].includes(item.status));
+        selection.some((item) => !["deleted", "purging"].includes(item.status));
     },
     /** 查看文件详情 */
     handleView(row) {
-      getFile(row.fileId).then(response => {
+      getFile(row.fileId).then((response) => {
         this.detail = response.data;
         this.detailOpen = true;
       });
@@ -284,9 +302,7 @@ export default {
     /** 下载文件 */
     handleDownload(row) {
       const displayName = encodeURIComponent(row.storedName || "file");
-      this.$download.file(
-        `/system/file/download/${row.fileId}/${displayName}`
-      );
+      this.$download.file(`/system/file/download/${row.fileId}/${displayName}`);
     },
     /** 查看文件业务引用 */
     handleReference(row) {
@@ -316,9 +332,7 @@ export default {
         return;
       }
       const fileIds = isSingle ? row.fileId : this.ids;
-      const fileName = isSingle
-        ? row.originalName
-        : `${this.ids.length}个文件`;
+      const fileName = isSingle ? row.originalName : `${this.ids.length}个文件`;
       this.$modal
         .confirm(`是否确认将文件“${fileName}”移入回收站?`)
         .then(() => delFile(fileIds))
@@ -332,9 +346,7 @@ export default {
     handleRestore(row) {
       const isSingle = row && row.fileId;
       const fileIds = isSingle ? row.fileId : this.ids;
-      const fileName = isSingle
-        ? row.originalName
-        : `${this.ids.length}个文件`;
+      const fileName = isSingle ? row.originalName : `${this.ids.length}个文件`;
       this.$modal
         .confirm(`是否确认恢复文件“${fileName}”?`)
         .then(() => restoreFile(fileIds))
@@ -348,9 +360,7 @@ export default {
     handlePurge(row) {
       const isSingle = row && row.fileId;
       const fileIds = isSingle ? row.fileId : this.ids.join(",");
-      const fileName = isSingle
-        ? row.originalName
-        : `${this.ids.length}个文件`;
+      const fileName = isSingle ? row.originalName : `${this.ids.length}个文件`;
       this.$modal
         .confirm(`永久清理后无法恢复，是否确认清理文件“${fileName}”?`)
         .then(() => purgeFile(fileIds))
@@ -359,7 +369,7 @@ export default {
           this.$modal.msgSuccess("文件已永久清理");
         })
         .catch(() => {});
-    }
-  }
+    },
+  },
 };
 </script>
