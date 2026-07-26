@@ -10,25 +10,73 @@
       <el-alert
         :title="
           batchMode
-            ? '将覆盖所选受保护文件的全部授权；管理员和文件所有者仍始终允许访问。'
-            : '管理员和文件所有者始终允许访问；显式拒绝优先于上传人兼容权限及其他授权。'
+            ? '批量操作仅覆盖所选文件的显式授权；内置权限仍按各文件规则生效。'
+            : '内置权限只读展示；管理员和所有者不可被拒绝，启用的上传人权限可被匹配的显式拒绝覆盖。'
         "
         type="info"
         :closable="false"
         show-icon
         class="mb8"
       />
-      <el-row :gutter="10" class="mb8">
-        <el-col :span="1.5">
-          <el-button
-            type="primary"
-            plain
-            size="mini"
-            icon="el-icon-plus"
-            @click="addEntry"
-          >添加授权</el-button>
-        </el-col>
-      </el-row>
+      <div v-if="!batchMode" class="permission-section">
+        <div class="permission-section__title">内置权限</div>
+        <el-table v-loading="loading" :data="builtinPermissions" border>
+          <el-table-column label="权限来源" align="center" width="110">
+            <template slot-scope="scope">
+              <el-tag
+                :type="builtinSourceType(scope.row.source)"
+                effect="plain"
+              >{{ builtinSourceLabel(scope.row.source) }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="权限主体" align="center" min-width="180">
+            <template slot-scope="scope">
+              {{
+                scope.row.subjectName ||
+                  scope.row.subjectId ||
+                  "-"
+              }}
+            </template>
+          </el-table-column>
+          <el-table-column label="规则" align="center" width="110">
+            <template slot-scope="scope">
+              <el-tag
+                :type="scope.row.enabled ? 'success' : 'info'"
+                effect="plain"
+              >{{ scope.row.enabled ? "允许下载" : "已移除" }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="拒绝覆盖" align="center" width="135">
+            <template slot-scope="scope">
+              <el-tag
+                v-if="scope.row.enabled"
+                :type="scope.row.denyOverridable ? 'warning' : 'info'"
+                effect="plain"
+              >{{
+                scope.row.denyOverridable ? "可以覆盖" : "不可覆盖"
+              }}</el-tag>
+              <span v-else>-</span>
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="description"
+            label="权限说明"
+            align="left"
+            min-width="320"
+            show-overflow-tooltip
+          />
+        </el-table>
+      </div>
+      <div class="permission-section__header">
+        <span class="permission-section__title">显式授权</span>
+        <el-button
+          type="primary"
+          plain
+          size="mini"
+          icon="el-icon-plus"
+          @click="addEntry"
+        >添加授权</el-button>
+      </div>
       <el-table v-loading="loading" :data="entries">
         <el-table-column label="主体类型" align="center" width="125">
           <template slot-scope="scope">
@@ -153,6 +201,7 @@ export default {
       batchMode: false,
       batchCount: 0,
       aclVersion: 0,
+      builtinPermissions: [],
       entries: [],
       deptOptions: []
     };
@@ -194,6 +243,7 @@ export default {
       }
       this.visible = true;
       this.loading = true;
+      this.builtinPermissions = [];
       if (this.batchMode) {
         this.aclVersion = 0;
         this.entries = [];
@@ -210,6 +260,8 @@ export default {
         .then(([aclResponse, deptResponse]) => {
           this.deptOptions = deptResponse.data;
           this.aclVersion = aclResponse.data.aclVersion;
+          this.builtinPermissions =
+            aclResponse.data.builtinPermissions || [];
           this.entries = aclResponse.data.entries.map(item => ({
             subjectType: item.subjectType,
             subjectId: item.subjectId,
@@ -228,6 +280,24 @@ export default {
         .finally(() => {
           this.loading = false;
         });
+    },
+    builtinSourceLabel(source) {
+      return (
+        {
+          admin: "平台管理员",
+          owner: "文件所有者",
+          uploader: "文件上传人"
+        }[source] || source
+      );
+    },
+    builtinSourceType(source) {
+      return (
+        {
+          admin: "danger",
+          owner: "primary",
+          uploader: "warning"
+        }[source] || "info"
+      );
     },
     addEntry() {
       this.entries.push({
@@ -329,6 +399,23 @@ export default {
 .drawer-footer {
   padding-top: 20px;
   text-align: right;
+}
+
+.permission-section {
+  margin-bottom: 20px;
+}
+
+.permission-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 18px 0 8px;
+}
+
+.permission-section__title {
+  color: #303133;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .file-action-danger {
