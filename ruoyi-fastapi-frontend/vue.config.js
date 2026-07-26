@@ -184,6 +184,7 @@ module.exports = {
     'markstream-vue2',
     'stream-markdown-parser',
     'stream-markdown',
+    'shiki-stream',
     'stream-monaco',
     'monaco-editor',
     'shiki',
