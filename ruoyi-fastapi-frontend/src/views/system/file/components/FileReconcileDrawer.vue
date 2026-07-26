@@ -244,39 +244,42 @@
                 fixed="right"
               >
                 <template slot-scope="scope">
-                  <el-dropdown
+                  <el-tooltip
                     v-if="
                       scope.row.availableActions &&
                       scope.row.availableActions.length
                     "
-                    trigger="click"
-                    :disabled="latestRun.status === 'running'"
-                    @command="handleCommand($event, scope.row)"
+                    :content="
+                      latestRun.status === 'running'
+                        ? '对账任务运行中，请等待扫描完成'
+                        : '处理异常'
+                    "
+                    placement="top"
                   >
-                    <el-tooltip
-                      :content="
-                        latestRun.status === 'running'
-                          ? '对账任务运行中，请等待扫描完成'
-                          : '处理异常'
-                      "
-                      placement="top"
-                    >
-                      <el-button
-                        type="text"
-                        icon="el-icon-setting"
-                        class="table-operation-button"
-                      />
-                    </el-tooltip>
-                    <el-dropdown-menu slot="dropdown">
-                      <el-dropdown-item
-                        v-for="action in scope.row.availableActions"
-                        :key="action"
-                        :command="action"
+                    <span class="reconcile-action-trigger">
+                      <el-dropdown
+                        trigger="click"
+                        :disabled="latestRun.status === 'running'"
+                        @command="handleCommand($event, scope.row)"
                       >
-                        {{ actionLabel(action) }}
-                      </el-dropdown-item>
-                    </el-dropdown-menu>
-                  </el-dropdown>
+                        <el-button
+                          type="text"
+                          icon="el-icon-setting"
+                          class="table-operation-button"
+                          :disabled="latestRun.status === 'running'"
+                        />
+                        <el-dropdown-menu slot="dropdown">
+                          <el-dropdown-item
+                            v-for="action in scope.row.availableActions"
+                            :key="action"
+                            :command="action"
+                          >
+                            {{ actionLabel(action) }}
+                          </el-dropdown-item>
+                        </el-dropdown-menu>
+                      </el-dropdown>
+                    </span>
+                  </el-tooltip>
                   <span v-else>-</span>
                 </template>
               </el-table-column>
@@ -825,6 +828,11 @@ export default {
   display: flex;
   align-items: center;
   white-space: nowrap;
+}
+
+.reconcile-action-trigger {
+  display: inline-flex;
+  align-items: center;
 }
 
 .cell-secondary {

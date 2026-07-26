@@ -179,7 +179,7 @@
           content="存在业务引用，无法删除"
           placement="top"
         >
-          <span>
+          <span class="file-action-disabled-wrapper">
             <el-button
               type="text"
               class="file-action-danger"
@@ -267,6 +267,13 @@ export default {
 </script>
 
 <style scoped>
+.file-action-disabled-wrapper {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 10px;
+  vertical-align: middle;
+}
+
 .file-action-danger {
   color: #f56c6c;
 }
