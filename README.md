@@ -162,6 +162,11 @@ RuoYi-Vue-FastAPI是一套全部开源的快速开发平台，毫无保留给个
             <img alt="file" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/vue2/web/file.png">
         </td>
         <td>
+            <img alt="plugin" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/vue2/web/plugin.png">
+        </td>
+    </tr>
+    <tr>
+        <td>
             <img alt="profile" src="https://gitee.com/insistence2022/ruoyi-fastapi-pictures/raw/master/vue2/web/profile.png">
         </td>
     </tr>
