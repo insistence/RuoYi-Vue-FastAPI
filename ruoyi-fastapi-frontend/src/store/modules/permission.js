@@ -4,6 +4,11 @@ import { getRouters } from '@/api/menu'
 import Layout from '@/layout/index'
 import ParentView from '@/components/ParentView'
 import InnerLink from '@/layout/components/InnerLink'
+import { resolvePluginViewPath } from '@/utils/pluginViewResolver'
+
+const pluginViews = require.context('../../../plugins', true, /\/views\/.*\.vue$/, 'lazy')
+const pluginViewKeys = new Set(pluginViews.keys())
+const missingView = () => import('@/views/error/404')
 
 const permission = {
   state: {
@@ -111,6 +116,15 @@ export function filterDynamicRoutes(routes) {
 }
 
 export const loadView = (view) => {
+  if (view.startsWith('plugin/')) {
+    const pluginViewPath = resolvePluginViewPath(view)
+    if (pluginViewPath && pluginViewKeys.has(pluginViewPath)) {
+      return () => pluginViews(pluginViewPath).then(module => module.default || module)
+    }
+    console.warn(`[plugin] view not found: ${view}`)
+    return missingView
+  }
+
   if (process.env.NODE_ENV === 'development') {
     return (resolve) => require([`@/views/${view}`], resolve)
   } else {
