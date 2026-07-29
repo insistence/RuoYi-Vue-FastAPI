@@ -25,6 +25,11 @@ module.exports = {
   tagsView: true,
 
   /**
+   * 持久化标签页
+   */
+  tagsViewPersist: false,
+
+  /**
    * 显示页签图标
    */
   tagsIcon: false,

@@ -66,6 +66,11 @@
         </div>
 
         <div class="drawer-item">
+          <span>持久化标签页</span>
+          <el-switch v-model="tagsViewPersist" :disabled="!tagsView" class="drawer-switch" />
+        </div>
+
+        <div class="drawer-item">
           <span>显示页签图标</span>
           <el-switch v-model="tagsIcon" :disabled="!tagsView" class="drawer-switch" />
         </div>
@@ -121,6 +126,17 @@ export default {
       set(val) {
         this.$store.dispatch('settings/changeSetting', {
           key: 'fixedHeader',
+          value: val
+        })
+      }
+    },
+    tagsViewPersist: {
+      get() {
+        return this.$store.state.settings.tagsViewPersist
+      },
+      set(val) {
+        this.$store.dispatch('settings/changeSetting', {
+          key: 'tagsViewPersist',
           value: val
         })
       }
@@ -231,12 +247,16 @@ export default {
     },
     saveSetting() {
       this.$modal.loading("正在保存到本地，请稍候...");
+      if (!this.tagsViewPersist) {
+        this.$cache.local.remove('tags-view-visited')
+      }
       this.$cache.local.set(
         "layout-setting",
         `{
             "navType":${this.navType},
             "tagsView":${this.tagsView},
             "tagsIcon":${this.tagsIcon},
+            "tagsViewPersist":${this.tagsViewPersist},
             "fixedHeader":${this.fixedHeader},
             "sidebarLogo":${this.sidebarLogo},
             "dynamicTitle":${this.dynamicTitle},
@@ -249,6 +269,7 @@ export default {
     },
     resetSetting() {
       this.$modal.loading("正在清除设置缓存并刷新，请稍候...");
+      this.$cache.local.remove('tags-view-visited')
       this.$cache.local.remove("layout-setting")
       setTimeout("window.location.reload()", 1000)
     }
