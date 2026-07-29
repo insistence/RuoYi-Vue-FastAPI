@@ -38,7 +38,7 @@ class JwtSettings(BaseSettings):
     Jwt配置
     """
 
-    jwt_secret_key: str = 'b01c66dc2c58dc6a0aabfe2144256be36226de378bf87f72c0c795dda67f4d55'
+    jwt_secret_key: str = ''  # REQUIRED: Set via JWT_SECRET_KEY env var
     jwt_algorithm: str = 'HS256'
     jwt_expire_minutes: int = 1440
     jwt_redis_expire_minutes: int = 30
@@ -53,7 +53,7 @@ class DataBaseSettings(BaseSettings):
     db_host: str = '127.0.0.1'
     db_port: int = 3306
     db_username: str = 'root'
-    db_password: str = 'mysqlroot'
+    db_password: str = ''  # Set via DB_PASSWORD env var
     db_database: str = 'ruoyi-fastapi'
     db_echo: bool = True
     db_max_overflow: int = 10
