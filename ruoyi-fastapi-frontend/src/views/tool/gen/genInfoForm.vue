@@ -20,21 +20,6 @@
           </el-select>
         </el-form-item>
       </el-col>
-      <el-col :span="24">
-        <el-form-item prop="formColNum">
-          <span slot="label">
-            表单布局
-            <el-tooltip content="选择表单的栅格布局方式" placement="top">
-              <i class="el-icon-question"></i>
-            </el-tooltip>
-          </span>
-          <el-select v-model="info.formColNum">
-            <el-option label="单列" :value="1" />
-            <el-option label="双列" :value="2" />
-            <el-option label="三列" :value="3" />
-          </el-select>
-        </el-form-item>
-      </el-col>
       <el-col :span="12">
         <el-form-item prop="packageName">
           <span slot="label">
@@ -80,6 +65,29 @@
             </el-tooltip>
           </span>
           <el-input v-model="info.functionName" />
+        </el-form-item>
+      </el-col>
+
+      <el-col :span="12">
+        <el-form-item prop="formColNum">
+          <span slot="label">
+            表单布局
+            <el-tooltip content="选择表单的栅格布局方式" placement="top">
+              <i class="el-icon-question"></i>
+            </el-tooltip>
+          </span>
+          <el-select v-model="info.formColNum">
+            <el-option label="单列" :value="1" />
+            <el-option label="双列" :value="2" />
+            <el-option label="三列" :value="3" />
+          </el-select>
+        </el-form-item>
+      </el-col>
+
+      <el-col :span="12">
+        <el-form-item prop="genView">
+          <span slot="label">扩展功能</span>
+          <el-checkbox v-model="info.view">生成详情页</el-checkbox>
         </el-form-item>
       </el-col>
 
