@@ -283,7 +283,7 @@ export default {
     // 多选框选中数据
     handleSelectionChange(selection) {
       this.ids = selection.map(item => item.configId)
-      this.single = selection.length!=1
+      this.single = selection.length != 1
       this.multiple = !selection.length
     },
     /** 修改按钮操作 */
@@ -297,17 +297,17 @@ export default {
       });
     },
     /** 提交按钮 */
-    submitForm: function() {
+    submitForm() {
       this.$refs["form"].validate(valid => {
         if (valid) {
           if (this.form.configId != undefined) {
-            updateConfig(this.form).then(response => {
+            updateConfig(this.form).then(() => {
               this.$modal.msgSuccess("修改成功");
               this.open = false;
               this.getList();
             });
           } else {
-            addConfig(this.form).then(response => {
+            addConfig(this.form).then(() => {
               this.$modal.msgSuccess("新增成功");
               this.open = false;
               this.getList();

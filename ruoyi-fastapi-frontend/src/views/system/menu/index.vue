@@ -38,6 +38,16 @@
       </el-col>
       <el-col :span="1.5">
         <el-button
+          type="warning"
+          plain
+          icon="el-icon-check"
+          size="mini"
+          @click="handleSaveSort"
+          v-hasPermi="['system:menu:edit']"
+        >保存排序</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
           type="info"
           plain
           icon="el-icon-sort"
@@ -56,23 +66,31 @@
       :default-expand-all="isExpandAll"
       :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
     >
-      <el-table-column prop="menuName" label="菜单名称" :show-overflow-tooltip="true" width="160"></el-table-column>
-      <el-table-column prop="icon" label="图标" align="center" width="100">
+      <el-table-column prop="menuName" label="菜单名称" :show-overflow-tooltip="true" width="220">
         <template slot-scope="scope">
           <svg-icon :icon-class="scope.row.icon" />
+          <span class="ml5">{{ scope.row.menuName }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="orderNum" label="排序" width="60"></el-table-column>
-      <el-table-column prop="perms" label="权限标识" :show-overflow-tooltip="true"></el-table-column>
-      <el-table-column prop="component" label="组件路径" :show-overflow-tooltip="true"></el-table-column>
+      <el-table-column prop="menuName" label="类型" :show-overflow-tooltip="true" width="100">
+        <template slot-scope="scope">
+          <el-tag v-if="scope.row.menuType === 'M' && scope.row.isFrame === 0" type="danger" size="small">外链</el-tag>
+          <el-tag v-else-if="scope.row.menuType === 'M'" type="primary" size="small">目录</el-tag>
+          <el-tag v-else-if="scope.row.menuType === 'C' && scope.row.isFrame === 0" type="danger" size="small">外链</el-tag>
+          <el-tag v-else-if="scope.row.menuType === 'C'" type="success" size="small">菜单</el-tag>
+          <el-tag v-else-if="scope.row.menuType === 'F'" type="warning" size="small">按钮</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="orderNum" label="排序" width="200">
+        <template slot-scope="scope">
+          <el-input-number v-model="scope.row.orderNum" controls-position="right" :min="0" size="mini" style="width: 88px" />
+        </template>
+      </el-table-column>
+      <el-table-column prop="perms" label="权限标识" :show-overflow-tooltip="true" />
+      <el-table-column prop="component" label="组件路径" :show-overflow-tooltip="true" />
       <el-table-column prop="status" label="状态" width="80">
         <template slot-scope="scope">
-          <dict-tag :options="dict.type.sys_normal_disable" :value="scope.row.status"/>
-        </template>
-      </el-table-column>
-      <el-table-column label="创建时间" align="center" prop="createTime">
-        <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.createTime) }}</span>
+          <dict-tag :options="dict.type.sys_normal_disable" :value="scope.row.status" />
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
@@ -301,7 +319,7 @@
 </template>
 
 <script>
-import { listMenu, getMenu, delMenu, addMenu, updateMenu } from "@/api/system/menu";
+import { listMenu, getMenu, delMenu, addMenu, updateMenu, updateMenuSort } from "@/api/system/menu";
 import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 import IconSelect from "@/components/IconSelect";
@@ -328,6 +346,8 @@ export default {
       isExpandAll: false,
       // 重新渲染表格状态
       refreshTable: true,
+      // 记录原始排序，用于对比变更
+      originalOrders: {},
       // 查询参数
       queryParams: {
         menuName: undefined,
@@ -362,6 +382,8 @@ export default {
       this.loading = true;
       listMenu(this.queryParams).then(response => {
         this.menuList = this.handleTree(response.data, "menuId");
+        // 记录原始排序值
+        this.recordOriginalOrders(this.menuList);
         this.loading = false;
       });
     },
@@ -447,23 +469,60 @@ export default {
       });
     },
     /** 提交按钮 */
-    submitForm: function() {
+    submitForm() {
       this.$refs["form"].validate(valid => {
         if (valid) {
           if (this.form.menuId != undefined) {
-            updateMenu(this.form).then(response => {
+            updateMenu(this.form).then(() => {
               this.$modal.msgSuccess("修改成功");
               this.open = false;
               this.getList();
             });
           } else {
-            addMenu(this.form).then(response => {
+            addMenu(this.form).then(() => {
               this.$modal.msgSuccess("新增成功");
               this.open = false;
               this.getList();
             });
           }
         }
+      });
+    },
+    /** 递归记录原始排序 */
+    recordOriginalOrders(list) {
+      list.forEach(item => {
+        this.originalOrders[item.menuId] = item.orderNum;
+        if (item.children && item.children.length) {
+          this.recordOriginalOrders(item.children);
+        }
+      });
+    },
+    /** 保存排序 */
+    handleSaveSort() {
+      const changedMenuIds = [];
+      const changedOrderNums = [];
+      const collectChanged = list => {
+        list.forEach(item => {
+          if (String(this.originalOrders[item.menuId]) !== String(item.orderNum)) {
+            changedMenuIds.push(item.menuId);
+            changedOrderNums.push(item.orderNum);
+          }
+          if (item.children && item.children.length) {
+            collectChanged(item.children);
+          }
+        });
+      };
+      collectChanged(this.menuList);
+      if (changedMenuIds.length === 0) {
+        this.$modal.msgWarning("未检测到排序修改");
+        return;
+      }
+      updateMenuSort({
+        menuIds: changedMenuIds.join(","),
+        orderNums: changedOrderNums.join(",")
+      }).then(() => {
+        this.$modal.msgSuccess("排序保存成功");
+        this.recordOriginalOrders(this.menuList);
       });
     },
     /** 删除按钮操作 */

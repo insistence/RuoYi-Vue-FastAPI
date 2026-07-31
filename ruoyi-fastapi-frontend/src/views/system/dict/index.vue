@@ -113,9 +113,7 @@
       <el-table-column label="字典名称" align="center" prop="dictName" :show-overflow-tooltip="true" />
       <el-table-column label="字典类型" align="center" :show-overflow-tooltip="true">
         <template slot-scope="scope">
-          <router-link :to="'/system/dict-data/index/' + scope.row.dictId" class="link-type">
-            <span>{{ scope.row.dictType }}</span>
-          </router-link>
+          <a class="link-type" style="cursor:pointer" @click="handleViewData(scope.row)">{{ scope.row.dictType }}</a>
         </template>
       </el-table-column>
       <el-table-column label="状态" align="center" prop="status">
@@ -141,6 +139,13 @@
           <el-button
             size="mini"
             type="text"
+            icon="el-icon-s-operation"
+            @click="handleDataList(scope.row)"
+            v-hasPermi="['system:dict:edit']"
+          >列表</el-button>
+          <el-button
+            size="mini"
+            type="text"
             icon="el-icon-delete"
             @click="handleDelete(scope.row)"
             v-hasPermi="['system:dict:remove']"
@@ -163,8 +168,14 @@
         <el-form-item label="字典名称" prop="dictName">
           <el-input v-model="form.dictName" placeholder="请输入字典名称" />
         </el-form-item>
-        <el-form-item label="字典类型" prop="dictType">
-          <el-input v-model="form.dictType" placeholder="请输入字典类型" />
+        <el-form-item prop="dictType">
+          <el-input v-model="form.dictType" placeholder="请输入字典类型" maxlength="100" />
+          <span slot="label">
+            <el-tooltip content="数据存储中的Key值，如：sys_user_sex" placement="top">
+              <i class="el-icon-question"></i>
+            </el-tooltip>
+            字典类型
+          </span>
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="form.status">
@@ -184,14 +195,18 @@
         <el-button @click="cancel">取 消</el-button>
       </div>
     </el-dialog>
+
+    <dict-data-drawer :visible.sync="drawerVisible" :row="drawerRow" />
   </div>
 </template>
 
 <script>
+import DictDataDrawer from './detail';
 import { listType, getType, delType, addType, updateType, refreshCache } from "@/api/system/dict/type";
 
 export default {
   name: "Dict",
+  components: { DictDataDrawer },
   dicts: ['sys_normal_disable'],
   data() {
     return {
@@ -213,6 +228,10 @@ export default {
       title: "",
       // 是否显示弹出层
       open: false,
+      // 字典数据抽屉状态
+      drawerVisible: false,
+      // 字典数据信息
+      drawerRow: {},
       // 日期范围
       dateRange: [],
       // 查询参数
@@ -286,8 +305,17 @@ export default {
     // 多选框选中数据
     handleSelectionChange(selection) {
       this.ids = selection.map(item => item.dictId)
-      this.single = selection.length!=1
+      this.single = selection.length != 1
       this.multiple = !selection.length
+    },
+    /** 字典数据抽屉显示信息 */
+    handleViewData(row) {
+      this.drawerRow = row;
+      this.drawerVisible = true;
+    },
+    /** 字典数据列表页面 */
+    handleDataList(row) {
+      this.$tab.openPage("字典数据", '/system/dict-data/index/' + row.dictId);
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
@@ -300,17 +328,17 @@ export default {
       });
     },
     /** 提交按钮 */
-    submitForm: function() {
+    submitForm() {
       this.$refs["form"].validate(valid => {
         if (valid) {
           if (this.form.dictId != undefined) {
-            updateType(this.form).then(response => {
+            updateType(this.form).then(() => {
               this.$modal.msgSuccess("修改成功");
               this.open = false;
               this.getList();
             });
           } else {
-            addType(this.form).then(response => {
+            addType(this.form).then(() => {
               this.$modal.msgSuccess("新增成功");
               this.open = false;
               this.getList();

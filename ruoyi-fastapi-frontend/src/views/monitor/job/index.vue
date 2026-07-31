@@ -94,7 +94,11 @@
     <el-table v-loading="loading" :data="jobList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="任务编号" width="100" align="center" prop="jobId" />
-      <el-table-column label="任务名称" align="center" prop="jobName" :show-overflow-tooltip="true" />
+      <el-table-column label="任务名称" align="center" :show-overflow-tooltip="true">
+        <template slot-scope="scope">
+          <a class="link-type" style="cursor:pointer" @click="handleView(scope.row)">{{ scope.row.jobName }}</a>
+        </template>
+      </el-table-column>
       <el-table-column label="任务组名" align="center" prop="jobGroup">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.sys_job_group" :value="scope.row.jobGroup"/>
@@ -133,8 +137,6 @@
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item command="handleRun" icon="el-icon-caret-right"
                 v-hasPermi="['monitor:job:changeStatus']">执行一次</el-dropdown-item>
-              <el-dropdown-item command="handleView" icon="el-icon-view"
-                v-hasPermi="['monitor:job:query']">任务详细</el-dropdown-item>
               <el-dropdown-item command="handleJobLog" icon="el-icon-s-operation"
                 v-hasPermi="['monitor:job:query']">调度日志</el-dropdown-item>
             </el-dropdown-menu>
@@ -269,71 +271,18 @@
       <crontab @hide="openCron=false" @fill="crontabFill" :expression="expression"></crontab>
     </el-dialog>
 
-    <!-- 任务日志详细 -->
-    <el-dialog title="任务详细" :visible.sync="openView" width="700px" append-to-body>
-      <el-form ref="form" :model="form" label-width="120px" size="mini">
-        <el-row>
-          <el-col :span="12">
-            <el-form-item label="任务编号：">{{ form.jobId }}</el-form-item>
-            <el-form-item label="任务名称：">{{ form.jobName }}</el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="任务分组：">{{ jobGroupFormat(form) }}</el-form-item>
-            <el-form-item label="创建时间：">{{ parseTime(form.createTime) }}</el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="cron表达式：">{{ form.cronExpression }}</el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="下次执行时间：">{{ parseTime(form.nextValidTime) }}</el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="任务执行器：">{{ jobExecutorFormat(form) }}</el-form-item>
-          </el-col>
-          <el-col :span="24">
-            <el-form-item label="调用目标方法：">{{ form.invokeTarget }}</el-form-item>
-          </el-col>
-          <el-col :span="24">
-            <el-form-item label="位置参数：">{{ form.jobArgs }}</el-form-item>
-          </el-col>
-          <el-col :span="24">
-            <el-form-item label="关键字参数：">{{ form.jobKwargs }}</el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="任务状态：">
-              <div v-if="form.status == 0">正常</div>
-              <div v-else-if="form.status == 1">暂停</div>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="是否并发：">
-              <div v-if="form.concurrent == '0'">允许</div>
-              <div v-else-if="form.concurrent == '1'">禁止</div>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="执行策略：">
-              <div v-if="form.misfirePolicy == '0'">默认策略</div>
-              <div v-else-if="form.misfirePolicy == '1'">立即执行</div>
-              <div v-else-if="form.misfirePolicy == '2'">执行一次</div>
-              <div v-else-if="form.misfirePolicy == '3'">放弃执行</div>
-            </el-form-item>
-          </el-col>
-        </el-row>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="openView = false">关 闭</el-button>
-      </div>
-    </el-dialog>
+    <!-- 任务详细 -->
+    <job-detail :visible.sync="openView" :row="form" type="job" />
   </div>
 </template>
 
 <script>
 import { listJob, getJob, delJob, addJob, updateJob, runJob, changeJobStatus } from "@/api/monitor/job";
+import JobDetail from './detail'
 import Crontab from '@/components/Crontab'
 
 export default {
-  components: { Crontab },
+  components: { Crontab, JobDetail },
   name: "Job",
   dicts: ['sys_job_group', 'sys_job_status', 'sys_job_executor'],
   data() {
@@ -515,17 +464,17 @@ export default {
       });
     },
     /** 提交按钮 */
-    submitForm: function() {
+    submitForm() {
       this.$refs["form"].validate(valid => {
         if (valid) {
           if (this.form.jobId != undefined) {
-            updateJob(this.form).then(response => {
+            updateJob(this.form).then(() => {
               this.$modal.msgSuccess("修改成功");
               this.open = false;
               this.getList();
             });
           } else {
-            addJob(this.form).then(response => {
+            addJob(this.form).then(() => {
               this.$modal.msgSuccess("新增成功");
               this.open = false;
               this.getList();

@@ -451,7 +451,7 @@ export default {
     // 多选框选中数据
     handleSelectionChange(selection) {
       this.ids = selection.map(item => item.roleId)
-      this.single = selection.length!=1
+      this.single = selection.length != 1
       this.multiple = !selection.length
     },
     // 更多操作触发
@@ -547,24 +547,24 @@ export default {
       this.title = "分配数据权限";
     },
     /** 分配用户操作 */
-    handleAuthUser: function(row) {
+    handleAuthUser(row) {
       const roleId = row.roleId;
       this.$router.push("/system/role-auth/user/" + roleId);
     },
     /** 提交按钮 */
-    submitForm: function() {
+    submitForm() {
       this.$refs["form"].validate(valid => {
         if (valid) {
           if (this.form.roleId != undefined) {
             this.form.menuIds = this.getMenuAllCheckedKeys();
-            updateRole(this.form).then(response => {
+            updateRole(this.form).then(() => {
               this.$modal.msgSuccess("修改成功");
               this.open = false;
               this.getList();
             });
           } else {
             this.form.menuIds = this.getMenuAllCheckedKeys();
-            addRole(this.form).then(response => {
+            addRole(this.form).then(() => {
               this.$modal.msgSuccess("新增成功");
               this.open = false;
               this.getList();
@@ -574,10 +574,10 @@ export default {
       });
     },
     /** 提交按钮（数据权限） */
-    submitDataScope: function() {
+    submitDataScope() {
       if (this.form.roleId != undefined) {
         this.form.deptIds = this.getDeptAllCheckedKeys();
-        dataScope(this.form).then(response => {
+        dataScope(this.form).then(() => {
           this.$modal.msgSuccess("修改成功");
           this.openDataScope = false;
           this.getList();
