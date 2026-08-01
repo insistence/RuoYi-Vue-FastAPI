@@ -55,10 +55,12 @@ plugins/ai/
 
 - `markstream-vue2`
 - `stream-markdown`
+- `stream-monaco`
 - `shiki`
 - `mermaid`
 - `katex`
 - `@antv/infographic`
+- `@terrastruct/d2`
 
 ## 开发约定
 
