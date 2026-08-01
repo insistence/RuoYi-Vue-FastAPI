@@ -11,7 +11,7 @@
         <img alt="Github" src="https://img.shields.io/github/stars/insistence/RuoYi-Vue-FastAPI?style=social">
     </a>
     <a href="https://gitee.com/insistence2022/RuoYi-Vue-FastAPI">
-        <img alt="project version" src="https://img.shields.io/badge/version-1.9.0-brightgreen.svg">
+        <img alt="project version" src="https://img.shields.io/badge/version-1.10.0-brightgreen.svg">
     </a>
     <a href="https://github.com/astral-sh/ruff">
         <img alt="Ruff" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json">
@@ -253,6 +253,9 @@ cd ruoyi-fastapi-backend
 pip3 install -r requirements.txt
 # 如果使用的是PostgreSQL数据库，请执行以下命令安装项目依赖环境
 pip3 install -r requirements-pg.txt
+
+# 安装AI插件依赖，如果不需要AI插件，可忽略此步骤
+ruoyi plugin install-deps ai
 
 # 配置环境
 在.env.dev文件中配置开发环境的数据库和redis
