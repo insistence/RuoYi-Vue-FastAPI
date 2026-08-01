@@ -67,6 +67,7 @@ function setAliasIfExists(alias, key, filePath) {
 }
 
 const markstreamVue2Root = resolvePackageRoot('markstream-vue2')
+const terrastructD2Root = resolveNodeModulesPackageRoot('@terrastruct/d2')
 const streamMonacoRoot = resolvePackageRoot('stream-monaco')
 const streamMarkdownRoot = resolvePackageRoot('stream-markdown') || resolveNodeModulesPackageRoot('stream-markdown')
 const monacoEditorRoot = resolveSiblingPackagePath(streamMonacoRoot, 'monaco-editor')
@@ -87,6 +88,7 @@ setAliasIfExists(markstreamAlias, 'markstream-vue2/index.css', markstreamVue2Roo
 setAliasIfExists(markstreamAlias, 'markstream-vue2/index.tailwind.css', markstreamVue2Root ? path.join(markstreamVue2Root, 'dist/index.tailwind.css') : null)
 setAliasIfExists(markstreamAlias, 'markstream-vue2/workers/katexRenderer.worker', markstreamVue2Root ? path.join(markstreamVue2Root, 'dist/workers/katexRenderer.worker.js') : null)
 setAliasIfExists(markstreamAlias, 'markstream-vue2/workers/mermaidParser.worker', markstreamVue2Root ? path.join(markstreamVue2Root, 'dist/workers/mermaidParser.worker.js') : null)
+setAliasIfExists(markstreamAlias, '@terrastruct/d2$', terrastructD2Root ? path.join(terrastructD2Root, 'dist/browser/index.js') : null)
 setAliasIfExists(
   markstreamAlias,
   'stream-monaco/legacy',
@@ -119,7 +121,11 @@ function createOptionalIgnoreRegex() {
     '@mermaid-js/parser',
     'langium',
     '@antv/infographic',
-    '@antv/hierarchy'
+    '@antv/hierarchy',
+    'monaco-editor/esm/vs/language/css/monaco.contribution',
+    'monaco-editor/esm/vs/language/html/monaco.contribution',
+    'monaco-editor/esm/vs/language/json/monaco.contribution',
+    'monaco-editor/esm/vs/language/typescript/monaco.contribution'
   ]
   const maybeIgnore = []
   if (!streamMarkdownRoot) {
@@ -182,6 +188,8 @@ module.exports = {
   transpileDependencies: [
     'quill',
     'markstream-vue2',
+    'markstream-core',
+    '@terrastruct/d2',
     'stream-markdown-parser',
     'stream-markdown',
     'shiki-stream',
