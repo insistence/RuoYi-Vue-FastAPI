@@ -2,6 +2,22 @@
   <!-- 导入表 -->
   <el-dialog title="导入表" :visible.sync="visible" width="800px" top="5vh" append-to-body>
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true">
+      <el-form-item label="数据源" prop="dataSourceName" required>
+        <el-select
+          v-model="queryParams.dataSourceName"
+          placeholder="请选择数据源"
+          filterable
+          style="width: 220px"
+          @change="handleSourceChange"
+        >
+          <el-option
+            v-for="source in dataSources"
+            :key="source.name"
+            :label="source.name + '（' + source.dbType + '）'"
+            :value="source.name"
+          />
+        </el-select>
+      </el-form-item>
       <el-form-item label="表名称" prop="tableName">
         <el-input
           v-model="queryParams.tableName"
@@ -49,6 +65,12 @@
 <script>
 import { listDbTable, importTable } from "@/api/tool/gen";
 export default {
+  props: {
+    dataSources: {
+      type: Array,
+      default: () => []
+    }
+  },
   data() {
     return {
       // 遮罩层
@@ -64,15 +86,37 @@ export default {
         pageNum: 1,
         pageSize: 10,
         tableName: undefined,
-        tableComment: undefined
+        tableComment: undefined,
+        dataSourceName: undefined
       }
     };
   },
   methods: {
     // 显示弹框
     show() {
-      this.getList();
       this.visible = true;
+      this.tables = [];
+      this.clearSelection();
+      this.queryParams.dataSourceName = this.getDefaultSourceName();
+      this.getList();
+    },
+    getDefaultSourceName() {
+      const defaultSource = this.dataSources.find(source => source.isDefault) || this.dataSources[0];
+      return defaultSource ? defaultSource.name : undefined;
+    },
+    clearSelection() {
+      this.$nextTick(() => {
+        if (this.$refs.table) {
+          this.$refs.table.clearSelection();
+        }
+      });
+    },
+    /** 切换数据源后重新查询可导入表 */
+    handleSourceChange() {
+      this.tables = [];
+      this.clearSelection();
+      this.queryParams.pageNum = 1;
+      this.getList();
     },
     clickRow(row) {
       this.$refs.table.toggleRowSelection(row);
@@ -83,6 +127,11 @@ export default {
     },
     // 查询表数据
     getList() {
+      if (!this.queryParams.dataSourceName) {
+        this.dbTableList = [];
+        this.total = 0;
+        return;
+      }
       listDbTable(this.queryParams).then(res => {
         if (res.code === 200) {
           this.dbTableList = res.rows;
@@ -98,6 +147,7 @@ export default {
     /** 重置按钮操作 */
     resetQuery() {
       this.resetForm("queryForm");
+      this.queryParams.dataSourceName = this.getDefaultSourceName();
       this.handleQuery();
     },
     /** 导入按钮操作 */
@@ -107,7 +157,11 @@ export default {
         this.$modal.msgError("请选择要导入的表");
         return;
       }
-      importTable({ tables: tableNames }).then(res => {
+      if (!this.queryParams.dataSourceName) {
+        this.$modal.msgError("请选择数据源");
+        return;
+      }
+      importTable({ tables: tableNames, dataSourceName: this.queryParams.dataSourceName }).then(res => {
         this.$modal.msgSuccess(res.msg);
         if (res.code === 200) {
           this.visible = false;
