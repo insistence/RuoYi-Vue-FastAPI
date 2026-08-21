@@ -17,6 +17,22 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
+      <el-form-item label="数据源" prop="dataSourceName">
+        <el-select
+          v-model="queryParams.dataSourceName"
+          placeholder="请选择数据源"
+          clearable
+          filterable
+          style="width: 220px"
+        >
+          <el-option
+            v-for="source in dataSources"
+            :key="source.name"
+            :label="source.name + '（' + source.dbType + '）'"
+            :value="source.name"
+          />
+        </el-select>
+      </el-form-item>
       <el-form-item label="创建时间">
         <el-date-picker
           v-model="dateRange"
@@ -119,6 +135,7 @@
         :show-overflow-tooltip="true"
         width="140"
       />
+      <el-table-column label="数据源" align="center" prop="dataSourceName" width="160" />
       <el-table-column label="创建时间" align="center" prop="createTime" width="160" />
       <el-table-column label="更新时间" align="center" prop="updateTime" width="160" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
@@ -182,13 +199,13 @@
         </el-tab-pane>
       </el-tabs>
     </el-dialog>
-    <import-table ref="import" @ok="handleQuery" />
-    <create-table ref="create" @ok="handleQuery" />
+    <import-table ref="import" :data-sources="dataSources" @ok="handleQuery" />
+    <create-table ref="create" :data-sources="dataSources" @ok="handleQuery" />
   </div>
 </template>
 
 <script>
-import { listTable, previewTable, delTable, genCode, synchDb } from "@/api/tool/gen";
+import { listDataSources, listTable, previewTable, delTable, genCode, synchDb } from "@/api/tool/gen";
 import importTable from "./importTable";
 import createTable from "./createTable";
 import hljs from "highlight.js/lib/highlight";
@@ -212,6 +229,8 @@ export default {
       ids: [],
       // 选中表数组
       tableNames: [],
+      // 选中表的数据源数组
+      selectedSourceNames: [],
       // 非单个禁用
       single: true,
       // 非多个禁用
@@ -222,6 +241,8 @@ export default {
       total: 0,
       // 表数据
       tableList: [],
+      // 数据源选项
+      dataSources: [],
       // 日期范围
       dateRange: "",
       // 查询参数
@@ -229,7 +250,8 @@ export default {
         pageNum: 1,
         pageSize: 10,
         tableName: undefined,
-        tableComment: undefined
+        tableComment: undefined,
+        dataSourceName: undefined
       },
       // 预览参数
       preview: {
@@ -242,6 +264,7 @@ export default {
   },
   created() {
     this.getList();
+    this.getDataSources();
   },
   activated() {
     const time = this.$route.query.t;
@@ -262,6 +285,12 @@ export default {
         }
       );
     },
+    /** 查询代码生成数据源选项 */
+    getDataSources() {
+      listDataSources().then(response => {
+        this.dataSources = response.data || [];
+      });
+    },
     /** 搜索按钮操作 */
     handleQuery() {
       this.queryParams.pageNum = 1;
@@ -274,20 +303,32 @@ export default {
         this.$modal.msgError("请选择要生成的数据");
         return;
       }
+      const sourceNames = row.tableName ? [row.dataSourceName] : this.selectedSourceNames;
+      const uniqueSourceNames = [...new Set(sourceNames.filter(Boolean))];
+      if (uniqueSourceNames.length !== 1) {
+        this.$modal.msgError("请选择同一数据源下的生成配置");
+        return;
+      }
+      const dataSourceName = uniqueSourceNames[0];
       if(row.genType === "1") {
-        genCode(row.tableName).then(() => {
+        genCode(row.tableName, dataSourceName).then(() => {
           this.$modal.msgSuccess("成功生成到自定义路径：" + row.genPath);
         });
       } else {
         const zipName = Array.isArray(tableNames) ? "vfadmin.zip" : tableNames + ".zip"
-        this.$download.zip("/tool/gen/batchGenCode?tables=" + tableNames, zipName)
+        const tables = encodeURIComponent(Array.isArray(tableNames) ? tableNames.join(",") : tableNames);
+        this.$download.zip(
+          "/tool/gen/batchGenCode?tables=" + tables + "&dataSourceName=" + encodeURIComponent(dataSourceName),
+          zipName
+        )
       }
     },
     /** 同步数据库操作 */
     handleSynchDb(row) {
       const tableName = row.tableName;
+      const dataSourceName = row.dataSourceName;
       this.$modal.confirm('确认要强制同步"' + tableName + '"表结构吗？').then(function() {
-        return synchDb(tableName);
+        return synchDb(tableName, dataSourceName);
       }).then(() => {
         this.$modal.msgSuccess("同步成功");
       }).catch(() => {});
@@ -329,6 +370,7 @@ export default {
     handleSelectionChange(selection) {
       this.ids = selection.map(item => item.tableId);
       this.tableNames = selection.map(item => item.tableName);
+      this.selectedSourceNames = selection.map(item => item.dataSourceName);
       this.single = selection.length != 1;
       this.multiple = !selection.length;
     },
