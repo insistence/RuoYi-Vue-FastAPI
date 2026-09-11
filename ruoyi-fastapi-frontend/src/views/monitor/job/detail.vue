@@ -368,7 +368,7 @@
 </template>
 
 <script>
-import { syncStates } from './runtimeState'
+import { syncStates } from '@/utils/job'
 
 export default {
   name: 'JobDetail',

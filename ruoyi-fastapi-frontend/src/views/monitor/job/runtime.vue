@@ -88,7 +88,7 @@
 
 <script>
 import { listJobExecutions, listJobSync, retryJobSync } from '@/api/monitor/job'
-import { executionStates, syncStates, notifyJobMutation } from './runtimeState'
+import { executionStates, syncStates, notifyJobMutation } from '@/utils/job'
 export default {
   name: 'JobRuntime',
   props: {

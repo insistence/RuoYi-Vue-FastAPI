@@ -327,8 +327,7 @@ import JobDetail from './detail'
 import Crontab from '@/components/Crontab'
 import JobRuntime from './runtime'
 import JsonEditor from '@/components/JsonEditor'
-import { syncStates, notifyJobMutation } from './runtimeState'
-import { parseJobParameter, buildJobPayload } from './jobForm'
+import { parseJobParameter, buildJobPayload, syncStates, notifyJobMutation } from '@/utils/job'
 import { checkPermi } from '@/utils/permission'
 
 export default {
