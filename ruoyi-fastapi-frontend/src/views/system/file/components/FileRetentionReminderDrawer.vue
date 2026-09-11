@@ -240,13 +240,7 @@
           <span>{{ parseTime(currentRow.expireTime) }}</span>
         </el-form-item>
         <el-form-item label="新到期时间" prop="expireTime">
-          <el-date-picker
-            v-model="extendForm.expireTime"
-            type="datetime"
-            value-format="yyyy-MM-dd HH:mm:ss"
-            placeholder="请选择新的到期时间"
-            style="width: 100%"
-          />
+          <BusinessDateTimePicker v-model="extendForm.expireTime" label="新到期时间" style="width: 100%" />
         </el-form-item>
         <el-form-item label="延期原因" prop="reason">
           <el-input
@@ -272,6 +266,8 @@
 </template>
 
 <script>
+import { toBusinessDateTimeInput, serializeTimeFieldsForSubmit } from "@/utils/time";
+import BusinessDateTimePicker from "@/components/BusinessDateTimePicker";
 import {
   disposeExpiredFile,
   extendFileRetention,
@@ -282,6 +278,7 @@ import {
 
 export default {
   name: "FileRetentionReminderDrawer",
+  components: { BusinessDateTimePicker },
   data() {
     return {
       visible: false,
@@ -380,10 +377,12 @@ export default {
       this.$nextTick(() => this.$refs.extendForm.clearValidate());
     },
     submitExtend() {
-      this.$refs.extendForm.validate(valid => {
+      this.$refs.extendForm.validate(async valid => {
         if (!valid) return;
+        const submitData = await serializeTimeFieldsForSubmit(this.extendForm, ['expireTime']);
+        if (!submitData) return;
         this.submitting = true;
-        extendFileRetention(this.currentRow.noticeId, this.extendForm)
+        extendFileRetention(this.currentRow.noticeId, submitData)
           .then(() => {
             this.$modal.msgSuccess("文件保留期限已延长");
             this.extendOpen = false;
@@ -425,12 +424,7 @@ export default {
     defaultExtendTime(expireTime) {
       const baseTime = Math.max(Date.now(), new Date(expireTime).getTime());
       const target = new Date(baseTime + 30 * 24 * 60 * 60 * 1000);
-      const pad = value => String(value).padStart(2, "0");
-      return `${target.getFullYear()}-${pad(target.getMonth() + 1)}-${pad(
-        target.getDate()
-      )} ${pad(target.getHours())}:${pad(target.getMinutes())}:${pad(
-        target.getSeconds()
-      )}`;
+      return toBusinessDateTimeInput(target);
     }
   }
 };

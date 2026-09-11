@@ -1,10 +1,14 @@
 <script>
+import { refreshDeviceTimezone } from "@/utils/time";
 import config from "./config";
 import { getToken } from "@/utils/auth";
 
 export default {
   onLaunch: function () {
     this.initApp();
+  },
+  onShow() {
+    refreshDeviceTimezone();
   },
   methods: {
     // 初始化应用

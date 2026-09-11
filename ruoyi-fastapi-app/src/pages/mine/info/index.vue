@@ -88,13 +88,14 @@
           </view>
           <text class="ml-3 text-base font-medium text-gray-800">创建日期</text>
         </view>
-        <text class="text-sm text-gray-500">{{ user.createTime }}</text>
+        <text class="text-sm text-gray-500">{{ formatBusinessTime(user.createTime) || '-' }}</text>
       </view>
     </view>
   </view>
 </template>
 
 <script>
+import { formatBusinessTime } from "@/utils/time";
 import { getUserProfile } from "@/api/system/user";
 
 export default {
@@ -109,12 +110,16 @@ export default {
     this.getUser();
   },
   methods: {
-    getUser() {
-      getUserProfile().then((response) => {
+    formatBusinessTime,
+    async getUser() {
+      try {
+        const [, response] = await Promise.all([this.$store.dispatch("GetInfo"), getUserProfile()]);
         this.user = response.data;
         this.roleGroup = response.roleGroup;
         this.postGroup = response.postGroup;
-      });
+      } catch {
+        // 请求工具已展示错误，保留空状态。
+      }
     },
   },
 };

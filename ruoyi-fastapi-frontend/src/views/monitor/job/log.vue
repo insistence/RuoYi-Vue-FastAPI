@@ -1,6 +1,14 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+      <el-form-item label="任务编号" prop="jobId">
+        <el-input v-model="queryParams.jobId" placeholder="请输入任务编号" clearable
+          style="width: 240px" @keyup.enter.native="handleQuery" />
+      </el-form-item>
+      <el-form-item label="执行编号" prop="executionId">
+        <el-input v-model="queryParams.executionId" placeholder="请输入执行ID" clearable
+          style="width: 240px" @keyup.enter.native="handleQuery" />
+      </el-form-item>
       <el-form-item label="任务名称" prop="jobName">
         <el-input
           v-model="queryParams.jobName"
@@ -11,19 +19,13 @@
         />
       </el-form-item>
       <el-form-item label="任务组名" prop="jobGroup">
-        <el-select
+        <el-input
           v-model="queryParams.jobGroup"
-          placeholder="请选择任务组名"
+          placeholder="请输入任务组名"
           clearable
           style="width: 240px"
-        >
-          <el-option
-            v-for="dict in dict.type.sys_job_group"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
-        </el-select>
+          @keyup.enter.native="handleQuery"
+        />
       </el-form-item>
       <el-form-item label="执行状态" prop="status">
         <el-select
@@ -43,6 +45,7 @@
       <el-form-item label="执行时间">
         <el-date-picker
           v-model="dateRange"
+          :aria-label="'执行日期（' + displayTimezone + '）'"
           style="width: 240px"
           value-format="yyyy-MM-dd"
           type="daterange"
@@ -105,11 +108,7 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="日志编号" width="80" align="center" prop="jobLogId" />
       <el-table-column label="任务名称" align="center" prop="jobName" :show-overflow-tooltip="true" />
-      <el-table-column label="任务组名" align="center" prop="jobGroup" :show-overflow-tooltip="true">
-        <template slot-scope="scope">
-          <dict-tag :options="dict.type.sys_job_group" :value="scope.row.jobGroup"/>
-        </template>
-      </el-table-column>
+      <el-table-column label="任务组名" align="center" prop="jobGroup" :show-overflow-tooltip="true" />
       <el-table-column label="调用目标字符串" align="center" prop="invokeTarget" :show-overflow-tooltip="true" />
       <el-table-column label="日志信息" align="center" prop="jobMessage" :show-overflow-tooltip="true" />
       <el-table-column label="执行状态" align="center" prop="status">
@@ -149,14 +148,14 @@
 </template>
 
 <script>
-import { getJob} from "@/api/monitor/job";
+import { getDisplayTimezone } from '@/utils/time'
 import { listJobLog, delJobLog, cleanJobLog } from "@/api/monitor/jobLog";
 import JobLogDetail from './detail'
 
 export default {
   name: "JobLog",
   components: { JobLogDetail },
-  dicts: ['sys_common_status', 'sys_job_group', 'sys_job_executor'],
+  dicts: ['sys_common_status'],
   data() {
     return {
       // 遮罩层
@@ -181,42 +180,59 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
+        jobId: undefined,
+        executionId: undefined,
         jobName: undefined,
         jobGroup: undefined,
         status: undefined
       }
     };
   },
-  created() {
-    const jobId = this.$route.params && this.$route.params.jobId;
-    if (jobId !== undefined && jobId != 0) {
-      getJob(jobId).then(response => {
-        this.queryParams.jobName = response.data.jobName;
-        this.queryParams.jobGroup = response.data.jobGroup;
-        this.getList();
-      });
-    } else {
-      this.getList();
+  computed: {
+    route() {
+      return this.$route
+    },
+    routeQuery() {
+      return [this.route.params.jobId, this.route.query.executionId]
+    },
+    displayTimezone() {
+      return getDisplayTimezone()
+    }
+  },
+  watch: {
+    routeQuery: {
+      handler([jobId, executionId]) {
+        this.queryParams.jobId = jobId && jobId != 0 ? jobId : undefined
+        this.queryParams.executionId = executionId || undefined
+        this.queryParams.jobName = undefined
+        this.queryParams.jobGroup = undefined
+        this.handleQuery()
+      },
+      immediate: true
+    },
+    displayTimezone() {
+      if (this.dateRange?.length) {
+        this.handleQuery()
+      }
     }
   },
   methods: {
     /** 查询调度日志列表 */
     getList() {
-      this.loading = true;
-      listJobLog(this.addDateRange(this.queryParams, this.dateRange)).then(response => {
-          this.jobLogList = response.rows;
-          this.total = response.total;
-          this.loading = false;
-        }
-      );
-    },
-    // 任务组名字典翻译
-    jobGroupFormat(row, column) {
-      return this.selectDictLabel(this.dict.type.sys_job_group, row.jobGroup);
-    },
-    // 任务执行器名字典翻译
-    jobExecutorFormat(row, column) {
-      return this.selectDictLabel(this.dict.type.sys_job_executor, row.jobExecutor);
+      this.loading = true
+      const query = {
+        ...this.queryParams,
+        jobId: this.queryParams.jobId || undefined,
+        executionId: this.queryParams.executionId || undefined
+      }
+      listJobLog(this.addDateRange(query, this.dateRange))
+        .then((response) => {
+          this.jobLogList = response.rows
+          this.total = response.total
+        })
+        .finally(() => {
+          this.loading = false
+        })
     },
     // 返回按钮
     handleClose() {
@@ -265,9 +281,18 @@ export default {
     },
     /** 导出按钮操作 */
     handleExport() {
-      this.download('/monitor/jobLog/export', {
-        ...this.queryParams
-      }, `log_${new Date().getTime()}.xlsx`)
+      this.download(
+        'monitor/jobLog/export',
+        this.addDateRange(
+          {
+            ...this.queryParams,
+            jobId: this.queryParams.jobId || undefined,
+            executionId: this.queryParams.executionId || undefined
+          },
+          this.dateRange
+        ),
+        `job_log_${new Date().getTime()}.xlsx`
+      )
     }
   }
 };

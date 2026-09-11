@@ -70,7 +70,7 @@ const markstreamVue2Root = resolvePackageRoot('markstream-vue2')
 const terrastructD2Root = resolveNodeModulesPackageRoot('@terrastruct/d2')
 const streamMonacoRoot = resolvePackageRoot('stream-monaco')
 const streamMarkdownRoot = resolvePackageRoot('stream-markdown') || resolveNodeModulesPackageRoot('stream-markdown')
-const monacoEditorRoot = resolveSiblingPackagePath(streamMonacoRoot, 'monaco-editor')
+const monacoEditorRoot = resolveNodeModulesPackageRoot('monaco-editor') || resolveSiblingPackagePath(streamMonacoRoot, 'monaco-editor')
 const shikiRoot = resolvePackageRoot('shiki')
 const shikijsLangsRoot = resolvePackageRoot('@shikijs/langs')
 const shikijsThemesRoot = resolvePackageRoot('@shikijs/themes')
@@ -160,7 +160,8 @@ function createMonacoAssetCopyPlugins() {
   }
   return [
     new CopyWebpackPlugin([
-      { from, to: 'monaco/vs' }
+      { from, to: 'monaco/vs' },
+      { from: path.join(monacoEditorRoot, 'min/vs'), to: 'monaco-json/vs' }
     ])
   ]
 }

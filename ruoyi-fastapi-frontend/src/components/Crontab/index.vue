@@ -101,7 +101,7 @@
           </tbody>
         </table>
       </div>
-      <CrontabResult :ex="crontabValueString"></CrontabResult>
+      <CrontabResult :ex="crontabValueString" :time-zone="timeZone"></CrontabResult>
 
       <div class="pop_btn">
         <el-button size="small" type="primary" @click="submitFill">确定</el-button>
@@ -140,7 +140,11 @@ export default {
     };
   },
   name: "vcrontab",
-  props: ["expression", "hideComponent"],
+  props: {
+    expression: String,
+    hideComponent: Array,
+    timeZone: { type: String, required: true }
+  },
   methods: {
     shouldHide(key) {
       if (this.hideComponent && this.hideComponent.includes(key)) return false;

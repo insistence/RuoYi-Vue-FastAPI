@@ -63,16 +63,22 @@ const config = {
     ],
   ],
   plugins,
+  overrides: [
+    {
+      // @formatjs 的副作用入口没有 import/export，但所属包声明为 ESM。
+      // 保留模块语义，让 Babel 注入的辅助函数和 polyfill 由 webpack 正确打包。
+      test: /[/\\]node_modules[/\\]@formatjs[/\\]/,
+      sourceType: "module",
+    },
+  ],
 };
 
 const UNI_H5_TEST = "**/@dcloudio/uni-h5/dist/index.umd.min.js";
 if (process.env.NODE_ENV === "production") {
-  config.overrides = [
-    {
-      test: UNI_H5_TEST,
-      compact: true,
-    },
-  ];
+  config.overrides.push({
+    test: UNI_H5_TEST,
+    compact: true,
+  });
 } else {
   config.ignore = [UNI_H5_TEST];
 }

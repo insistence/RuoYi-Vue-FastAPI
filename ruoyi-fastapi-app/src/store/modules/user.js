@@ -1,3 +1,4 @@
+import { setBusinessTimezone, setUserTimezone } from "@/utils/time";
 import config from "@/config";
 import storage from "@/utils/storage";
 import constant from "@/utils/constant";
@@ -11,6 +12,8 @@ const baseUrl = config.baseUrl;
 const user = {
   state: {
     token: getToken(),
+    appTimezone: "Asia/Shanghai",
+    timeZone: "auto",
     id: storage.get(constant.id),
     name: storage.get(constant.name),
     avatar: storage.get(constant.avatar),
@@ -19,6 +22,15 @@ const user = {
   },
 
   mutations: {
+    SET_APP_TIMEZONE: (state, timezone) => {
+      setBusinessTimezone(timezone);
+      state.appTimezone = timezone;
+    },
+    SET_TIMEZONE: (state, preference = "auto") => {
+      setUserTimezone(preference);
+      state.timeZone = preference;
+      storage.set(constant.timezone, { appTimezone: state.appTimezone, timeZone: preference });
+    },
     SET_TOKEN: (state, token) => {
       state.token = token;
     },
@@ -45,6 +57,9 @@ const user = {
   },
 
   actions: {
+    ApplyTimezone({ commit }, preference = "auto") {
+      commit("SET_TIMEZONE", preference);
+    },
     // 登录
     Login({ commit }, userInfo) {
       const username = userInfo.username.trim();
@@ -70,6 +85,8 @@ const user = {
         getInfo()
           .then((res) => {
             const user = res.user;
+            commit("SET_APP_TIMEZONE", res.appTimezone);
+            commit("SET_TIMEZONE", user.timeZone);
             let avatar = user.avatar || "";
             if (!isHttp(avatar)) {
               avatar = isEmpty(avatar) ? defAva : baseUrl + avatar;
@@ -101,6 +118,7 @@ const user = {
         logout(state.token)
           .then(() => {
             commit("SET_TOKEN", "");
+            commit("SET_TIMEZONE", "auto");
             commit("SET_ROLES", []);
             commit("SET_PERMISSIONS", []);
             removeToken();
@@ -114,5 +132,16 @@ const user = {
     },
   },
 };
+
+// 恢复已登录账号的偏好，避免冷启动首屏使用错误时区。
+const savedTimezone = storage.get(constant.timezone);
+if (user.state.token && savedTimezone) {
+  try {
+    user.mutations.SET_APP_TIMEZONE(user.state, savedTimezone.appTimezone);
+    user.mutations.SET_TIMEZONE(user.state, savedTimezone.timeZone);
+  } catch {
+    storage.remove(constant.timezone);
+  }
+}
 
 export default user;

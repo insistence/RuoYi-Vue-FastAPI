@@ -1,10 +1,9 @@
 <template>
   <el-dialog
     :title="type === 'log' ? '调度日志详细' : '任务详细'"
-    :visible.sync="visible"
+    :visible.sync="dialogVisible"
     width="780px"
     append-to-body
-    @close="$emit('update:visible', false)"
   >
     <div class="detail-wrap">
       <template v-if="type === 'log'">
@@ -47,10 +46,32 @@
                 <span class="detail-value">{{ formatTime(form.createTime) }}</span>
               </div>
             </el-col>
-            <el-col v-if="form.status == 0 && form.startTime && form.endTime" :span="12">
+            <el-col v-if="form.runDurationMs != null" :span="12">
               <div class="detail-item">
                 <span class="detail-label">执行耗时</span>
-                <span class="detail-value">{{ costTime }} 毫秒</span>
+                <span class="detail-value">{{ form.runDurationMs }} 毫秒</span>
+              </div>
+            </el-col>
+          </el-row>
+          <el-row class="detail-row">
+            <el-col :span="12">
+              <div class="detail-item">
+                <span class="detail-label">任务编号</span>
+                <span class="detail-value">{{ form.jobId || '-' }}</span>
+              </div>
+            </el-col>
+            <el-col :span="12">
+              <div class="detail-item">
+                <span class="detail-label">计划时间</span>
+                <span class="detail-value">{{ formatTime(form.scheduledTime) }}</span>
+              </div>
+            </el-col>
+          </el-row>
+          <el-row class="detail-row">
+            <el-col :span="24">
+              <div class="detail-item">
+                <span class="detail-label">执行编号</span>
+                <span class="detail-value">{{ form.executionId || '-' }}</span>
               </div>
             </el-col>
           </el-row>
@@ -69,7 +90,7 @@
             <el-col :span="12">
               <div class="detail-item">
                 <span class="detail-label">任务分组</span>
-                <dict-tag :options="dict.type.sys_job_group" :value="form.jobGroup" />
+                <span class="detail-value">{{ form.jobGroup || '-' }}</span>
               </div>
             </el-col>
           </el-row>
@@ -84,6 +105,20 @@
               <div class="detail-item">
                 <span class="detail-label">任务触发器</span>
                 <span class="detail-value">{{ form.jobTrigger || '-' }}</span>
+              </div>
+            </el-col>
+          </el-row>
+          <el-row class="detail-row">
+            <el-col :span="12">
+              <div class="detail-item">
+                <span class="detail-label">调度存储</span>
+                <dict-tag :options="dict.type.sys_job_store" :value="form.jobStore" />
+              </div>
+            </el-col>
+            <el-col :span="12">
+              <div class="detail-item">
+                <span class="detail-label">cron时区</span>
+                <span class="detail-value">{{ form.timeZone || '-' }}</span>
               </div>
             </el-col>
           </el-row>
@@ -107,11 +142,11 @@
             </div>
             <div class="code-field">
               <div class="code-field-label">位置参数</div>
-              <div class="code-wrap"><pre class="code-pre">{{ form.jobArgs || '（无）' }}</pre></div>
+              <div class="code-wrap"><pre class="code-pre">{{ formatParameter(form.jobArgs) }}</pre></div>
             </div>
             <div class="code-field">
               <div class="code-field-label">关键字参数</div>
-              <div class="code-wrap"><pre class="code-pre">{{ form.jobKwargs || '（无）' }}</pre></div>
+              <div class="code-wrap"><pre class="code-pre">{{ formatParameter(form.jobKwargs) }}</pre></div>
             </div>
           </div>
         </div>
@@ -145,7 +180,7 @@
             <el-col :span="12">
               <div class="detail-item">
                 <span class="detail-label">任务分组</span>
-                <dict-tag :options="dict.type.sys_job_group" :value="form.jobGroup" />
+                <span class="detail-value">{{ form.jobGroup || '-' }}</span>
               </div>
             </el-col>
             <el-col :span="12">
@@ -157,10 +192,16 @@
             </el-col>
           </el-row>
           <el-row class="detail-row">
-            <el-col :span="24">
+            <el-col :span="12">
               <div class="detail-item">
                 <span class="detail-label">任务执行器</span>
                 <dict-tag :options="dict.type.sys_job_executor" :value="form.jobExecutor" />
+              </div>
+            </el-col>
+            <el-col :span="12">
+              <div class="detail-item">
+                <span class="detail-label">调度存储</span>
+                <dict-tag :options="dict.type.sys_job_store" :value="form.jobStore" />
               </div>
             </el-col>
           </el-row>
@@ -173,34 +214,93 @@
             <el-col :span="12">
               <div class="detail-item">
                 <span class="detail-label">cron 表达式</span>
-                <span class="detail-value mono">{{ form.cronExpression }}</span>
+                <span class="detail-value">{{ form.cronExpression }}</span>
               </div>
             </el-col>
             <el-col :span="12">
               <div class="detail-item">
-                <span class="detail-label">下次执行时间</span>
-                <span class="detail-value">{{ formatTime(form.nextValidTime) }}</span>
+                <span class="detail-label">cron时区</span>
+                <span class="detail-value">{{ form.timeZone || '-' }}</span>
               </div>
             </el-col>
           </el-row>
           <el-row class="detail-row">
             <el-col :span="12">
               <div class="detail-item">
-                <span class="detail-label">执行策略</span>
-                <el-tag v-if="form.misfirePolicy == 0" type="info" size="small">默认策略</el-tag>
-                <el-tag v-else-if="form.misfirePolicy == 1" type="warning" size="small">立即执行</el-tag>
-                <el-tag v-else-if="form.misfirePolicy == 2" type="primary" size="small">执行一次</el-tag>
-                <el-tag v-else-if="form.misfirePolicy == 3" type="danger" size="small">放弃执行</el-tag>
+                <span class="detail-label">预期执行时间</span>
+                <span class="detail-value">{{ formatTime(form.cronNextTime) }}</span>
               </div>
             </el-col>
             <el-col :span="12">
               <div class="detail-item">
-                <span class="detail-label">并发执行</span>
-                <el-tag v-if="form.concurrent == 0" type="success" size="small">允许</el-tag>
-                <el-tag v-else type="danger" size="small">禁止</el-tag>
+                <span class="detail-label">调度下次时间</span>
+                <span class="detail-value">{{ formatTime(form.nextRunTime) }}</span>
               </div>
             </el-col>
           </el-row>
+          <el-row class="detail-row">
+            <el-col :span="12">
+              <div class="detail-item">
+                <span class="detail-label">调度观测时间</span>
+                <span class="detail-value">{{ formatTime(form.scheduleObservedTime) }}</span>
+              </div>
+            </el-col>
+            <el-col :span="12">
+              <div class="detail-item">
+                <span class="detail-label">允许延迟</span>
+                <span class="detail-value">{{ form.misfireGraceTime === null ? '不限延迟' : form.misfireGraceTime + ' 秒' }}</span>
+              </div>
+            </el-col>
+          </el-row>
+          <el-row class="detail-row">
+            <el-col :span="12">
+              <div class="detail-item">
+                <span class="detail-label">积压处理</span>
+                <span class="detail-value">{{ form.coalesce ? '仅最近一次' : '逐次执行' }}</span>
+              </div>
+            </el-col>
+            <el-col :span="12">
+              <div class="detail-item">
+                <span class="detail-label">最大并发数</span>
+                <span class="detail-value">{{ form.maxInstances }}</span>
+              </div>
+            </el-col>
+          </el-row>
+
+        </div>
+
+        <!-- 调度同步状态 -->
+        <div class="detail-card">
+          <div class="detail-card-title"><i class="el-icon-refresh"></i> 同步状态</div>
+          <el-row class="detail-row">
+            <el-col :span="12">
+              <div class="detail-item">
+                <span class="detail-label">同步状态</span>
+                <el-tag size="small" :type="syncState.type">{{ syncState.label }}</el-tag>
+              </div>
+            </el-col>
+            <el-col :span="12">
+              <div class="detail-item">
+                <span class="detail-label">最近生效时间</span>
+                <span class="detail-value">{{ formatTime(form.appliedTime) }}</span>
+              </div>
+            </el-col>
+          </el-row>
+          <el-row class="detail-row">
+            <el-col :span="12">
+              <div class="detail-item">
+                <span class="detail-label">配置版本</span>
+                <span class="detail-value">{{ form.configVersion == null ? '-' : form.configVersion }}</span>
+              </div>
+            </el-col>
+            <el-col :span="12">
+              <div class="detail-item">
+                <span class="detail-label">已应用版本</span>
+                <span class="detail-value">{{ form.appliedVersion == null ? '-' : form.appliedVersion }}</span>
+              </div>
+            </el-col>
+          </el-row>
+          <div v-if="form.syncError" class="error-body"><div class="error-msg">{{ form.syncError }}</div></div>
         </div>
 
         <!-- 执行方法 -->
@@ -213,11 +313,11 @@
             </div>
             <div class="code-field">
               <div class="code-field-label">位置参数</div>
-              <div class="code-wrap"><pre class="code-pre">{{ form.jobArgs || '（无）' }}</pre></div>
+              <div class="code-wrap"><pre class="code-pre">{{ formatParameter(form.jobArgs) }}</pre></div>
             </div>
             <div class="code-field">
               <div class="code-field-label">关键字参数</div>
-              <div class="code-wrap"><pre class="code-pre">{{ form.jobKwargs || '（无）' }}</pre></div>
+              <div class="code-wrap"><pre class="code-pre">{{ formatParameter(form.jobKwargs) }}</pre></div>
             </div>
           </div>
         </div>
@@ -268,9 +368,11 @@
 </template>
 
 <script>
+import { syncStates } from './runtimeState'
+
 export default {
   name: 'JobDetail',
-  dicts: ['sys_job_group', 'sys_job_executor'],
+  dicts: ['sys_job_store', 'sys_job_executor'],
   props: {
     visible: { type: Boolean, default: false },
     row: { type: Object, default: () => ({}) },
@@ -281,12 +383,19 @@ export default {
     form() {
       return this.row || {}
     },
-    costTime() {
-      if (!this.form.startTime || !this.form.endTime) return 0
-      return new Date(this.form.endTime).getTime() - new Date(this.form.startTime).getTime()
+    dialogVisible: {
+      get() { return this.visible },
+      set(value) { this.$emit('update:visible', value) }
+    },
+    syncState() {
+      return syncStates[this.form.syncStatus] || syncStates.pending
     }
   },
   methods: {
+    formatParameter(value) {
+      if (value === null || value === undefined || value === '') return '（无）'
+      return typeof value === 'string' ? value : JSON.stringify(value, null, 2)
+    },
     formatTime(value) {
       return value ? this.parseTime(value) : '-'
     }

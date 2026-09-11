@@ -145,10 +145,11 @@ const configGroups = computed(() => {
 watch(
   () => props.items,
   items => {
-    configForm.values = {};
+    const values = {};
     items.forEach(item => {
-      configForm.values[item.key] = normalizeConfigValueForForm(item);
+      values[item.key] = normalizeConfigValueForForm(item);
     });
+    configForm.values = values;
   },
   { immediate: true }
 );

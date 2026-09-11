@@ -1,3 +1,4 @@
+import { getDisplayTimezone } from "@/utils/time";
 import store from "@/store";
 import config from "@/config";
 import { getToken } from "@/utils/auth";
@@ -26,6 +27,7 @@ const request = async (config) => {
   const isToken = (config.headers || {}).isToken === false;
   config.header = config.header || {};
   config.headers = config.headers || {};
+  config.header["X-Timezone"] = config.header["X-Timezone"] || getDisplayTimezone();
   if (getToken() && !isToken) {
     config.header["Authorization"] = "Bearer " + getToken();
   }
