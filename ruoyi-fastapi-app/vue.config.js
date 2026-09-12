@@ -64,7 +64,7 @@ const config = {
       },
     },
   },
-  transpileDependencies: ["uview-ui"],
+  transpileDependencies: ["uview-ui", /@formatjs/],
   //....
 };
 

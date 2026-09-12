@@ -52,6 +52,7 @@
               style="width: 240px"
               value-format="yyyy-MM-dd"
               type="daterange"
+              :aria-label="`日期范围（${getDisplayTimezone()}）`"
               range-separator="-"
               start-placeholder="开始日期"
               end-placeholder="结束日期"
@@ -303,6 +304,7 @@
 </template>
 
 <script>
+import { getDisplayTimezone } from "@/utils/time";
 import { listUser, getUser, delUser, addUser, updateUser, resetUserPwd, changeUserStatus, deptTreeSelect } from "@/api/system/user";
 import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
@@ -396,6 +398,10 @@ export default {
     };
   },
   created() {
+    // 时区切换后重新解释日期筛选，保留当前表单。
+    this.$watch(getDisplayTimezone, () => {
+      if (this.dateRange && this.dateRange.length) this.handleQuery()
+    })
     this.getList();
     this.getDeptTree();
     this.getConfigKey("sys.user.initPassword").then(response => {
@@ -403,6 +409,7 @@ export default {
     });
   },
   methods: {
+    getDisplayTimezone,
     /** 查询用户列表 */
     getList() {
       this.loading = true;

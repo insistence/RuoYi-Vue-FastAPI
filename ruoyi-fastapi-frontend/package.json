@@ -10,7 +10,9 @@
     "build:docker": "vue-cli-service build --mode docker",
     "build:stage": "vue-cli-service build --mode staging",
     "test:plugin": "node tests/plugins/run-plugin-tests.js",
-    "preview": "node build/index.js --preview"
+    "preview": "node build/index.js --preview",
+    "test:time": "node --test tests/time/time.test.mjs",
+    "test:job": "node --test tests/job/job-form.test.mjs tests/job/vue2-components.test.cjs"
   },
   "keywords": [
     "vue",
@@ -59,7 +61,9 @@
     "vue-cropper": "0.5.5",
     "vue-router": "3.4.9",
     "vuedraggable": "2.24.3",
-    "vuex": "3.6.0"
+    "vuex": "3.6.0",
+    "dayjs": "1.11.23",
+    "monaco-editor": "0.55.1"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "4.5.19",

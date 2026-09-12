@@ -34,6 +34,7 @@
 </template>
 
 <script>
+import { formatBusinessTime } from "@/utils/time"
 import { mapGetters } from 'vuex'
 import { unlockScreen } from '@/api/login'
 import defAva from '@/assets/images/profile.jpg'
@@ -74,12 +75,8 @@ export default {
     startClock() {
       const update = () => {
         const now = new Date()
-        const h = String(now.getHours()).padStart(2, '0')
-        const m = String(now.getMinutes()).padStart(2, '0')
-        const s = String(now.getSeconds()).padStart(2, '0')
-        this.currentTime = `${h}:${m}:${s}`
-        const days = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六']
-        this.currentDate = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日 ${days[now.getDay()]}`
+        this.currentTime = formatBusinessTime(now, 'HH:mm:ss')
+        this.currentDate = formatBusinessTime(now, 'YYYY年M月D日 星期{a}')
       }
       update()
       this.timer = setInterval(update, 1000)

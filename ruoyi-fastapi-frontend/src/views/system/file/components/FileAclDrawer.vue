@@ -142,15 +142,9 @@
             <span v-else>-</span>
           </template>
         </el-table-column>
-        <el-table-column label="有效期至" align="center" width="205">
+        <el-table-column label="有效期至" align="center" width="310">
           <template slot-scope="scope">
-            <el-date-picker
-              v-model="scope.row.expireTime"
-              type="datetime"
-              value-format="yyyy-MM-dd HH:mm:ss"
-              placeholder="永久有效"
-              style="width: 185px"
-            />
+            <BusinessDateTimePicker v-model="scope.row.expireTime" label="有效期至，留空为永久有效" />
           </template>
         </el-table-column>
         <el-table-column label="操作" align="center" width="70">
@@ -177,6 +171,8 @@
 </template>
 
 <script>
+import { prepareTimeFields, serializeTimeFieldsForSubmit } from "@/utils/time";
+import BusinessDateTimePicker from "@/components/BusinessDateTimePicker";
 import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 import {
@@ -189,7 +185,7 @@ import {
 
 export default {
   name: "FileAclDrawer",
-  components: { Treeselect },
+  components: { Treeselect, BusinessDateTimePicker },
   data() {
     return {
       visible: false,
@@ -262,7 +258,7 @@ export default {
           this.aclVersion = aclResponse.data.aclVersion;
           this.builtinPermissions =
             aclResponse.data.builtinPermissions || [];
-          this.entries = aclResponse.data.entries.map(item => ({
+          this.entries = aclResponse.data.entries.map(item => prepareTimeFields({
             subjectType: item.subjectType,
             subjectId: item.subjectId,
             effect: item.effect,
@@ -275,7 +271,7 @@ export default {
                 subjectName: item.subjectName
               }
             ]
-          }));
+          }, ['expireTime']));
         })
         .finally(() => {
           this.loading = false;
@@ -340,18 +336,24 @@ export default {
           row.subjectLoading = false;
         });
     },
-    submit() {
+    async submit() {
       if (this.entries.some(item => !item.subjectId)) {
         this.$modal.msgError("请选择完整的授权主体");
         return;
       }
-      const aclEntries = this.entries.map(item => ({
+      const convertedEntries = [];
+      for (const item of this.entries) {
+        const converted = await serializeTimeFieldsForSubmit(item, ['expireTime']);
+        if (!converted) return;
+        convertedEntries.push(converted);
+      }
+      const aclEntries = convertedEntries.map(item => ({
         subjectType: item.subjectType,
         subjectId: item.subjectId,
         effect: item.effect,
         includeChildren:
           item.subjectType === "dept" && item.includeChildren,
-        expireTime: item.expireTime || undefined
+        expireTime: item.expireTime
       }));
       const saveAcl = () => {
         this.saving = true;

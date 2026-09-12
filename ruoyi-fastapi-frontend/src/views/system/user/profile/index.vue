@@ -33,7 +33,7 @@
               </li>
               <li class="list-group-item">
                 <svg-icon icon-class="date" />创建日期
-                <div class="pull-right">{{ user.createTime }}</div>
+                <div class="pull-right">{{ parseTime(user.createTime) || '-' }}</div>
               </li>
             </ul>
           </div>
@@ -51,6 +51,9 @@
             <el-tab-pane label="修改密码" name="resetPwd">
               <resetPwd />
             </el-tab-pane>
+            <el-tab-pane label="时区设置" name="timezone">
+              <timezoneSettings :user="user" @saved="$set(user, 'timeZone', $event)" />
+            </el-tab-pane>
           </el-tabs>
         </el-card>
       </el-col>
@@ -59,6 +62,7 @@
 </template>
 
 <script>
+import timezoneSettings from "./timezoneSettings.vue";
 import userAvatar from "./userAvatar";
 import userInfo from "./userInfo";
 import resetPwd from "./resetPwd";
@@ -66,7 +70,7 @@ import { getUserProfile } from "@/api/system/user";
 
 export default {
   name: "Profile",
-  components: { userAvatar, userInfo, resetPwd },
+  components: { userAvatar, userInfo, resetPwd, timezoneSettings },
   data() {
     return {
       user: {},
@@ -86,6 +90,7 @@ export default {
     getUser() {
       getUserProfile().then(response => {
         this.user = response.data;
+        this.$store.dispatch('ApplyTimezone', response.data.timeZone);
         this.roleGroup = response.roleGroup;
         this.postGroup = response.postGroup;
       });

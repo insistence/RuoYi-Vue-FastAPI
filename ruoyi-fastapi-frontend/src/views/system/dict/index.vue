@@ -40,6 +40,7 @@
           style="width: 240px"
           value-format="yyyy-MM-dd"
           type="daterange"
+          :aria-label="`日期范围（${getDisplayTimezone()}）`"
           range-separator="-"
           start-placeholder="开始日期"
           end-placeholder="结束日期"
@@ -201,6 +202,7 @@
 </template>
 
 <script>
+import { getDisplayTimezone } from "@/utils/time";
 import DictDataDrawer from './detail';
 import { listType, getType, delType, addType, updateType, refreshCache } from "@/api/system/dict/type";
 
@@ -256,9 +258,14 @@ export default {
     };
   },
   created() {
+    // 时区切换后重新解释日期筛选，保留当前表单。
+    this.$watch(getDisplayTimezone, () => {
+      if (this.dateRange && this.dateRange.length) this.handleQuery()
+    })
     this.getList();
   },
   methods: {
+    getDisplayTimezone,
     /** 查询字典类型列表 */
     getList() {
       this.loading = true;
