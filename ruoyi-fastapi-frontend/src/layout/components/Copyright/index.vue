@@ -1,5 +1,8 @@
 <template>
-  <footer v-if="visible" class="copyright">
+  <footer
+    v-if="visible"
+    class="copyright"
+  >
     <span>{{ content }}</span>
   </footer>
 </template>
@@ -12,8 +15,8 @@ export default {
     },
     content() {
       return this.$store.state.settings.footerContent
-    }
-  }
+    },
+  },
 }
 </script>
 

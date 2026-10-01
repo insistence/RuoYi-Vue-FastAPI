@@ -1,17 +1,31 @@
 <template>
-  <div id="tags-view-container" class="tags-view-container" :class="{ 'tags-view-container--chrome': tagsViewStyle === 'chrome' }" :style="chromeVars">
+  <div
+    id="tags-view-container"
+    class="tags-view-container"
+    :class="{ 'tags-view-container--chrome': tagsViewStyle === 'chrome' }"
+    :style="chromeVars"
+  >
     <!-- 左切换箭头 -->
-    <span class="tags-nav-btn tags-nav-btn--left" :class="{ disabled: !canScrollLeft }" @click="scrollLeft">
+    <span
+      class="tags-nav-btn tags-nav-btn--left"
+      :class="{ disabled: !canScrollLeft }"
+      @click="scrollLeft"
+    >
       <i class="el-icon-arrow-left" />
     </span>
 
     <!-- 标签滚动区 -->
-    <scroll-pane ref="scrollPane" class="tags-view-wrapper" @scroll="handleScroll" @updateArrows="updateArrowState">
+    <scroll-pane
+      ref="scrollPane"
+      class="tags-view-wrapper"
+      @scroll="handleScroll"
+      @updateArrows="updateArrowState"
+    >
       <router-link
         v-for="tag in visitedViews"
         ref="tag"
         :key="tag.path"
-        :class="{ 'active': isActive(tag), 'has-icon': tagsIcon }"
+        :class="{ active: isActive(tag), 'has-icon': tagsIcon }"
         :to="{ path: tag.path, query: tag.query, fullPath: tag.fullPath }"
         tag="span"
         class="tags-view-item"
@@ -19,29 +33,75 @@
         @click.middle.native="!isAffix(tag) ? closeSelectedTag(tag) : ''"
         @contextmenu.prevent.native="openMenu(tag, $event)"
       >
-        <svg-icon v-if="tagsIcon && tag.meta && tag.meta.icon && tag.meta.icon !== '#'" :icon-class="tag.meta.icon" style="margin-right: 3px;" />
+        <svg-icon
+          v-if="tagsIcon && tag.meta && tag.meta.icon && tag.meta.icon !== '#'"
+          :icon-class="tag.meta.icon"
+          style="margin-right: 3px"
+        />
         {{ tag.title }}
-        <span v-if="!isAffix(tag)" class="el-icon-close" @click.prevent.stop="closeSelectedTag(tag)" />
+        <span
+          v-if="!isAffix(tag)"
+          class="el-icon-close"
+          @click.prevent.stop="closeSelectedTag(tag)"
+        />
       </router-link>
     </scroll-pane>
 
     <!-- 右切换箭头 -->
-    <span class="tags-nav-btn tags-nav-btn--right" :class="{ disabled: !canScrollRight }" @click="scrollRight">
+    <span
+      class="tags-nav-btn tags-nav-btn--right"
+      :class="{ disabled: !canScrollRight }"
+      @click="scrollRight"
+    >
       <i class="el-icon-arrow-right" />
     </span>
 
     <!-- 下拉操作菜单 -->
-    <el-dropdown class="tags-action-dropdown" trigger="click" placement="bottom-end" @command="handleDropdownCommand">
+    <el-dropdown
+      class="tags-action-dropdown"
+      trigger="click"
+      placement="bottom-end"
+      @command="handleDropdownCommand"
+    >
       <span class="tags-action-btn">
         <i class="el-icon-arrow-down" />
       </span>
-      <el-dropdown-menu slot="dropdown" class="tags-dropdown-menu">
-        <el-dropdown-item v-if="!isAffix(selectedDropdownTag)" command="close" icon="el-icon-close">关闭当前</el-dropdown-item>
-        <el-dropdown-item command="closeOthers" icon="el-icon-circle-close">关闭其他</el-dropdown-item>
-        <el-dropdown-item command="closeLeft" :disabled="isFirstView()" icon="el-icon-back">关闭左侧</el-dropdown-item>
-        <el-dropdown-item command="closeRight" :disabled="isLastView()" icon="el-icon-right">关闭右侧</el-dropdown-item>
-        <el-dropdown-item command="closeAll" icon="el-icon-circle-close">全部关闭</el-dropdown-item>
-        <el-dropdown-item command="fullscreen" divided>
+      <el-dropdown-menu
+        slot="dropdown"
+        class="tags-dropdown-menu"
+      >
+        <el-dropdown-item
+          v-if="!isAffix(selectedDropdownTag)"
+          command="close"
+          icon="el-icon-close"
+          >关闭当前</el-dropdown-item
+        >
+        <el-dropdown-item
+          command="closeOthers"
+          icon="el-icon-circle-close"
+          >关闭其他</el-dropdown-item
+        >
+        <el-dropdown-item
+          command="closeLeft"
+          :disabled="isFirstView()"
+          icon="el-icon-back"
+          >关闭左侧</el-dropdown-item
+        >
+        <el-dropdown-item
+          command="closeRight"
+          :disabled="isLastView()"
+          icon="el-icon-right"
+          >关闭右侧</el-dropdown-item
+        >
+        <el-dropdown-item
+          command="closeAll"
+          icon="el-icon-circle-close"
+          >全部关闭</el-dropdown-item
+        >
+        <el-dropdown-item
+          command="fullscreen"
+          divided
+        >
           <template v-if="!isFullscreen"><i class="el-icon-full-screen"></i>全屏显示</template>
           <template v-else><i class="el-icon-close"></i>退出全屏</template>
         </el-dropdown-item>
@@ -49,17 +109,42 @@
     </el-dropdown>
 
     <!-- 刷新按钮 -->
-    <span class="tags-action-btn tags-refresh-btn" title="刷新页面" @click="refreshSelectedTag(selectedDropdownTag)">
+    <span
+      class="tags-action-btn tags-refresh-btn"
+      title="刷新页面"
+      @click="refreshSelectedTag(selectedDropdownTag)"
+    >
       <i class="el-icon-refresh-right" /> 刷新
     </span>
 
     <!-- 右键上下文菜单 -->
-    <ul v-show="visible" :style="{ left: left + 'px', top: top + 'px' }" class="contextmenu">
-      <li @click="refreshSelectedTag(selectedTag)"><i class="el-icon-refresh-right"></i> 刷新页面</li>
-      <li v-if="!isAffix(selectedTag)" @click="closeSelectedTag(selectedTag)"><i class="el-icon-close"></i> 关闭当前</li>
+    <ul
+      v-show="visible"
+      :style="{ left: left + 'px', top: top + 'px' }"
+      class="contextmenu"
+    >
+      <li @click="refreshSelectedTag(selectedTag)">
+        <i class="el-icon-refresh-right"></i> 刷新页面
+      </li>
+      <li
+        v-if="!isAffix(selectedTag)"
+        @click="closeSelectedTag(selectedTag)"
+      >
+        <i class="el-icon-close"></i> 关闭当前
+      </li>
       <li @click="closeOthersTags"><i class="el-icon-circle-close"></i> 关闭其他</li>
-      <li v-if="!isFirstView()" @click="closeLeftTags"><i class="el-icon-back"></i> 关闭左侧</li>
-      <li v-if="!isLastView()" @click="closeRightTags"><i class="el-icon-right"></i> 关闭右侧</li>
+      <li
+        v-if="!isFirstView()"
+        @click="closeLeftTags"
+      >
+        <i class="el-icon-back"></i> 关闭左侧
+      </li>
+      <li
+        v-if="!isLastView()"
+        @click="closeRightTags"
+      >
+        <i class="el-icon-right"></i> 关闭右侧
+      </li>
       <li @click="closeAllTags(selectedTag)"><i class="el-icon-circle-close"></i> 全部关闭</li>
     </ul>
   </div>
@@ -81,7 +166,7 @@ export default {
       canScrollLeft: false,
       canScrollRight: false,
       isFullscreen: false,
-      hiddenElements: []
+      hiddenElements: [],
     }
   },
   computed: {
@@ -101,7 +186,7 @@ export default {
       return this.$store.state.settings.tagsViewStyle
     },
     selectedDropdownTag() {
-      return this.visitedViews.find(v => this.isActive(v)) || {}
+      return this.visitedViews.find((v) => this.isActive(v)) || {}
     },
     chromeVars() {
       if (this.tagsViewStyle !== 'chrome') return {}
@@ -109,9 +194,9 @@ export default {
       return {
         '--chrome-tab-active-bg': this.mixHexWithWhite(primary, 0.15),
         '--chrome-tab-text-active': primary,
-        '--chrome-wing-r': '14px'
+        '--chrome-wing-r': '14px',
       }
-    }
+    },
   },
   watch: {
     $route() {
@@ -129,7 +214,7 @@ export default {
       this.$nextTick(() => {
         this.updateArrowState()
       })
-    }
+    },
   },
   mounted() {
     this.initTags()
@@ -164,8 +249,8 @@ export default {
     tagActiveStyle(tag) {
       if (!this.isActive(tag) || this.tagsViewStyle !== 'card') return {}
       return {
-        "background-color": this.theme,
-        "border-color": this.theme
+        'background-color': this.theme,
+        'border-color': this.theme,
       }
     },
     isAffix(tag) {
@@ -173,7 +258,10 @@ export default {
     },
     isFirstView() {
       try {
-        const tag = this.selectedTag && this.selectedTag.fullPath ? this.selectedTag : this.selectedDropdownTag
+        const tag =
+          this.selectedTag && this.selectedTag.fullPath
+            ? this.selectedTag
+            : this.selectedDropdownTag
         return tag.fullPath === '/index' || tag.fullPath === this.visitedViews[1].fullPath
       } catch (err) {
         return false
@@ -181,7 +269,10 @@ export default {
     },
     isLastView() {
       try {
-        const tag = this.selectedTag && this.selectedTag.fullPath ? this.selectedTag : this.selectedDropdownTag
+        const tag =
+          this.selectedTag && this.selectedTag.fullPath
+            ? this.selectedTag
+            : this.selectedDropdownTag
         return tag.fullPath === this.visitedViews[this.visitedViews.length - 1].fullPath
       } catch (err) {
         return false
@@ -189,14 +280,14 @@ export default {
     },
     filterAffixTags(routes, basePath = '/') {
       let tags = []
-      routes.forEach(route => {
+      routes.forEach((route) => {
         if (route.meta && route.meta.affix) {
           const tagPath = path.resolve(basePath, route.path)
           tags.push({
             fullPath: tagPath,
             path: tagPath,
             name: route.name,
-            meta: { ...route.meta }
+            meta: { ...route.meta },
           })
         }
         if (route.children) {
@@ -212,7 +303,7 @@ export default {
       if (this.$store.state.settings.tagsViewPersist) {
         this.$store.dispatch('tagsView/loadPersistedViews')
       }
-      const affixTags = this.affixTags = this.filterAffixTags(this.routes)
+      const affixTags = (this.affixTags = this.filterAffixTags(this.routes))
       for (const tag of affixTags) {
         if (tag.name) {
           this.$store.dispatch('tagsView/addAffixView', tag)
@@ -267,9 +358,9 @@ export default {
         document.body.style.overflow = 'hidden'
         const elementsToHide = [
           { el: navbar, originalDisplay: (navbar && navbar.style.display) || '' },
-          { el: sidebar, originalDisplay: (sidebar && sidebar.style.display) || '' }
+          { el: sidebar, originalDisplay: (sidebar && sidebar.style.display) || '' },
         ]
-        elementsToHide.forEach(item => {
+        elementsToHide.forEach((item) => {
           if (item.el && item.el.style.display !== 'none') {
             item.originalDisplay = item.el.style.display
             item.el.style.display = 'none'
@@ -280,7 +371,7 @@ export default {
       } else {
         mainContainer.classList.remove('fullscreen-mode')
         document.body.style.overflow = ''
-        this.hiddenElements.forEach(item => {
+        this.hiddenElements.forEach((item) => {
           if (item.el) {
             item.el.style.display = item.originalDisplay
           }
@@ -332,15 +423,15 @@ export default {
       })
     },
     closeRightTags() {
-      this.$tab.closeRightPage(this.selectedTag).then(visitedViews => {
-        if (!visitedViews.find(i => i.fullPath === this.$route.fullPath)) {
+      this.$tab.closeRightPage(this.selectedTag).then((visitedViews) => {
+        if (!visitedViews.find((i) => i.fullPath === this.$route.fullPath)) {
           this.toLastView(visitedViews)
         }
       })
     },
     closeLeftTags() {
-      this.$tab.closeLeftPage(this.selectedTag).then(visitedViews => {
-        if (!visitedViews.find(i => i.fullPath === this.$route.fullPath)) {
+      this.$tab.closeLeftPage(this.selectedTag).then((visitedViews) => {
+        if (!visitedViews.find((i) => i.fullPath === this.$route.fullPath)) {
           this.toLastView(visitedViews)
         }
       })
@@ -353,7 +444,7 @@ export default {
     },
     closeAllTags(view) {
       this.$tab.closeAllPage().then(({ visitedViews }) => {
-        if (this.affixTags.some(tag => tag.path === this.$route.path)) {
+        if (this.affixTags.some((tag) => tag.path === this.$route.path)) {
           return
         }
         this.toLastView(visitedViews, view)
@@ -383,8 +474,8 @@ export default {
     handleScroll() {
       this.closeMenu()
       this.updateArrowState()
-    }
-  }
+    },
+  },
 }
 </script>
 
@@ -418,7 +509,9 @@ $tags-bar-height: 34px;
     color: $btn-color;
     font-size: 13px;
     user-select: none;
-    transition: background 0.15s, color 0.15s;
+    transition:
+      background 0.15s,
+      color 0.15s;
 
     &:hover:not(.disabled) {
       background: $btn-hover-bg;
@@ -430,8 +523,12 @@ $tags-bar-height: 34px;
       cursor: not-allowed;
     }
 
-    &--left  { border-right: $divider; }
-    &--right { border-left: $divider; }
+    &--left {
+      border-right: $divider;
+    }
+    &--right {
+      border-left: $divider;
+    }
   }
 
   .tags-view-wrapper {
@@ -453,8 +550,12 @@ $tags-bar-height: 34px;
       margin-left: 5px;
       border-radius: 3px;
 
-      &:first-of-type { margin-left: 6px; }
-      &:last-of-type  { margin-right: 15px; }
+      &:first-of-type {
+        margin-left: 6px;
+      }
+      &:last-of-type {
+        margin-right: 15px;
+      }
     }
   }
   &:not(.tags-view-container--chrome) .tags-view-wrapper .tags-view-item.active {
@@ -494,7 +595,9 @@ $tags-bar-height: 34px;
     font-size: 13px;
     border-left: $divider;
     user-select: none;
-    transition: background 0.15s, color 0.15s;
+    transition:
+      background 0.15s,
+      color 0.15s;
 
     &:hover {
       background: $btn-hover-bg;
@@ -517,7 +620,7 @@ $tags-bar-height: 34px;
     font-size: 12px;
     font-weight: 400;
     color: #333;
-    box-shadow: 2px 2px 3px 0 rgba(0, 0, 0, .3);
+    box-shadow: 2px 2px 3px 0 rgba(0, 0, 0, 0.3);
 
     li {
       margin: 0;
@@ -569,7 +672,10 @@ $tags-bar-height: 34px;
         color: var(--chrome-tab-text) !important;
         padding-top: 0 !important;
         box-shadow: none !important;
-        transition: background 0.12s ease, color 0.12s ease, border-radius 0.12s ease;
+        transition:
+          background 0.12s ease,
+          color 0.12s ease,
+          border-radius 0.12s ease;
 
         &::before,
         &::after {
@@ -598,8 +704,12 @@ $tags-bar-height: 34px;
           box-shadow: none;
         }
 
-        &:first-of-type { margin-left: 6px; }
-        &:last-of-type  { margin-right: 10px; }
+        &:first-of-type {
+          margin-left: 6px;
+        }
+        &:last-of-type {
+          margin-right: 10px;
+        }
 
         &:not(.active) + .tags-view-item:not(.active) {
           border-left: 1px solid #e4e7ed;
@@ -624,11 +734,13 @@ $tags-bar-height: 34px;
           box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 
           &::before {
-            box-shadow: calc(var(--chrome-wing-r) * 0.5) calc(var(--chrome-wing-r) * 0.5) 0 calc(var(--chrome-wing-r) * 0.5) var(--chrome-tab-active-bg);
+            box-shadow: calc(var(--chrome-wing-r) * 0.5) calc(var(--chrome-wing-r) * 0.5) 0
+              calc(var(--chrome-wing-r) * 0.5) var(--chrome-tab-active-bg);
           }
 
           &::after {
-            box-shadow: calc(var(--chrome-wing-r) * -0.5) calc(var(--chrome-wing-r) * 0.5) 0 calc(var(--chrome-wing-r) * 0.5) var(--chrome-tab-active-bg);
+            box-shadow: calc(var(--chrome-wing-r) * -0.5) calc(var(--chrome-wing-r) * 0.5) 0
+              calc(var(--chrome-wing-r) * 0.5) var(--chrome-tab-active-bg);
           }
         }
         .el-icon-close {
@@ -724,10 +836,10 @@ $tags-bar-height: 34px;
       vertical-align: 2px;
       border-radius: 50%;
       text-align: center;
-      transition: all .3s cubic-bezier(.645, .045, .355, 1);
+      transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
       transform-origin: 100% 50%;
       &:before {
-        transform: scale(.6);
+        transform: scale(0.6);
         display: inline-block;
         vertical-align: -3px;
       }

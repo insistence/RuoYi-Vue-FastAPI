@@ -20,8 +20,18 @@
             <el-col :span="12">
               <div class="detail-item">
                 <span class="detail-label">执行状态</span>
-                <el-tag v-if="form.status == 0" type="success" size="small">正常</el-tag>
-                <el-tag v-else type="danger" size="small">失败</el-tag>
+                <el-tag
+                  v-if="form.status == 0"
+                  type="success"
+                  size="small"
+                  >正常</el-tag
+                >
+                <el-tag
+                  v-else
+                  type="danger"
+                  size="small"
+                  >失败</el-tag
+                >
               </div>
             </el-col>
           </el-row>
@@ -46,7 +56,10 @@
                 <span class="detail-value">{{ formatTime(form.createTime) }}</span>
               </div>
             </el-col>
-            <el-col v-if="form.runDurationMs != null" :span="12">
+            <el-col
+              v-if="form.runDurationMs != null"
+              :span="12"
+            >
               <div class="detail-item">
                 <span class="detail-label">执行耗时</span>
                 <span class="detail-value">{{ form.runDurationMs }} 毫秒</span>
@@ -98,7 +111,10 @@
             <el-col :span="12">
               <div class="detail-item">
                 <span class="detail-label">任务执行器</span>
-                <dict-tag :options="dict.type.sys_job_executor" :value="form.jobExecutor" />
+                <dict-tag
+                  :options="dict.type.sys_job_executor"
+                  :value="form.jobExecutor"
+                />
               </div>
             </el-col>
             <el-col :span="12">
@@ -112,7 +128,10 @@
             <el-col :span="12">
               <div class="detail-item">
                 <span class="detail-label">调度存储</span>
-                <dict-tag :options="dict.type.sys_job_store" :value="form.jobStore" />
+                <dict-tag
+                  :options="dict.type.sys_job_store"
+                  :value="form.jobStore"
+                />
               </div>
             </el-col>
             <el-col :span="12">
@@ -138,23 +157,34 @@
           <div class="code-body">
             <div class="code-field">
               <div class="code-field-label">调用目标</div>
-              <div class="code-wrap"><pre class="code-pre">{{ form.invokeTarget || '（无）' }}</pre></div>
+              <div class="code-wrap">
+                <pre class="code-pre">{{ form.invokeTarget || '（无）' }}</pre>
+              </div>
             </div>
             <div class="code-field">
               <div class="code-field-label">位置参数</div>
-              <div class="code-wrap"><pre class="code-pre">{{ formatParameter(form.jobArgs) }}</pre></div>
+              <div class="code-wrap">
+                <pre class="code-pre">{{ formatParameter(form.jobArgs) }}</pre>
+              </div>
             </div>
             <div class="code-field">
               <div class="code-field-label">关键字参数</div>
-              <div class="code-wrap"><pre class="code-pre">{{ formatParameter(form.jobKwargs) }}</pre></div>
+              <div class="code-wrap">
+                <pre class="code-pre">{{ formatParameter(form.jobKwargs) }}</pre>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- 异常信息 -->
-        <div v-if="form.status == 1" class="detail-card">
+        <div
+          v-if="form.status == 1"
+          class="detail-card"
+        >
           <div class="detail-card-title error-title"><i class="el-icon-warning"></i> 异常信息</div>
-          <div class="error-body"><div class="error-msg">{{ form.exceptionInfo }}</div></div>
+          <div class="error-body">
+            <div class="error-msg">{{ form.exceptionInfo }}</div>
+          </div>
         </div>
       </template>
 
@@ -186,8 +216,18 @@
             <el-col :span="12">
               <div class="detail-item">
                 <span class="detail-label">执行状态</span>
-                <el-tag v-if="form.status == 0" type="success" size="small">正常</el-tag>
-                <el-tag v-else type="info" size="small">暂停</el-tag>
+                <el-tag
+                  v-if="form.status == 0"
+                  type="success"
+                  size="small"
+                  >正常</el-tag
+                >
+                <el-tag
+                  v-else
+                  type="info"
+                  size="small"
+                  >暂停</el-tag
+                >
               </div>
             </el-col>
           </el-row>
@@ -195,13 +235,19 @@
             <el-col :span="12">
               <div class="detail-item">
                 <span class="detail-label">任务执行器</span>
-                <dict-tag :options="dict.type.sys_job_executor" :value="form.jobExecutor" />
+                <dict-tag
+                  :options="dict.type.sys_job_executor"
+                  :value="form.jobExecutor"
+                />
               </div>
             </el-col>
             <el-col :span="12">
               <div class="detail-item">
                 <span class="detail-label">调度存储</span>
-                <dict-tag :options="dict.type.sys_job_store" :value="form.jobStore" />
+                <dict-tag
+                  :options="dict.type.sys_job_store"
+                  :value="form.jobStore"
+                />
               </div>
             </el-col>
           </el-row>
@@ -248,7 +294,9 @@
             <el-col :span="12">
               <div class="detail-item">
                 <span class="detail-label">允许延迟</span>
-                <span class="detail-value">{{ form.misfireGraceTime === null ? '不限延迟' : form.misfireGraceTime + ' 秒' }}</span>
+                <span class="detail-value">{{
+                  form.misfireGraceTime === null ? '不限延迟' : form.misfireGraceTime + ' 秒'
+                }}</span>
               </div>
             </el-col>
           </el-row>
@@ -266,7 +314,6 @@
               </div>
             </el-col>
           </el-row>
-
         </div>
 
         <!-- 调度同步状态 -->
@@ -276,7 +323,11 @@
             <el-col :span="12">
               <div class="detail-item">
                 <span class="detail-label">同步状态</span>
-                <el-tag size="small" :type="syncState.type">{{ syncState.label }}</el-tag>
+                <el-tag
+                  size="small"
+                  :type="syncState.type"
+                  >{{ syncState.label }}</el-tag
+                >
               </div>
             </el-col>
             <el-col :span="12">
@@ -290,17 +341,26 @@
             <el-col :span="12">
               <div class="detail-item">
                 <span class="detail-label">配置版本</span>
-                <span class="detail-value">{{ form.configVersion == null ? '-' : form.configVersion }}</span>
+                <span class="detail-value">{{
+                  form.configVersion == null ? '-' : form.configVersion
+                }}</span>
               </div>
             </el-col>
             <el-col :span="12">
               <div class="detail-item">
                 <span class="detail-label">已应用版本</span>
-                <span class="detail-value">{{ form.appliedVersion == null ? '-' : form.appliedVersion }}</span>
+                <span class="detail-value">{{
+                  form.appliedVersion == null ? '-' : form.appliedVersion
+                }}</span>
               </div>
             </el-col>
           </el-row>
-          <div v-if="form.syncError" class="error-body"><div class="error-msg">{{ form.syncError }}</div></div>
+          <div
+            v-if="form.syncError"
+            class="error-body"
+          >
+            <div class="error-msg">{{ form.syncError }}</div>
+          </div>
         </div>
 
         <!-- 执行方法 -->
@@ -309,15 +369,21 @@
           <div class="code-body">
             <div class="code-field">
               <div class="code-field-label">调用目标</div>
-              <div class="code-wrap"><pre class="code-pre">{{ form.invokeTarget || '（无）' }}</pre></div>
+              <div class="code-wrap">
+                <pre class="code-pre">{{ form.invokeTarget || '（无）' }}</pre>
+              </div>
             </div>
             <div class="code-field">
               <div class="code-field-label">位置参数</div>
-              <div class="code-wrap"><pre class="code-pre">{{ formatParameter(form.jobArgs) }}</pre></div>
+              <div class="code-wrap">
+                <pre class="code-pre">{{ formatParameter(form.jobArgs) }}</pre>
+              </div>
             </div>
             <div class="code-field">
               <div class="code-field-label">关键字参数</div>
-              <div class="code-wrap"><pre class="code-pre">{{ formatParameter(form.jobKwargs) }}</pre></div>
+              <div class="code-wrap">
+                <pre class="code-pre">{{ formatParameter(form.jobKwargs) }}</pre>
+              </div>
             </div>
           </div>
         </div>
@@ -353,7 +419,10 @@
               </div>
             </el-col>
           </el-row>
-          <el-row v-if="form.remark" class="detail-row">
+          <el-row
+            v-if="form.remark"
+            class="detail-row"
+          >
             <el-col :span="24">
               <div class="detail-item">
                 <span class="detail-label">备注</span>
@@ -377,19 +446,23 @@ export default {
     visible: { type: Boolean, default: false },
     row: { type: Object, default: () => ({}) },
     // 'job' 任务详细 | 'log' 调度日志详细
-    type: { type: String, default: 'job' }
+    type: { type: String, default: 'job' },
   },
   computed: {
     form() {
       return this.row || {}
     },
     dialogVisible: {
-      get() { return this.visible },
-      set(value) { this.$emit('update:visible', value) }
+      get() {
+        return this.visible
+      },
+      set(value) {
+        this.$emit('update:visible', value)
+      },
     },
     syncState() {
       return syncStates[this.form.syncStatus] || syncStates.pending
-    }
+    },
   },
   methods: {
     formatParameter(value) {
@@ -398,8 +471,8 @@ export default {
     },
     formatTime(value) {
       return value ? this.parseTime(value) : '-'
-    }
-  }
+    },
+  },
 }
 </script>
 

@@ -21,7 +21,7 @@ export function loadMonaco() {
       reject(new Error('编辑器资源加载失败'))
     }
     document.head.appendChild(script)
-  }).catch(error => {
+  }).catch((error) => {
     loading = null
     throw error
   })

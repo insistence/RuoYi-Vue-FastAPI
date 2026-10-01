@@ -1,9 +1,15 @@
 <template>
   <div class="app-container">
     <el-row :gutter="20">
-      <el-col :span="6" :xs="24">
+      <el-col
+        :span="6"
+        :xs="24"
+      >
         <el-card class="box-card">
-          <div slot="header" class="clearfix">
+          <div
+            slot="header"
+            class="clearfix"
+          >
             <span>个人信息</span>
           </div>
           <div>
@@ -25,7 +31,12 @@
               </li>
               <li class="list-group-item">
                 <svg-icon icon-class="tree" />所属部门
-                <div class="pull-right" v-if="user.dept">{{ user.dept.deptName }} / {{ postGroup }}</div>
+                <div
+                  class="pull-right"
+                  v-if="user.dept"
+                >
+                  {{ user.dept.deptName }} / {{ postGroup }}
+                </div>
               </li>
               <li class="list-group-item">
                 <svg-icon icon-class="peoples" />所属角色
@@ -39,20 +50,38 @@
           </div>
         </el-card>
       </el-col>
-      <el-col :span="18" :xs="24">
+      <el-col
+        :span="18"
+        :xs="24"
+      >
         <el-card>
-          <div slot="header" class="clearfix">
+          <div
+            slot="header"
+            class="clearfix"
+          >
             <span>基本资料</span>
           </div>
           <el-tabs v-model="selectedTab">
-            <el-tab-pane label="基本资料" name="userinfo">
+            <el-tab-pane
+              label="基本资料"
+              name="userinfo"
+            >
               <userInfo :user="user" />
             </el-tab-pane>
-            <el-tab-pane label="修改密码" name="resetPwd">
+            <el-tab-pane
+              label="修改密码"
+              name="resetPwd"
+            >
               <resetPwd />
             </el-tab-pane>
-            <el-tab-pane label="时区设置" name="timezone">
-              <timezoneSettings :user="user" @saved="$set(user, 'timeZone', $event)" />
+            <el-tab-pane
+              label="时区设置"
+              name="timezone"
+            >
+              <timezoneSettings
+                :user="user"
+                @saved="$set(user, 'timeZone', $event)"
+              />
             </el-tab-pane>
           </el-tabs>
         </el-card>
@@ -62,39 +91,39 @@
 </template>
 
 <script>
-import timezoneSettings from "./timezoneSettings.vue";
-import userAvatar from "./userAvatar";
-import userInfo from "./userInfo";
-import resetPwd from "./resetPwd";
-import { getUserProfile } from "@/api/system/user";
+import timezoneSettings from './timezoneSettings.vue'
+import userAvatar from './userAvatar'
+import userInfo from './userInfo'
+import resetPwd from './resetPwd'
+import { getUserProfile } from '@/api/system/user'
 
 export default {
-  name: "Profile",
+  name: 'Profile',
   components: { userAvatar, userInfo, resetPwd, timezoneSettings },
   data() {
     return {
       user: {},
       roleGroup: {},
       postGroup: {},
-      selectedTab: "userinfo"
-    };
+      selectedTab: 'userinfo',
+    }
   },
   created() {
     const activeTab = this.$route.params && this.$route.params.activeTab
     if (activeTab) {
       this.selectedTab = activeTab
-    };
-    this.getUser();
+    }
+    this.getUser()
   },
   methods: {
     getUser() {
-      getUserProfile().then(response => {
-        this.user = response.data;
-        this.$store.dispatch('ApplyTimezone', response.data.timeZone);
-        this.roleGroup = response.roleGroup;
-        this.postGroup = response.postGroup;
-      });
-    }
-  }
-};
+      getUserProfile().then((response) => {
+        this.user = response.data
+        this.$store.dispatch('ApplyTimezone', response.data.timeZone)
+        this.roleGroup = response.roleGroup
+        this.postGroup = response.postGroup
+      })
+    },
+  },
+}
 </script>

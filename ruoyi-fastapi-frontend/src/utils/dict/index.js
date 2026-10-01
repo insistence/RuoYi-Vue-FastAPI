@@ -1,17 +1,21 @@
 import Dict from './Dict'
 import { mergeOptions } from './DictOptions'
 
-export default function(Vue, options) {
+export default function (Vue, options) {
   mergeOptions(options)
   Vue.mixin({
     data() {
-      if (this.$options === undefined || this.$options.dicts === undefined || this.$options.dicts === null) {
+      if (
+        this.$options === undefined ||
+        this.$options.dicts === undefined ||
+        this.$options.dicts === null
+      ) {
         return {}
       }
       const dict = new Dict()
       dict.owner = this
       return {
-        dict
+        dict,
       }
     },
     created() {

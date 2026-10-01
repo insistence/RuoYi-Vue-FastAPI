@@ -12,9 +12,9 @@ const transformModules = require('@babel/plugin-transform-modules-commonjs')
 const sourceRoot = path.resolve(__dirname, '../../src')
 const settle = async () => {
   await Vue.nextTick()
-  await new Promise(resolve => setImmediate(resolve))
+  await new Promise((resolve) => setImmediate(resolve))
 }
-const normalize = value => JSON.parse(JSON.stringify(value))
+const normalize = (value) => JSON.parse(JSON.stringify(value))
 
 // Exercise real Vue 2 instances; API and browser resources are isolated per test.
 function createLoader(mocks = {}, globals = {}) {
@@ -22,7 +22,9 @@ function createLoader(mocks = {}, globals = {}) {
   function load(filename) {
     filename = path.resolve(filename)
     if (!path.extname(filename)) {
-      filename = ['.js', '.vue', '/index.js', '/index.vue'].map(suffix => filename + suffix).find(fs.existsSync)
+      filename = ['.js', '.vue', '/index.js', '/index.vue']
+        .map((suffix) => filename + suffix)
+        .find(fs.existsSync)
     }
     if (cache.has(filename)) return cache.get(filename).exports
     let source = fs.readFileSync(filename, 'utf8')
@@ -35,24 +37,38 @@ function createLoader(mocks = {}, globals = {}) {
         : descriptor.script.content
     }
     const code = transformSync(source, {
-      filename, configFile: false, babelrc: false, plugins: [transformModules]
+      filename,
+      configFile: false,
+      babelrc: false,
+      plugins: [transformModules],
     }).code
     const module = { exports: {} }
     cache.set(filename, module)
     const nativeRequire = createRequire(filename)
-    const requireModule = specifier => {
+    const requireModule = (specifier) => {
       if (Object.prototype.hasOwnProperty.call(mocks, specifier)) return mocks[specifier]
       if (specifier.startsWith('@/')) return load(path.resolve(sourceRoot, specifier.slice(2)))
       if (specifier.startsWith('.')) return load(path.resolve(path.dirname(filename), specifier))
       return nativeRequire(specifier)
     }
-    vm.runInNewContext(code, {
-      module, exports: module.exports, require: requireModule,
-      console, setTimeout, clearTimeout, AbortController, Intl, ...globals
-    }, { filename })
+    vm.runInNewContext(
+      code,
+      {
+        module,
+        exports: module.exports,
+        require: requireModule,
+        console,
+        setTimeout,
+        clearTimeout,
+        AbortController,
+        Intl,
+        ...globals,
+      },
+      { filename }
+    )
     return module.exports
   }
-  return relative => {
+  return (relative) => {
     const result = load(path.join(sourceRoot, relative))
     return result.default || result
   }
@@ -63,19 +79,26 @@ function fakeTimers() {
   const pending = new Map()
   return {
     pending,
-    setTimeout(callback) { pending.set(++id, callback); return id },
-    clearTimeout(timer) { pending.delete(timer) },
+    setTimeout(callback) {
+      pending.set(++id, callback)
+      return id
+    },
+    clearTimeout(timer) {
+      pending.delete(timer)
+    },
     runNext() {
       const [timer, callback] = pending.entries().next().value
       pending.delete(timer)
       return callback()
-    }
+    },
   }
 }
 
 function deferred() {
   let resolve
-  const promise = new Promise(done => { resolve = done })
+  const promise = new Promise((done) => {
+    resolve = done
+  })
   return { promise, resolve }
 }
 
@@ -83,7 +106,11 @@ test('Vue 2 computed date text reacts immediately to account timezone changes', 
   const time = createLoader()('utils/time.js')
   time.setUserTimezone('America/New_York')
   const instance = new Vue({
-    computed: { display() { return time.formatBusinessTime('2026-01-01T00:00:00Z') } }
+    computed: {
+      display() {
+        return time.formatBusinessTime('2026-01-01T00:00:00Z')
+      },
+    },
   })
   assert.equal(instance.display, '2025-12-31 19:00:00')
   time.setUserTimezone('UTC')
@@ -95,16 +122,22 @@ test('Vue 2 computed date text reacts immediately to account timezone changes', 
 test('Cron preview cancels obsolete requests and ignores responses after destruction', async () => {
   const timers = fakeTimers()
   const requests = []
-  const component = createLoader({
-    '@/api/monitor/job': {
-      previewJob(payload, signal) {
-        const response = deferred()
-        requests.push({ payload, signal, ...response })
-        return response.promise
-      }
-    }
-  }, timers)('components/Crontab/result.vue')
-  const instance = new Vue({ ...component, propsData: { ex: '0 0 9 * * ?', timeZone: 'Asia/Shanghai' } })
+  const component = createLoader(
+    {
+      '@/api/monitor/job': {
+        previewJob(payload, signal) {
+          const response = deferred()
+          requests.push({ payload, signal, ...response })
+          return response.promise
+        },
+      },
+    },
+    timers
+  )('components/Crontab/result.vue')
+  const instance = new Vue({
+    ...component,
+    propsData: { ex: '0 0 9 * * ?', timeZone: 'Asia/Shanghai' },
+  })
   assert.equal(timers.pending.size, 1)
   const first = timers.runNext()
   instance.ex = '0 0 10 * * ?'
@@ -130,12 +163,15 @@ test('Runtime dialog applies initial filters, cancels changed requests and stops
     requests.push({ query, ...options, ...response })
     return response.promise
   }
-  const component = createLoader({
-    '@/api/monitor/job': { listJobExecutions: fetch, listJobSync: fetch }
-  }, { document: { hidden: false, removeEventListener() {} } })('views/monitor/job/runtime.vue')
+  const component = createLoader(
+    {
+      '@/api/monitor/job': { listJobExecutions: fetch, listJobSync: fetch },
+    },
+    { document: { hidden: false, removeEventListener() {} } }
+  )('views/monitor/job/runtime.vue')
   const instance = new Vue({
     ...component,
-    propsData: { visible: true, initialTab: 'executions', jobId: '7', executionId: 'exec-1' }
+    propsData: { visible: true, initialTab: 'executions', jobId: '7', executionId: 'exec-1' },
   })
   assert.equal(requests[0].query.jobId, 7)
   assert.equal(requests[0].query.executionId, 'exec-1')
@@ -148,7 +184,7 @@ test('Runtime dialog applies initial filters, cancels changed requests and stops
   await settle()
   assert.equal(instance.rows[0].syncStatus, 'applied')
   const visibility = []
-  instance.$on('update:visible', value => visibility.push(value))
+  instance.$on('update:visible', (value) => visibility.push(value))
   instance.dialogVisible = false
   assert.deepEqual(visibility, [false])
   instance.$destroy()
@@ -159,7 +195,12 @@ test('Job log initializes from stable IDs and follows route and display timezone
   const queries = []
   const load = createLoader({
     './detail': {},
-    '@/api/monitor/jobLog': { listJobLog: async query => { queries.push(query); return { rows: [], total: 0 } } }
+    '@/api/monitor/jobLog': {
+      listJobLog: async (query) => {
+        queries.push(query)
+        return { rows: [], total: 0 }
+      },
+    },
   })
   const time = load('utils/time.js')
   time.setUserTimezone('UTC')
@@ -167,8 +208,10 @@ test('Job log initializes from stable IDs and follows route and display timezone
   const component = load('views/monitor/job/log.vue')
   const instance = new Vue({
     ...component,
-    beforeCreate() { this.$route = route },
-    methods: { ...component.methods, addDateRange: query => query }
+    beforeCreate() {
+      this.$route = route
+    },
+    methods: { ...component.methods, addDateRange: (query) => query },
   })
   await settle()
   assert.equal(queries[0].jobId, '7')
@@ -187,17 +230,26 @@ test('Job log initializes from stable IDs and follows route and display timezone
 })
 
 test('Plugin config dynamic fields stay reactive and JSON values submit with their original types', async () => {
-  const component = createLoader({ 'element-ui': { Message: { error: assert.fail } } })('views/system/plugin/components/PluginConfigDialog.vue')
+  const component = createLoader({ 'element-ui': { Message: { error: assert.fail } } })(
+    'views/system/plugin/components/PluginConfigDialog.vue'
+  )
   const instance = new Vue({
     ...component,
     propsData: {
-      items: [{ key: 'enabled', value: false, type: 'switch' }, { key: 'options', value: { limit: 3 }, type: 'json' }],
-      formatConfigDefaultValue: () => '-', formatConfigConstraint: () => '-'
-    }
+      items: [
+        { key: 'enabled', value: false, type: 'switch' },
+        { key: 'options', value: { limit: 3 }, type: 'json' },
+      ],
+      formatConfigDefaultValue: () => '-',
+      formatConfigConstraint: () => '-',
+    },
   })
   const state = instance._setupState || instance
   let updates = 0
-  const stopWatchingEnabled = instance.$watch(() => state.configForm.values.enabled, () => updates++)
+  const stopWatchingEnabled = instance.$watch(
+    () => state.configForm.values.enabled,
+    () => updates++
+  )
   state.configForm.values.enabled = true
   await settle()
   assert.equal(updates, 1)
@@ -207,7 +259,10 @@ test('Plugin config dynamic fields stay reactive and JSON values submit with the
   stopWatchingEnabled()
   instance.items = [{ key: 'anotherKey', value: 'initial', type: 'string' }]
   await settle()
-  instance.$watch(() => state.configForm.values.anotherKey, () => updates++)
+  instance.$watch(
+    () => state.configForm.values.anotherKey,
+    () => updates++
+  )
   state.configForm.values.anotherKey = 'updated'
   await settle()
   assert.equal(updates, 2)
@@ -220,27 +275,56 @@ test('JSON editor uses Element UI validation and releases Monaco resources in be
   let disposals = 0
   const disposable = () => ({ dispose: () => disposals++ })
   const model = {
-    updateOptions() {}, getValue: () => text, setValue: value => { text = value },
-    ...disposable()
+    updateOptions() {},
+    getValue: () => text,
+    setValue: (value) => {
+      text = value
+    },
+    ...disposable(),
   }
   const editor = {
-    updateOptions() {}, onDidChangeModelContent: disposable, onDidBlurEditorText: disposable,
-    ...disposable()
+    updateOptions() {},
+    onDidChangeModelContent: disposable,
+    onDidBlurEditorText: disposable,
+    ...disposable(),
   }
-  const monaco = { editor: { createModel: () => model, create: () => editor, onDidChangeMarkers: disposable } }
-  const component = createLoader({ '@/utils/monaco': { loadMonaco: async () => monaco } }, {
-    document: { documentElement: { classList: { contains: () => false } } },
-    MutationObserver: class { observe() {} disconnect() { disposals++ } }
-  })('components/JsonEditor/index.vue')
+  const monaco = {
+    editor: { createModel: () => model, create: () => editor, onDidChangeMarkers: disposable },
+  }
+  const component = createLoader(
+    { '@/utils/monaco': { loadMonaco: async () => monaco } },
+    {
+      document: { documentElement: { classList: { contains: () => false } } },
+      MutationObserver: class {
+        observe() {}
+        disconnect() {
+          disposals++
+        }
+      },
+    }
+  )('components/JsonEditor/index.vue')
   let validations = 0
-  const parent = new Vue({ provide: { elFormItem: { validateState: 'error', validate() { validations++ } } } })
-  const instance = new Vue({ ...component, parent, propsData: { value: '[]', validate: JSON.parse } })
+  const parent = new Vue({
+    provide: {
+      elFormItem: {
+        validateState: 'error',
+        validate() {
+          validations++
+        },
+      },
+    },
+  })
+  const instance = new Vue({
+    ...component,
+    parent,
+    propsData: { value: '[]', validate: JSON.parse },
+  })
   instance.$refs.editorRef = {}
   await component.mounted.call(instance)
   assert.equal(instance.editorReady, true)
   assert.equal(editor.__ob__, undefined, 'Monaco editor must not be deeply observed by Vue')
   const inputs = []
-  instance.$on('input', value => inputs.push(value))
+  instance.$on('input', (value) => inputs.push(value))
   instance.updateValue('[1]')
   await settle()
   assert.equal(validations, 1)
@@ -252,36 +336,47 @@ test('JSON editor uses Element UI validation and releases Monaco resources in be
 
 test('Business date input emits the Vue 2 v-model event with the selected wall time', () => {
   const component = createLoader()('components/BusinessDateTimePicker/index.vue')
-  const instance = new Vue({ ...component, propsData: { value: '2026-01-01 09:00:00', timezone: 'Asia/Shanghai' } })
+  const instance = new Vue({
+    ...component,
+    propsData: { value: '2026-01-01 09:00:00', timezone: 'Asia/Shanghai' },
+  })
   const values = []
-  instance.$on('input', value => values.push(value))
+  instance.$on('input', (value) => values.push(value))
   instance.timeInput = '10:30'
   assert.deepEqual(values, ['2026-01-01 10:30:00'])
   instance.$destroy()
 })
 
-
 test('Native job form uses callback validation, submits typed fields and retains More menu dispatch', async () => {
   const payloads = []
   const notices = []
-  const component = createLoader({
-    './detail': {}, './runtime': {}, '@/components/Crontab': {}, '@/components/JsonEditor': {},
-    '@/utils/permission': { checkPermi: () => true },
-    '@/api/monitor/job': {
-      listJob: async () => ({ rows: [], total: 0 }),
-      addJob: async payload => {
-        payloads.push(payload)
-        return { msg: '配置已保存，等待同步', data: { syncStatus: 'pending' } }
-      }
-    }
-  }, { document: { hidden: false, removeEventListener() {} } })('views/monitor/job/index.vue')
+  const component = createLoader(
+    {
+      './detail': {},
+      './runtime': {},
+      '@/components/Crontab': {},
+      '@/components/JsonEditor': {},
+      '@/utils/permission': { checkPermi: () => true },
+      '@/api/monitor/job': {
+        listJob: async () => ({ rows: [], total: 0 }),
+        addJob: async (payload) => {
+          payloads.push(payload)
+          return { msg: '配置已保存，等待同步', data: { syncStatus: 'pending' } }
+        },
+      },
+    },
+    { document: { hidden: false, removeEventListener() {} } }
+  )('views/monitor/job/index.vue')
   const instance = new Vue({
     ...component,
-    beforeCreate: [function () {
-      this.$store = { state: { user: { appTimezone: 'Asia/Shanghai' } } }
-      this.$modal = { msg: message => notices.push(message), msgSuccess: assert.fail }
-    }, component.beforeCreate],
-    methods: { ...component.methods, resetForm() {} }
+    beforeCreate: [
+      function () {
+        this.$store = { state: { user: { appTimezone: 'Asia/Shanghai' } } }
+        this.$modal = { msg: (message) => notices.push(message), msgSuccess: assert.fail }
+      },
+      component.beforeCreate,
+    ],
+    methods: { ...component.methods, resetForm() {} },
   })
   instance.reset()
   assert.equal(instance.form.status, '1')
@@ -292,7 +387,11 @@ test('Native job form uses callback validation, submits typed fields and retains
   instance.form.jobKwargs = '{"enabled":false}'
   instance.unlimitedDelay = true
   let valid = false
-  instance.$refs.form = { validate(callback) { callback(valid) } }
+  instance.$refs.form = {
+    validate(callback) {
+      callback(valid)
+    },
+  }
   instance.submitForm()
   assert.equal(payloads.length, 0)
   valid = true
@@ -308,12 +407,17 @@ test('Native job form uses callback validation, submits typed fields and retains
   assert.equal(instance.submitting, false)
   assert.deepEqual(notices, ['配置已保存，等待同步'])
   const commands = []
-  instance.handleRun = row => commands.push(['run', row.jobId])
-  instance.handleJobLog = row => commands.push(['log', row.jobId])
+  instance.handleRun = (row) => commands.push(['run', row.jobId])
+  instance.handleJobLog = (row) => commands.push(['log', row.jobId])
   instance.handleRuntime = (tab, row) => commands.push([tab, row.jobId])
   for (const command of ['handleRun', 'handleJobLog', 'handleExecutions', 'handleSync']) {
     instance.handleCommand(command, { jobId: 7 })
   }
-  assert.deepEqual(commands, [['run', 7], ['log', 7], ['executions', 7], ['sync', 7]])
+  assert.deepEqual(commands, [
+    ['run', 7],
+    ['log', 7],
+    ['executions', 7],
+    ['sync', 7],
+  ])
   instance.$destroy()
 })

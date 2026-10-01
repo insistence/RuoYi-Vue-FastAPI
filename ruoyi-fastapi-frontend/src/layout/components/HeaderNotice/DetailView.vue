@@ -1,19 +1,45 @@
 <template>
-  <el-drawer title="公告详情" :visible.sync="visible" direction="rtl" size="50%" append-to-body :before-close="handleClose" custom-class="notice-detail-drawer">
-    <div v-loading="loading" class="notice-detail-drawer__body">
-      <div v-if="!detail" class="notice-empty">
+  <el-drawer
+    title="公告详情"
+    :visible.sync="visible"
+    direction="rtl"
+    size="50%"
+    append-to-body
+    :before-close="handleClose"
+    custom-class="notice-detail-drawer"
+  >
+    <div
+      v-loading="loading"
+      class="notice-detail-drawer__body"
+    >
+      <div
+        v-if="!detail"
+        class="notice-empty"
+      >
         <i class="el-icon-document"></i>
         <span>暂无数据</span>
       </div>
-      <div v-else class="notice-page">
+      <div
+        v-else
+        class="notice-page"
+      >
         <div class="notice-type-wrap">
-          <span v-if="detail.noticeType === '1'" class="notice-type-tag type-notify">
+          <span
+            v-if="detail.noticeType === '1'"
+            class="notice-type-tag type-notify"
+          >
             <i class="el-icon-bell"></i> 通知
           </span>
-          <span v-else-if="detail.noticeType === '2'" class="notice-type-tag type-announce">
+          <span
+            v-else-if="detail.noticeType === '2'"
+            class="notice-type-tag type-announce"
+          >
             <i class="el-icon-message"></i> 公告
           </span>
-          <span v-else class="notice-type-tag type-notify">
+          <span
+            v-else
+            class="notice-type-tag type-notify"
+          >
             <i class="el-icon-document"></i> 消息
           </span>
         </div>
@@ -42,8 +68,15 @@
         </div>
 
         <div class="notice-body">
-          <div v-if="hasContent" class="notice-content" v-html="detail.noticeContent" />
-          <div v-else class="notice-empty notice-empty--inner">
+          <div
+            v-if="hasContent"
+            class="notice-content"
+            v-html="detail.noticeContent"
+          />
+          <div
+            v-else
+            class="notice-empty notice-empty--inner"
+          >
             <i class="el-icon-document"></i> 暂无内容
           </div>
         </div>
@@ -61,7 +94,7 @@ export default {
     return {
       visible: false,
       loading: false,
-      detail: null
+      detail: null,
     }
   },
   computed: {
@@ -72,7 +105,7 @@ export default {
     hasContent() {
       const c = this.detail && this.detail.noticeContent
       return c != null && String(c).trim() !== ''
-    }
+    },
   },
   methods: {
     open(payload) {
@@ -97,20 +130,23 @@ export default {
       }
       this.loading = true
       this.detail = null
-      getNotice(id).then(res => {
-        this.detail = res.data
-      }).catch(() => {
-        this.detail = null
-      }).finally(() => {
-        this.loading = false
-      })
+      getNotice(id)
+        .then((res) => {
+          this.detail = res.data
+        })
+        .catch(() => {
+          this.detail = null
+        })
+        .finally(() => {
+          this.loading = false
+        })
     },
     handleClose() {
       this.visible = false
       this.detail = null
       this.loading = false
-    }
-  }
+    },
+  },
 }
 </script>
 
@@ -233,7 +269,9 @@ export default {
   background: #fff;
   border-radius: 6px;
   padding: 28px 32px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.06),
+    0 0 0 1px rgba(0, 0, 0, 0.04);
   min-height: 120px;
 }
 

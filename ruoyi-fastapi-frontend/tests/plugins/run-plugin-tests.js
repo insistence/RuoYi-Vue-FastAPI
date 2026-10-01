@@ -1,7 +1,7 @@
 const { readdirSync } = require('fs')
 const { join, relative } = require('path')
 
-const collectTestFiles = root => {
+const collectTestFiles = (root) => {
   const entries = readdirSync(root, { withFileTypes: true })
   const testFiles = []
 

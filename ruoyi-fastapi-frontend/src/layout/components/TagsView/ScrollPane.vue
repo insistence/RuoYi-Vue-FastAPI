@@ -1,5 +1,10 @@
 <template>
-  <el-scrollbar ref="scrollContainer" :vertical="false" class="scroll-container" @wheel.native.prevent="handleScroll">
+  <el-scrollbar
+    ref="scrollContainer"
+    :vertical="false"
+    class="scroll-container"
+    @wheel.native.prevent="handleScroll"
+  >
     <slot />
   </el-scrollbar>
 </template>
@@ -11,13 +16,13 @@ export default {
   name: 'ScrollPane',
   data() {
     return {
-      left: 0
+      left: 0,
     }
   },
   computed: {
     scrollWrapper() {
       return this.$refs.scrollContainer.$refs.wrap
-    }
+    },
   },
   mounted() {
     this.scrollWrapper.addEventListener('scroll', this.emitScroll, true)
@@ -35,9 +40,9 @@ export default {
 
       function ease(t, b, c, d) {
         t /= d / 2
-        if (t < 1) return c / 2 * t * t + b
+        if (t < 1) return (c / 2) * t * t + b
         t--
-        return -c / 2 * (t * (t - 2) - 1) + b
+        return (-c / 2) * (t * (t - 2) - 1) + b
       }
 
       const emit = this.$emit.bind(this)
@@ -84,10 +89,11 @@ export default {
       } else if (lastTag === currentTag) {
         this.smoothScrollTo($scrollWrapper.scrollWidth - $containerWidth)
       } else {
-        const currentIndex = tagList.findIndex(item => item === currentTag)
+        const currentIndex = tagList.findIndex((item) => item === currentTag)
         const prevTag = tagList[currentIndex - 1]
         const nextTag = tagList[currentIndex + 1]
-        const afterNextTagOffsetLeft = nextTag.$el.offsetLeft + nextTag.$el.offsetWidth + tagAndTagSpacing
+        const afterNextTagOffsetLeft =
+          nextTag.$el.offsetLeft + nextTag.$el.offsetWidth + tagAndTagSpacing
         const beforePrevTagOffsetLeft = prevTag.$el.offsetLeft - tagAndTagSpacing
 
         if (afterNextTagOffsetLeft > $scrollWrapper.scrollLeft + $containerWidth) {
@@ -122,10 +128,11 @@ export default {
       const $scrollWrapper = this.scrollWrapper
       return {
         canLeft: $scrollWrapper.scrollLeft > 0,
-        canRight: $scrollWrapper.scrollLeft < $scrollWrapper.scrollWidth - $scrollWrapper.clientWidth - 1
+        canRight:
+          $scrollWrapper.scrollLeft < $scrollWrapper.scrollWidth - $scrollWrapper.clientWidth - 1,
       }
-    }
-  }
+    },
+  },
 }
 </script>
 

@@ -1,4 +1,4 @@
-import { mergeRecursive } from "@/utils/ruoyi";
+import { mergeRecursive } from '@/utils/ruoyi'
 import DictOptions from './DictOptions'
 
 /**
@@ -19,13 +19,12 @@ export default class DictMeta {
   }
 }
 
-
 /**
  * 解析字典元数据
  * @param {Object} options
  * @returns {DictMeta}
  */
-DictMeta.parse= function(options) {
+DictMeta.parse = function (options) {
   let opts = null
   if (typeof options === 'string') {
     opts = DictOptions.metas[options] || {}

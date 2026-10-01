@@ -1,15 +1,46 @@
 <template>
   <div>
-    <el-popover ref="noticePopover" placement="bottom-end" width="320" trigger="manual" :value="noticeVisible" popper-class="notice-popover">
+    <el-popover
+      ref="noticePopover"
+      placement="bottom-end"
+      width="320"
+      trigger="manual"
+      :value="noticeVisible"
+      popper-class="notice-popover"
+    >
       <div class="notice-header">
         <span class="notice-title">通知公告</span>
-        <span class="notice-mark-all" @click="markAllRead">全部已读</span>
+        <span
+          class="notice-mark-all"
+          @click="markAllRead"
+          >全部已读</span
+        >
       </div>
-      <div v-if="noticeLoading" class="notice-loading"><i class="el-icon-loading"></i> 加载中...</div>
-      <div v-else-if="noticeList.length === 0" class="notice-empty"><i class="el-icon-inbox"></i><br>暂无公告</div>
+      <div
+        v-if="noticeLoading"
+        class="notice-loading"
+      >
+        <i class="el-icon-loading"></i> 加载中...
+      </div>
+      <div
+        v-else-if="noticeList.length === 0"
+        class="notice-empty"
+      >
+        <i class="el-icon-inbox"></i><br />暂无公告
+      </div>
       <div v-else>
-        <div v-for="item in noticeList" :key="item.noticeId" class="notice-item" :class="{ 'is-read': item.isRead }" @click="previewNotice(item)">
-          <el-tag size="mini" :type="item.noticeType === '1' ? 'warning' : 'success'" class="notice-tag">
+        <div
+          v-for="item in noticeList"
+          :key="item.noticeId"
+          class="notice-item"
+          :class="{ 'is-read': item.isRead }"
+          @click="previewNotice(item)"
+        >
+          <el-tag
+            size="mini"
+            :type="item.noticeType === '1' ? 'warning' : 'success'"
+            class="notice-tag"
+          >
             {{ item.noticeType === '1' ? '通知' : '公告' }}
           </el-tag>
           <span class="notice-item-title">{{ item.noticeTitle }}</span>
@@ -18,9 +49,18 @@
       </div>
     </el-popover>
 
-    <div v-popover:noticePopover class="right-menu-item hover-effect notice-trigger" @mouseenter="onNoticeEnter" @mouseleave="onNoticeLeave">
+    <div
+      v-popover:noticePopover
+      class="right-menu-item hover-effect notice-trigger"
+      @mouseenter="onNoticeEnter"
+      @mouseleave="onNoticeLeave"
+    >
       <svg-icon icon-class="bell" />
-      <span v-if="unreadCount > 0" class="notice-badge">{{ unreadCount }}</span>
+      <span
+        v-if="unreadCount > 0"
+        class="notice-badge"
+        >{{ unreadCount }}</span
+      >
     </div>
 
     <notice-detail-view ref="noticeViewRef" />
@@ -40,7 +80,7 @@ export default {
       unreadCount: 0, // 未读数量
       noticeLoading: false, // 加载状态
       noticeVisible: false, // 弹出层显示状态
-      noticeLeaveTimer: null // 鼠标离开计时器
+      noticeLeaveTimer: null, // 鼠标离开计时器
     }
   },
   mounted() {
@@ -57,24 +97,33 @@ export default {
           popper._noticeBound = true
           popper.addEventListener('mouseenter', () => clearTimeout(this.noticeLeaveTimer))
           popper.addEventListener('mouseleave', () => {
-            this.noticeLeaveTimer = setTimeout(() => { this.noticeVisible = false }, 100)
+            this.noticeLeaveTimer = setTimeout(() => {
+              this.noticeVisible = false
+            }, 100)
           })
         }
       })
     },
     // 鼠标离开铃铛区域
     onNoticeLeave() {
-      this.noticeLeaveTimer = setTimeout(() => { this.noticeVisible = false }, 150)
+      this.noticeLeaveTimer = setTimeout(() => {
+        this.noticeVisible = false
+      }, 150)
     },
     // 加载顶部公告列表
     loadNoticeTop() {
       this.noticeLoading = true
-      listNoticeTop().then(res => {
-        this.noticeList = res.data || []
-        this.unreadCount = res.unreadCount !== undefined ? res.unreadCount : this.noticeList.filter(n => !n.isRead).length
-      }).finally(() => {
-        this.noticeLoading = false
-      })
+      listNoticeTop()
+        .then((res) => {
+          this.noticeList = res.data || []
+          this.unreadCount =
+            res.unreadCount !== undefined
+              ? res.unreadCount
+              : this.noticeList.filter((n) => !n.isRead).length
+        })
+        .finally(() => {
+          this.noticeLoading = false
+        })
     },
     // 预览公告详情
     previewNotice(item) {
@@ -89,13 +138,13 @@ export default {
     },
     // 全部已读
     markAllRead() {
-      const ids = this.noticeList.map(n => n.noticeId).join(',')
+      const ids = this.noticeList.map((n) => n.noticeId).join(',')
       if (!ids) return
       markNoticeReadAll(ids).catch(() => {})
-      this.noticeList = this.noticeList.map(n => ({ ...n, isRead: true }))
+      this.noticeList = this.noticeList.map((n) => ({ ...n, isRead: true }))
       this.unreadCount = 0
-    }
-  }
+    },
+  },
 }
 </script>
 
@@ -103,7 +152,11 @@ export default {
 .notice-trigger {
   position: relative;
   transform: translateX(-6px);
-  .svg-icon { width: 1.2em; height: 1.2em; vertical-align: -0.2em; }
+  .svg-icon {
+    width: 1.2em;
+    height: 1.2em;
+    vertical-align: -0.2em;
+  }
   .notice-badge {
     position: absolute;
     top: 7px;
@@ -137,11 +190,13 @@ export default {
 }
 .notice-popover .notice-mark-all {
   font-size: 12px;
-  color: #409EFF;
+  color: #409eff;
   font-weight: normal;
   cursor: pointer;
 }
-.notice-popover .notice-mark-all:hover { color: #2b7cc1; }
+.notice-popover .notice-mark-all:hover {
+  color: #2b7cc1;
+}
 .notice-popover .notice-loading,
 .notice-popover .notice-empty {
   padding: 24px;
@@ -159,12 +214,22 @@ export default {
   cursor: pointer;
   transition: background 0.15s;
 }
-.notice-popover .notice-item:last-child { border-bottom: none; }
-.notice-popover .notice-item:hover { background: #f7f9fb; }
+.notice-popover .notice-item:last-child {
+  border-bottom: none;
+}
+.notice-popover .notice-item:hover {
+  background: #f7f9fb;
+}
 .notice-popover .notice-item.is-read .notice-tag,
 .notice-popover .notice-item.is-read .notice-item-title,
-.notice-popover .notice-item.is-read .notice-item-date { opacity: 0.45; filter: grayscale(1); color: #999; }
-.notice-popover .notice-tag { flex-shrink: 0; }
+.notice-popover .notice-item.is-read .notice-item-date {
+  opacity: 0.45;
+  filter: grayscale(1);
+  color: #999;
+}
+.notice-popover .notice-tag {
+  flex-shrink: 0;
+}
 .notice-popover .notice-item-title {
   flex: 1;
   font-size: 12px;

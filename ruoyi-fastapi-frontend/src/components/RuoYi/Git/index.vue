@@ -1,6 +1,9 @@
 <template>
   <div>
-    <svg-icon icon-class="github" @click="goto" />
+    <svg-icon
+      icon-class="github"
+      @click="goto"
+    />
   </div>
 </template>
 
@@ -9,13 +12,13 @@ export default {
   name: 'RuoYiGit',
   data() {
     return {
-      url: 'https://gitee.com/insistence2022/RuoYi-Vue-FastAPI'
+      url: 'https://gitee.com/insistence2022/RuoYi-Vue-FastAPI',
     }
   },
   methods: {
     goto() {
       window.open(this.url)
-    }
-  }
+    },
+  },
 }
 </script>

@@ -13,7 +13,10 @@
         show-icon
         class="mb8"
       />
-      <el-table v-loading="loading" :data="referenceList">
+      <el-table
+        v-loading="loading"
+        :data="referenceList"
+      >
         <el-table-column
           label="业务类型"
           align="center"
@@ -28,7 +31,7 @@
           min-width="180"
           :show-overflow-tooltip="true"
         >
-          <template slot-scope="scope">{{ scope.row.businessName || "-" }}</template>
+          <template slot-scope="scope">{{ scope.row.businessName || '-' }}</template>
         </el-table-column>
         <el-table-column
           label="业务ID"
@@ -45,18 +48,29 @@
         >
           <template slot-scope="scope">
             {{
-              scope.row.retentionExpireTime
-                ? parseTime(scope.row.retentionExpireTime)
-                : "永久保留"
+              scope.row.retentionExpireTime ? parseTime(scope.row.retentionExpireTime) : '永久保留'
             }}
           </template>
         </el-table-column>
-        <el-table-column label="来源" align="center" width="100">
+        <el-table-column
+          label="来源"
+          align="center"
+          width="100"
+        >
           <template slot-scope="scope">
-            <el-tag v-if="scope.row.legacy" type="info" effect="plain">
+            <el-tag
+              v-if="scope.row.legacy"
+              type="info"
+              effect="plain"
+            >
               兼容字段
             </el-tag>
-            <el-tag v-else type="success" effect="plain">引用关系</el-tag>
+            <el-tag
+              v-else
+              type="success"
+              effect="plain"
+              >引用关系</el-tag
+            >
           </template>
         </el-table-column>
         <el-table-column
@@ -66,7 +80,7 @@
           width="110"
           :show-overflow-tooltip="true"
         >
-          <template slot-scope="scope">{{ scope.row.createBy || "-" }}</template>
+          <template slot-scope="scope">{{ scope.row.createBy || '-' }}</template>
         </el-table-column>
         <el-table-column
           label="登记时间"
@@ -75,7 +89,7 @@
           width="180"
         >
           <template slot-scope="scope">
-            {{ parseTime(scope.row.createTime) || "-" }}
+            {{ parseTime(scope.row.createTime) || '-' }}
           </template>
         </el-table-column>
       </el-table>
@@ -84,33 +98,33 @@
 </template>
 
 <script>
-import { listFileReference } from "@/api/system/file";
+import { listFileReference } from '@/api/system/file'
 
 export default {
-  name: "FileReferenceDrawer",
+  name: 'FileReferenceDrawer',
   data() {
     return {
       visible: false,
       loading: false,
-      fileName: "",
-      referenceList: []
-    };
+      fileName: '',
+      referenceList: [],
+    }
   },
   methods: {
     open(row) {
-      this.fileName = row.originalName;
-      this.visible = true;
-      this.loading = true;
+      this.fileName = row.originalName
+      this.visible = true
+      this.loading = true
       listFileReference(row.fileId)
-        .then(response => {
-          this.referenceList = response.data;
+        .then((response) => {
+          this.referenceList = response.data
         })
         .finally(() => {
-          this.loading = false;
-        });
-    }
-  }
-};
+          this.loading = false
+        })
+    },
+  },
+}
 </script>
 
 <style scoped>

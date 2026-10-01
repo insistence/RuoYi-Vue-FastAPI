@@ -1,6 +1,10 @@
 <template>
   <div class="header-search">
-    <svg-icon class-name="search-icon" icon-class="search" @click.stop="click" />
+    <svg-icon
+      class-name="search-icon"
+      icon-class="search"
+      @click.stop="click"
+    />
     <el-dialog
       :visible.sync="show"
       width="600px"
@@ -23,7 +27,10 @@
       >
       </el-input>
 
-      <div class="result-count" v-if="search && options.length > 0">
+      <div
+        class="result-count"
+        v-if="search && options.length > 0"
+      >
         找到 <strong>{{ options.length }}</strong> 个结果
       </div>
 
@@ -40,35 +47,49 @@
               @mouseleave="activeIndex = -1"
             >
               <div class="left">
-                <svg-icon class="menu-icon" :icon-class="item.icon" />
+                <svg-icon
+                  class="menu-icon"
+                  :icon-class="item.icon"
+                />
               </div>
-              <div class="search-info" @click="change(item)">
-                <div class="menu-title" v-html="highlightText(item.title.join(' / '))"></div>
-                <div class="menu-path" v-html="highlightText(item.path)"></div>
+              <div
+                class="search-info"
+                @click="change(item)"
+              >
+                <div
+                  class="menu-title"
+                  v-html="highlightText(item.title.join(' / '))"
+                ></div>
+                <div
+                  class="menu-path"
+                  v-html="highlightText(item.path)"
+                ></div>
               </div>
-              <svg-icon icon-class="enter" v-show="index === activeIndex" />
+              <svg-icon
+                icon-class="enter"
+                v-show="index === activeIndex"
+              />
             </div>
           </template>
 
-          <div class="empty-state" v-else-if="search && options.length === 0">
+          <div
+            class="empty-state"
+            v-else-if="search && options.length === 0"
+          >
             <i class="el-icon-search empty-icon"></i>
-            <p class="empty-text">未找到 "<strong>{{ search }}</strong>" 相关菜单</p>
+            <p class="empty-text">
+              未找到 "<strong>{{ search }}</strong
+              >" 相关菜单
+            </p>
             <p class="empty-tip">试试其他关键词或路径</p>
           </div>
-
         </div>
       </el-scrollbar>
 
       <div class="search-footer">
-        <span class="shortcut-item">
-          <kbd>↑</kbd><kbd>↓</kbd> 切换
-        </span>
-        <span class="shortcut-item">
-          <kbd>↵</kbd> 选择
-        </span>
-        <span class="shortcut-item">
-          <kbd>Esc</kbd> 关闭
-        </span>
+        <span class="shortcut-item"> <kbd>↑</kbd><kbd>↓</kbd> 切换 </span>
+        <span class="shortcut-item"> <kbd>↵</kbd> 选择 </span>
+        <span class="shortcut-item"> <kbd>Esc</kbd> 关闭 </span>
       </div>
     </el-dialog>
   </div>
@@ -88,7 +109,7 @@ export default {
       searchPool: [],
       activeIndex: -1,
       show: false,
-      fuse: undefined
+      fuse: undefined,
     }
   },
   computed: {
@@ -97,7 +118,7 @@ export default {
     },
     routes() {
       return this.$store.getters.defaultRoutes
-    }
+    },
   },
   watch: {
     routes() {
@@ -105,7 +126,7 @@ export default {
     },
     searchPool(list) {
       this.initFuse(list)
-    }
+    },
   },
   mounted() {
     this.searchPool = this.generateRoutes(this.routes)
@@ -154,23 +175,28 @@ export default {
         shouldSort: true,
         threshold: 0.2,
         minMatchCharLength: 1,
-        keys: [{
-          name: 'title',
-          weight: 0.7
-        }, {
-          name: 'path',
-          weight: 0.3
-        }]
+        keys: [
+          {
+            name: 'title',
+            weight: 0.7,
+          },
+          {
+            name: 'path',
+            weight: 0.3,
+          },
+        ],
       })
     },
     generateRoutes(routes, basePath = '/', prefixTitle = []) {
       let res = []
       for (const router of routes) {
-        if (router.hidden) { continue }
+        if (router.hidden) {
+          continue
+        }
         const data = {
           path: !isHttp(router.path) ? path.resolve(basePath, router.path) : router.path,
           title: [...prefixTitle],
-          icon: ''
+          icon: '',
         }
         if (router.meta && router.meta.title) {
           data.title = [...data.title, router.meta.title]
@@ -195,13 +221,11 @@ export default {
       this.activeIndex = -1
       if (query !== '') {
         const q = query.toLowerCase()
-        const pathMatches = this.searchPool.filter(item =>
-          item.path.toLowerCase().includes(q)
-        )
-        const fuseMatches = this.fuse.search(query).map(item => item.item)
+        const pathMatches = this.searchPool.filter((item) => item.path.toLowerCase().includes(q))
+        const fuseMatches = this.fuse.search(query).map((item) => item.item)
         const merged = [...pathMatches]
-        fuseMatches.forEach(item => {
-          if (!merged.find(m => m.path === item.path)) {
+        fuseMatches.forEach((item) => {
+          if (!merged.find((m) => m.path === item.path)) {
             merged.push(item)
           }
         })
@@ -214,7 +238,7 @@ export default {
       if (index !== this.activeIndex) return {}
       return {
         'background-color': this.theme,
-        'color': '#fff'
+        color: '#fff',
       }
     },
     navigateResult(direction) {
@@ -238,12 +262,12 @@ export default {
     },
     escapeRegExp(str) {
       return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    }
-  }
+    },
+  },
 }
 </script>
 
-<style lang='scss' scoped>
+<style lang="scss" scoped>
 ::v-deep {
   .el-dialog__header {
     padding: 6px !important;

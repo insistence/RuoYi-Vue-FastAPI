@@ -84,28 +84,28 @@
 </template>
 
 <script>
-import { formatFileSize } from "./fileFormatters";
+import { formatFileSize } from './fileFormatters'
 
 export default {
-  name: "FileStatistics",
+  name: 'FileStatistics',
   props: {
     stats: {
       type: Object,
-      required: true
-    }
+      required: true,
+    },
   },
   methods: {
     formatFileSize,
     formatPercentage(size) {
-      const totalSize = Number(this.stats.totalSize || 0);
+      const totalSize = Number(this.stats.totalSize || 0)
       if (!totalSize) {
-        return "0%";
+        return '0%'
       }
-      const percentage = (Number(size || 0) / totalSize) * 100;
-      return `${percentage >= 10 ? percentage.toFixed(0) : percentage.toFixed(1)}%`;
-    }
-  }
-};
+      const percentage = (Number(size || 0) / totalSize) * 100
+      return `${percentage >= 10 ? percentage.toFixed(0) : percentage.toFixed(1)}%`
+    },
+  },
+}
 </script>
 
 <style scoped>
@@ -149,7 +149,9 @@ export default {
   border: 1px solid #ebeef5;
   border-radius: 10px;
   box-shadow: 0 4px 14px rgba(31, 45, 61, 0.05);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .file-stat-item::after {
@@ -161,7 +163,7 @@ export default {
   background-color: currentColor;
   border-radius: 50%;
   opacity: 0.04;
-  content: "";
+  content: '';
 }
 
 .file-stat-item:hover {

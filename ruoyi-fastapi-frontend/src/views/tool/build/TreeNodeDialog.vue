@@ -41,7 +41,7 @@
                 <el-select
                   slot="append"
                   v-model="dataType"
-                  :style="{width: '100px'}"
+                  :style="{ width: '100px' }"
                 >
                   <el-option
                     v-for="(item, index) in dataTypeOptions"
@@ -63,9 +63,7 @@
         >
           确定
         </el-button>
-        <el-button @click="close">
-          取消
-        </el-button>
+        <el-button @click="close"> 取消 </el-button>
       </div>
     </el-dialog>
   </div>
@@ -82,42 +80,42 @@ export default {
       id: 100,
       formData: {
         label: undefined,
-        value: undefined
+        value: undefined,
       },
       rules: {
         label: [
           {
             required: true,
             message: '请输入选项名',
-            trigger: 'blur'
-          }
+            trigger: 'blur',
+          },
         ],
         value: [
           {
             required: true,
             message: '请输入选项值',
-            trigger: 'blur'
-          }
-        ]
+            trigger: 'blur',
+          },
+        ],
       },
       dataType: 'string',
       dataTypeOptions: [
         {
           label: '字符串',
-          value: 'string'
+          value: 'string',
         },
         {
           label: '数字',
-          value: 'number'
-        }
-      ]
+          value: 'number',
+        },
+      ],
     }
   },
   computed: {},
   watch: {
     'formData.value': function (val) {
       this.dataType = isNumberStr(val) ? 'number' : 'string'
-    }
+    },
   },
   created() {},
   mounted() {},
@@ -125,7 +123,7 @@ export default {
     onOpen() {
       this.formData = {
         label: undefined,
-        value: undefined
+        value: undefined,
       }
     },
     onClose() {},
@@ -133,7 +131,7 @@ export default {
       this.$emit('update:visible', false)
     },
     handleConfirm() {
-      this.$refs.elForm.validate(valid => {
+      this.$refs.elForm.validate((valid) => {
         if (!valid) return
         if (this.dataType === 'number') {
           this.formData.value = parseFloat(this.formData.value)
@@ -142,7 +140,7 @@ export default {
         this.$emit('commit', this.formData)
         this.close()
       })
-    }
-  }
+    },
+  },
 }
 </script>

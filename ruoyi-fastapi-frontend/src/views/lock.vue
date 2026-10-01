@@ -1,7 +1,10 @@
 <template>
   <div class="lock-container">
     <!-- 动态粒子背景 -->
-    <canvas ref="particleCanvas" class="particle-bg"></canvas>
+    <canvas
+      ref="particleCanvas"
+      class="particle-bg"
+    ></canvas>
 
     <!-- 时钟 -->
     <div class="lock-time">{{ currentTime }}</div>
@@ -10,31 +13,63 @@
     <!-- 锁屏卡片 -->
     <div class="lock-card">
       <div class="avatar-wrap">
-        <img :src="avatar" class="lock-avatar" @error="onAvatarError" />
+        <img
+          :src="avatar"
+          class="lock-avatar"
+          @error="onAvatarError"
+        />
         <div class="lock-icon">🔒</div>
       </div>
       <div class="lock-username">{{ nickName }}</div>
       <div class="lock-hint">系统已锁定，请输入密码解锁</div>
 
-      <div class="input-wrap" :class="{ shake: isShaking }">
-        <input ref="passwordInput" v-model="password" type="password" placeholder="请输入登录密码" class="lock-input" @keydown.enter="handleUnlock" autocomplete="off" />
-        <button class="unlock-btn" @click="handleUnlock" :disabled="loading">
+      <div
+        class="input-wrap"
+        :class="{ shake: isShaking }"
+      >
+        <input
+          ref="passwordInput"
+          v-model="password"
+          type="password"
+          placeholder="请输入登录密码"
+          class="lock-input"
+          @keydown.enter="handleUnlock"
+          autocomplete="off"
+        />
+        <button
+          class="unlock-btn"
+          @click="handleUnlock"
+          :disabled="loading"
+        >
           <span v-if="!loading">→</span>
-          <span v-else class="loading-dot">···</span>
+          <span
+            v-else
+            class="loading-dot"
+            >···</span
+          >
         </button>
       </div>
 
-      <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
+      <div
+        v-if="errorMsg"
+        class="error-msg"
+      >
+        {{ errorMsg }}
+      </div>
 
       <div class="lock-footer">
-        <a href="/login" @click.prevent="goLogin">退出重新登录</a>
+        <a
+          href="/login"
+          @click.prevent="goLogin"
+          >退出重新登录</a
+        >
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { formatBusinessTime } from "@/utils/time"
+import { formatBusinessTime } from '@/utils/time'
 import { mapGetters } from 'vuex'
 import { unlockScreen } from '@/api/login'
 import defAva from '@/assets/images/profile.jpg'
@@ -51,11 +86,11 @@ export default {
       currentDate: '',
       timer: null,
       animationId: null,
-      particles: []
+      particles: [],
     }
   },
   computed: {
-    ...mapGetters(['avatar', 'nickName'])
+    ...mapGetters(['avatar', 'nickName']),
   },
   mounted() {
     this.startClock()
@@ -90,7 +125,7 @@ export default {
       this.errorMsg = ''
       try {
         await unlockScreen(this.password)
-        const lockPath = this.$store.getters.lockPath  // 取锁屏前的路径
+        const lockPath = this.$store.getters.lockPath // 取锁屏前的路径
         await this.$store.dispatch('lock/unlockScreen')
         this.$router.replace(lockPath)
       } catch (err) {
@@ -105,7 +140,9 @@ export default {
     showError(msg) {
       this.errorMsg = msg
       this.isShaking = true
-      setTimeout(() => { this.isShaking = false }, 600)
+      setTimeout(() => {
+        this.isShaking = false
+      }, 600)
     },
     goLogin() {
       this.$store.dispatch('lock/unlockScreen')
@@ -132,12 +169,12 @@ export default {
           r: Math.random() * 2 + 1,
           dx: (Math.random() - 0.5) * 0.6,
           dy: (Math.random() - 0.5) * 0.6,
-          alpha: Math.random() * 0.5 + 0.2
+          alpha: Math.random() * 0.5 + 0.2,
         })
       }
       const draw = () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height)
-        this.particles.forEach(p => {
+        this.particles.forEach((p) => {
           ctx.beginPath()
           ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
           ctx.fillStyle = `rgba(255,255,255,${p.alpha})`
@@ -150,7 +187,8 @@ export default {
         // 连线
         for (let i = 0; i < this.particles.length; i++) {
           for (let j = i + 1; j < this.particles.length; j++) {
-            const a = this.particles[i], b = this.particles[j]
+            const a = this.particles[i],
+              b = this.particles[j]
             const dist = Math.hypot(a.x - b.x, a.y - b.y)
             if (dist < 120) {
               ctx.beginPath()
@@ -165,8 +203,8 @@ export default {
         this.animationId = requestAnimationFrame(draw)
       }
       draw()
-    }
-  }
+    },
+  },
 }
 </script>
 
@@ -197,7 +235,7 @@ export default {
   font-weight: 200;
   color: #fff;
   letter-spacing: 4px;
-  text-shadow: 0 0 40px rgba(255,255,255,0.3);
+  text-shadow: 0 0 40px rgba(255, 255, 255, 0.3);
   margin-bottom: 8px;
   font-variant-numeric: tabular-nums;
 }
@@ -206,7 +244,7 @@ export default {
   position: relative;
   z-index: 1;
   font-size: 15px;
-  color: rgba(255,255,255,0.6);
+  color: rgba(255, 255, 255, 0.6);
   margin-bottom: 48px;
   letter-spacing: 2px;
 }
@@ -224,7 +262,7 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
 }
 
 .avatar-wrap {
@@ -236,7 +274,7 @@ export default {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  border: 3px solid rgba(255,255,255,0.3);
+  border: 3px solid rgba(255, 255, 255, 0.3);
   object-fit: cover;
   display: block;
 }
@@ -245,7 +283,7 @@ export default {
   position: absolute;
   bottom: -4px;
   right: -4px;
-  background: rgba(255,255,255,0.15);
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 50%;
   width: 26px;
   height: 26px;
@@ -265,7 +303,7 @@ export default {
 }
 
 .lock-hint {
-  color: rgba(255,255,255,0.5);
+  color: rgba(255, 255, 255, 0.5);
   font-size: 13px;
   margin-bottom: 28px;
 }
@@ -274,16 +312,16 @@ export default {
   width: 100%;
   display: flex;
   align-items: center;
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 50px;
   padding: 4px 4px 4px 20px;
   transition: border-color 0.3s;
 }
 
 .input-wrap:focus-within {
-  border-color: rgba(255,255,255,0.6);
-  background: rgba(255,255,255,0.13);
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.13);
 }
 
 .input-wrap.shake {
@@ -291,11 +329,22 @@ export default {
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-8px); }
-  40% { transform: translateX(8px); }
-  60% { transform: translateX(-6px); }
-  80% { transform: translateX(6px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-8px);
+  }
+  40% {
+    transform: translateX(8px);
+  }
+  60% {
+    transform: translateX(-6px);
+  }
+  80% {
+    transform: translateX(6px);
+  }
 }
 
 .lock-input {
@@ -309,7 +358,7 @@ export default {
 }
 
 .lock-input::placeholder {
-  color: rgba(255,255,255,0.35);
+  color: rgba(255, 255, 255, 0.35);
 }
 
 .unlock-btn {
@@ -321,7 +370,9 @@ export default {
   color: #fff;
   font-size: 18px;
   cursor: pointer;
-  transition: transform 0.2s, opacity 0.2s;
+  transition:
+    transform 0.2s,
+    opacity 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -351,8 +402,14 @@ export default {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .lock-footer {
@@ -360,13 +417,13 @@ export default {
 }
 
 .lock-footer a {
-  color: rgba(255,255,255,0.4);
+  color: rgba(255, 255, 255, 0.4);
   font-size: 13px;
   text-decoration: none;
   transition: color 0.2s;
 }
 
 .lock-footer a:hover {
-  color: rgba(255,255,255,0.8);
+  color: rgba(255, 255, 255, 0.8);
 }
 </style>

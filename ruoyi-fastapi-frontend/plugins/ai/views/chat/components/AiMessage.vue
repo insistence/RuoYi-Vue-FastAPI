@@ -1,19 +1,25 @@
 <template>
   <div class="ai-message-container">
-    <div v-if="reasoningContent" class="reasoning-section">
-      <div class="reasoning-header" @click="toggleReasoning">
-        <i
-          :class="[
-            'el-icon-arrow-right',
-            { 'is-expanded': isReasoningExpanded },
-          ]"
-        ></i>
+    <div
+      v-if="reasoningContent"
+      class="reasoning-section"
+    >
+      <div
+        class="reasoning-header"
+        @click="toggleReasoning"
+      >
+        <i :class="['el-icon-arrow-right', { 'is-expanded': isReasoningExpanded }]"></i>
         <span>深度思考过程</span>
-        <span class="reasoning-status" v-if="!isThinkingComplete"
+        <span
+          class="reasoning-status"
+          v-if="!isThinkingComplete"
           >思考中...</span
         >
       </div>
-      <div v-show="isReasoningExpanded" class="reasoning-content">
+      <div
+        v-show="isReasoningExpanded"
+        class="reasoning-content"
+      >
         <MarkdownRender
           :content="reasoningContent"
           :is-dark="isDark"
@@ -44,18 +50,18 @@
 </template>
 
 <script>
-import { defineComponent, ref, computed } from "vue";
+import { defineComponent, ref, computed } from 'vue'
 
 export default defineComponent({
-  name: "AiMessage",
+  name: 'AiMessage',
   props: {
     content: {
       type: String,
-      default: "",
+      default: '',
     },
     reasoningContent: {
       type: String,
-      default: "",
+      default: '',
     },
     loading: {
       type: Boolean,
@@ -67,23 +73,23 @@ export default defineComponent({
     },
   },
   setup(props) {
-    const isReasoningExpanded = ref(true);
+    const isReasoningExpanded = ref(true)
 
     const isThinkingComplete = computed(() => {
-      return !!props.content;
-    });
+      return !!props.content
+    })
 
     function toggleReasoning() {
-      isReasoningExpanded.value = !isReasoningExpanded.value;
+      isReasoningExpanded.value = !isReasoningExpanded.value
     }
 
     return {
       isReasoningExpanded,
       isThinkingComplete,
       toggleReasoning,
-    };
+    }
   },
-});
+})
 </script>
 
 <style lang="scss">
