@@ -1,23 +1,54 @@
 <template>
-  <el-form label-width="100px" @submit.native.prevent="save">
+  <el-form
+    label-width="100px"
+    @submit.native.prevent="save"
+  >
     <el-form-item label="时间显示方式">
-      <el-radio-group v-model="mode" :disabled="saving">
+      <el-radio-group
+        v-model="mode"
+        :disabled="saving"
+      >
         <el-radio label="auto">自动跟随设备</el-radio>
         <el-radio label="custom">手动选择</el-radio>
       </el-radio-group>
     </el-form-item>
-    <el-form-item v-if="mode === 'custom'" label="显示时区" :error="fieldError">
-      <el-select v-model="selectedZone" filterable :disabled="saving" :loading="loading"
-        placeholder="搜索时区，例如 Asia/Shanghai" aria-label="显示时区" style="width: 100%"
-        @change="fieldError = ''">
-        <el-option v-for="zone in timezones" :key="zone" :label="zone" :value="zone" />
+    <el-form-item
+      v-if="mode === 'custom'"
+      label="显示时区"
+      :error="fieldError"
+    >
+      <el-select
+        v-model="selectedZone"
+        filterable
+        :disabled="saving"
+        :loading="loading"
+        placeholder="搜索时区，例如 Asia/Shanghai"
+        aria-label="显示时区"
+        style="width: 100%"
+        @change="fieldError = ''"
+      >
+        <el-option
+          v-for="zone in timezones"
+          :key="zone"
+          :label="zone"
+          :value="zone"
+        />
       </el-select>
     </el-form-item>
     <el-form-item v-if="loadError">
-      <el-alert type="warning" :closable="false">
+      <el-alert
+        type="warning"
+        :closable="false"
+      >
         <span slot="title">
           时区列表加载失败，仍可使用当前时区。
-          <el-button type="text" size="mini" :loading="loading" @click="loadOptions">重试</el-button>
+          <el-button
+            type="text"
+            size="mini"
+            :loading="loading"
+            @click="loadOptions"
+            >重试</el-button
+          >
         </span>
       </el-alert>
     </el-form-item>
@@ -26,14 +57,30 @@
     </el-form-item>
     <el-form-item label="时间预览">
       <span aria-live="polite">{{ previewTime }}</span>
-      <div v-if="mode === 'auto' && !deviceZone" class="timezone-help">
+      <div
+        v-if="mode === 'auto' && !deviceZone"
+        class="timezone-help"
+      >
         当前设备无法识别时区，已使用系统时区；你也可以手动选择。
       </div>
-      <div class="timezone-help">用于时间显示、日期筛选和导出。定时任务和业务统计使用各自配置的时区。</div>
+      <div class="timezone-help">
+        用于时间显示、日期筛选和导出。定时任务和业务统计使用各自配置的时区。
+      </div>
     </el-form-item>
     <el-form-item :error="saveError">
-      <el-button type="primary" size="mini" native-type="submit" :loading="saving">保存</el-button>
-      <el-button type="danger" size="mini" @click="close">关闭</el-button>
+      <el-button
+        type="primary"
+        size="mini"
+        native-type="submit"
+        :loading="saving"
+        >保存</el-button
+      >
+      <el-button
+        type="danger"
+        size="mini"
+        @click="close"
+        >关闭</el-button
+      >
     </el-form-item>
   </el-form>
 </template>
@@ -45,12 +92,12 @@ import {
   getBusinessTimezone,
   getDeviceTimezone,
   getDisplayTimezone,
-  getSupportedTimezones
+  getSupportedTimezones,
 } from '@/utils/time'
 export default {
   name: 'TimezoneSettings',
   props: {
-    user: Object
+    user: Object,
   },
   data() {
     return {
@@ -62,7 +109,7 @@ export default {
       saving: false,
       saveError: '',
       fieldError: '',
-      now: new Date()
+      now: new Date(),
     }
   },
   computed: {
@@ -77,7 +124,7 @@ export default {
     },
     userTimezone() {
       return this.user?.timeZone
-    }
+    },
   },
   watch: {
     userTimezone(value) {
@@ -86,7 +133,7 @@ export default {
       }
       this.mode = value === 'auto' ? 'auto' : 'custom'
       this.selectedZone = value === 'auto' ? getDisplayTimezone() : value
-    }
+    },
   },
   mounted() {
     this.loadOptions()
@@ -131,8 +178,8 @@ export default {
       } finally {
         this.saving = false
       }
-    }
-  }
+    },
+  },
 }
 </script>
 

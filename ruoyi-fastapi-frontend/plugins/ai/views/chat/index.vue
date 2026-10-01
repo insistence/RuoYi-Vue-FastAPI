@@ -2,7 +2,10 @@
   <div class="app-container chat-container">
     <el-container style="height: 100%">
       <!-- 侧边栏：会话历史 -->
-      <el-aside width="260px" class="session-sidebar">
+      <el-aside
+        width="260px"
+        class="session-sidebar"
+      >
         <div class="sidebar-header">
           <el-button
             type="primary"
@@ -12,14 +15,14 @@
             >新建对话</el-button
           >
         </div>
-        <div class="session-list" v-loading="sessionLoading">
+        <div
+          class="session-list"
+          v-loading="sessionLoading"
+        >
           <div
             v-for="session in sessionList"
             :key="session.sessionId"
-            :class="[
-              'session-item',
-              currentSessionId === session.sessionId ? 'active' : '',
-            ]"
+            :class="['session-item', currentSessionId === session.sessionId ? 'active' : '']"
             @click="loadSession(session.sessionId)"
           >
             <div class="session-icon">
@@ -27,7 +30,7 @@
             </div>
             <div class="session-info">
               <div class="session-title">
-                {{ session.sessionTitle || "新对话" }}
+                {{ session.sessionTitle || '新对话' }}
               </div>
               <div class="session-time">
                 {{ formatTime(session.createdAt) }}
@@ -57,7 +60,10 @@
             <span class="header-title">AI 智能助手</span>
           </div>
           <div class="header-right">
-            <el-tooltip content="全局参数配置" placement="bottom">
+            <el-tooltip
+              content="全局参数配置"
+              placement="bottom"
+            >
               <el-button
                 icon="el-icon-setting"
                 circle
@@ -81,15 +87,25 @@
           </div>
         </div>
 
-        <div class="chat-history" ref="chatHistoryRef" @scroll="handleScroll">
+        <div
+          class="chat-history"
+          ref="chatHistoryRef"
+          @scroll="handleScroll"
+        >
           <div
             class="chat-content"
             ref="chatContentRef"
             :class="{ 'is-empty': messageList.length === 0 }"
           >
-            <div v-if="messageList.length === 0" class="welcome-screen">
+            <div
+              v-if="messageList.length === 0"
+              class="welcome-screen"
+            >
               <div class="welcome-icon">
-                <i class="el-icon-service" style="font-size: 60px"></i>
+                <i
+                  class="el-icon-service"
+                  style="font-size: 60px"
+                ></i>
               </div>
               <h2>你好！我是你的 AI 助手</h2>
               <p>请在下方输入问题开始对话...</p>
@@ -98,28 +114,23 @@
             <div
               v-for="(msg, index) in messageList"
               :key="index"
-              :class="[
-                'message-row',
-                msg.role === 'user' ? 'message-user' : 'message-ai',
-              ]"
+              :class="['message-row', msg.role === 'user' ? 'message-user' : 'message-ai']"
             >
               <div class="message-avatar">
                 <el-avatar
-                  :icon="
-                    msg.role === 'user'
-                      ? 'el-icon-user-solid'
-                      : 'el-icon-service'
-                  "
+                  :icon="msg.role === 'user' ? 'el-icon-user-solid' : 'el-icon-service'"
                   :size="40"
                   :class="msg.role === 'user' ? 'avatar-user' : 'avatar-ai'"
                 ></el-avatar>
               </div>
               <div class="message-content-wrapper">
                 <div class="message-sender">
-                  {{ msg.role === "user" ? "我" : "AI 助手" }}
-                  <span class="message-time" v-if="msg.createdAt">{{
-                    formatTime(msg.createdAt)
-                  }}</span>
+                  {{ msg.role === 'user' ? '我' : 'AI 助手' }}
+                  <span
+                    class="message-time"
+                    v-if="msg.createdAt"
+                    >{{ formatTime(msg.createdAt) }}</span
+                  >
                 </div>
                 <div class="message-bubble">
                   <div v-if="msg.role === 'user'">
@@ -148,7 +159,10 @@
                 </div>
                 <div class="message-footer">
                   <div class="footer-actions">
-                    <el-tooltip content="复制" placement="top">
+                    <el-tooltip
+                      content="复制"
+                      placement="top"
+                    >
                       <el-button
                         type="text"
                         icon="el-icon-document-copy"
@@ -158,10 +172,7 @@
                       ></el-button>
                     </el-tooltip>
                     <div
-                      v-if="
-                        userConfig.metricsDefaultVisible == '0' &&
-                        hasMetrics(msg)
-                      "
+                      v-if="userConfig.metricsDefaultVisible == '0' && hasMetrics(msg)"
                       class="message-metrics"
                     >
                       <span
@@ -206,14 +217,15 @@
                       >
                     </div>
                   </div>
-                  <div v-if="msg.role === 'assistant'" class="model-info">
+                  <div
+                    v-if="msg.role === 'assistant'"
+                    class="model-info"
+                  >
                     <el-tag
                       size="small"
                       type="info"
                       effect="plain"
-                      v-if="
-                        currentSessionAgentData && currentSessionAgentData.model
-                      "
+                      v-if="currentSessionAgentData && currentSessionAgentData.model"
                     >
                       {{ currentSessionAgentData.model.provider }} /
                       {{ currentSessionAgentData.model.id }}
@@ -278,10 +290,7 @@
                   />
                 </el-tooltip>
                 <el-button
-                  v-if="
-                    currentModelInfo &&
-                    currentModelInfo.supportReasoning === 'Y'
-                  "
+                  v-if="currentModelInfo && currentModelInfo.supportReasoning === 'Y'"
                   class="toggle-chip"
                   size="mini"
                   icon="deepthink"
@@ -297,11 +306,9 @@
                 :type="loading ? 'danger' : 'primary'"
                 :icon="loading ? 'el-icon-video-pause' : 'el-icon-s-promotion'"
                 @click="handleMainAction"
-                :disabled="
-                  !loading && !inputMessage.trim() && !inputImages.length
-                "
+                :disabled="!loading && !inputMessage.trim() && !inputImages.length"
               >
-                {{ loading ? "停止" : "发送" }}
+                {{ loading ? '停止' : '发送' }}
               </el-button>
             </div>
           </div>
@@ -317,7 +324,10 @@
       append-to-body
       class="chat-config-dialog"
     >
-      <el-form :model="editingUserConfig" label-width="150px">
+      <el-form
+        :model="editingUserConfig"
+        label-width="150px"
+      >
         <el-row>
           <el-col :span="12">
             <el-form-item label="默认温度">
@@ -412,7 +422,11 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="showConfigDialog = false">取消</el-button>
-          <el-button type="primary" @click="handleSaveConfig">保存</el-button>
+          <el-button
+            type="primary"
+            @click="handleSaveConfig"
+            >保存</el-button
+          >
         </span>
       </template>
     </el-dialog>
@@ -429,7 +443,7 @@
 </template>
 
 <script>
-import { listModelAll } from "../../api/model";
+import { listModelAll } from '../../api/model'
 import {
   listChatSession,
   delChatSession,
@@ -437,20 +451,20 @@ import {
   getUserChatConfig,
   saveUserChatConfig,
   cancelChatRun,
-} from "../../api/chat";
-import { getToken } from "@/utils/auth";
-import AiMessage from "./components/AiMessage";
-import { v4 as uuidv4 } from "uuid";
+} from '../../api/chat'
+import { getToken } from '@/utils/auth'
+import AiMessage from './components/AiMessage'
+import { v4 as uuidv4 } from 'uuid'
 
 export default {
-  name: "AiChat",
+  name: 'AiChat',
   components: { AiMessage },
   data() {
     return {
       modelOptions: [],
       currentModelId: undefined,
       messageList: [],
-      inputMessage: "",
+      inputMessage: '',
       inputImages: [],
       loading: false,
       currentSessionId: null,
@@ -471,11 +485,11 @@ export default {
         chatConfigId: undefined,
         userId: undefined,
         temperature: undefined,
-        addHistoryToContext: "0",
+        addHistoryToContext: '0',
         numHistoryRuns: 3,
-        systemPrompt: "",
-        metricsDefaultVisible: "1",
-        visionEnabled: "0",
+        systemPrompt: '',
+        metricsDefaultVisible: '1',
+        visionEnabled: '0',
         imageMaxSizeMb: 5,
         createTime: undefined,
         updateTime: undefined,
@@ -484,436 +498,412 @@ export default {
         chatConfigId: undefined,
         userId: undefined,
         temperature: undefined,
-        addHistoryToContext: "0",
+        addHistoryToContext: '0',
         numHistoryRuns: 3,
-        systemPrompt: "",
-        metricsDefaultVisible: "1",
-        visionEnabled: "0",
+        systemPrompt: '',
+        metricsDefaultVisible: '1',
+        visionEnabled: '0',
         imageMaxSizeMb: 5,
         createTime: undefined,
         updateTime: undefined,
       },
       isDark: false, // Default to light
-    };
+    }
   },
   computed: {
     currentModelInfo() {
-      if (!this.currentModelId) return null;
-      return this.modelOptions.find((m) => m.modelId === this.currentModelId);
+      if (!this.currentModelId) return null
+      return this.modelOptions.find((m) => m.modelId === this.currentModelId)
     },
   },
   watch: {
     currentModelId(newVal) {
-      const model = this.modelOptions.find((m) => m.modelId === newVal);
+      const model = this.modelOptions.find((m) => m.modelId === newVal)
       if (model) {
-        this.chatConfig.temperature = model.temperature;
+        this.chatConfig.temperature = model.temperature
       }
     },
   },
   mounted() {
-    this.getModels();
-    this.getSessions();
-    this.loadUserConfig();
+    this.getModels()
+    this.getSessions()
+    this.loadUserConfig()
     // Initialize ResizeObserver for auto-scroll if supported
     if (window.ResizeObserver && this.$refs.chatContentRef) {
       this.resizeObserver = new ResizeObserver(() => {
         if (this.isAutoScroll) {
-          this.scrollToBottom();
+          this.scrollToBottom()
         }
-      });
-      this.resizeObserver.observe(this.$refs.chatContentRef);
+      })
+      this.resizeObserver.observe(this.$refs.chatContentRef)
     }
   },
   beforeDestroy() {
     if (this.resizeObserver) {
-      this.resizeObserver.disconnect();
+      this.resizeObserver.disconnect()
     }
     if (this.abortController) {
-      this.abortController.abort();
+      this.abortController.abort()
     }
   },
   methods: {
     generateSessionId() {
-      return uuidv4();
+      return uuidv4()
     },
     loadUserConfig() {
       getUserChatConfig().then((res) => {
         if (res.data) {
           if (res.data.temperature === null) {
-            res.data.temperature = undefined;
+            res.data.temperature = undefined
           }
           if (res.data.numHistoryRuns === null) {
-            res.data.numHistoryRuns = undefined;
+            res.data.numHistoryRuns = undefined
           }
           if (res.data.imageMaxSizeMb === null) {
-            res.data.imageMaxSizeMb = undefined;
+            res.data.imageMaxSizeMb = undefined
           }
-          Object.assign(this.userConfig, res.data);
-          Object.assign(this.editingUserConfig, res.data);
+          Object.assign(this.userConfig, res.data)
+          Object.assign(this.editingUserConfig, res.data)
         }
-      });
+      })
     },
     openConfigDialog() {
-      Object.assign(this.editingUserConfig, this.userConfig);
-      this.showConfigDialog = true;
+      Object.assign(this.editingUserConfig, this.userConfig)
+      this.showConfigDialog = true
     },
     handleSaveConfig() {
-      const payload = { ...this.editingUserConfig };
+      const payload = { ...this.editingUserConfig }
       saveUserChatConfig(payload).then(() => {
-        this.$modal.msgSuccess("配置保存成功");
-        this.showConfigDialog = false;
-        this.loadUserConfig();
-      });
+        this.$modal.msgSuccess('配置保存成功')
+        this.showConfigDialog = false
+        this.loadUserConfig()
+      })
     },
     hasMetrics(msg) {
-      const m = msg && msg.metrics;
-      if (!m) return false;
+      const m = msg && msg.metrics
+      if (!m) return false
       return (
         (m.inputTokens !== null && m.inputTokens !== undefined) ||
         (m.outputTokens !== null && m.outputTokens !== undefined) ||
         (m.totalTokens !== null && m.totalTokens !== undefined) ||
         (m.reasoningTokens !== null && m.reasoningTokens !== undefined) ||
         (m.duration !== null && m.duration !== undefined)
-      );
+      )
     },
     getImageUrl(url) {
-      if (!url) return "";
-      if (
-        url.startsWith("http") ||
-        url.startsWith("https") ||
-        url.startsWith("blob:")
-      ) {
-        return url;
+      if (!url) return ''
+      if (url.startsWith('http') || url.startsWith('https') || url.startsWith('blob:')) {
+        return url
       }
-      return process.env.VUE_APP_BASE_API + url;
+      return process.env.VUE_APP_BASE_API + url
     },
     formatTime(timeStr) {
-      if (!timeStr) return "";
+      if (!timeStr) return ''
       try {
-        const date = new Date(timeStr);
-        return date.toLocaleString();
+        const date = new Date(timeStr)
+        return date.toLocaleString()
       } catch (e) {
-        return timeStr;
+        return timeStr
       }
     },
     getModels() {
       listModelAll().then((res) => {
-        this.modelOptions = res.data;
+        this.modelOptions = res.data
         if (this.modelOptions.length > 0) {
-          this.currentModelId = this.modelOptions[0].modelId;
-          const model = this.modelOptions[0];
-          this.chatConfig.temperature = model.temperature;
+          this.currentModelId = this.modelOptions[0].modelId
+          const model = this.modelOptions[0]
+          this.chatConfig.temperature = model.temperature
         }
-      });
+      })
     },
     getSessions() {
-      this.sessionLoading = true;
+      this.sessionLoading = true
       listChatSession().then((res) => {
-        this.sessionList = res.data;
+        this.sessionList = res.data
         if (this.sessionList && this.sessionList.length > 0) {
           this.sessionList.sort((a, b) => {
-            const dateA = new Date(a.createdAt).getTime();
-            const dateB = new Date(b.createdAt).getTime();
-            return dateB - dateA;
-          });
+            const dateA = new Date(a.createdAt).getTime()
+            const dateB = new Date(b.createdAt).getTime()
+            return dateB - dateA
+          })
         }
-        this.sessionLoading = false;
-      });
+        this.sessionLoading = false
+      })
     },
     loadSession(sessionId) {
-      if (this.currentSessionId === sessionId) return;
-      this.currentSessionId = sessionId;
-      this.messageList = [];
-      this.loading = true;
+      if (this.currentSessionId === sessionId) return
+      this.currentSessionId = sessionId
+      this.messageList = []
+      this.loading = true
       getChatSession(sessionId).then((res) => {
-        this.messageList = res.data.messages;
-        this.currentSessionAgentData = res.data.agentData;
-        this.loading = false;
-        this.isAutoScroll = true;
-        this.scrollToBottom();
-      });
+        this.messageList = res.data.messages
+        this.currentSessionAgentData = res.data.agentData
+        this.loading = false
+        this.isAutoScroll = true
+        this.scrollToBottom()
+      })
     },
     handleDeleteSession(sessionId) {
       this.$modal
-        .confirm("是否确认删除该会话？")
+        .confirm('是否确认删除该会话？')
         .then(() => {
-          return delChatSession(sessionId);
+          return delChatSession(sessionId)
         })
         .then(() => {
-          this.getSessions();
+          this.getSessions()
           if (this.currentSessionId === sessionId) {
-            this.clearChat();
+            this.clearChat()
           }
-          this.$modal.msgSuccess("删除成功");
+          this.$modal.msgSuccess('删除成功')
         })
-        .catch(() => {});
+        .catch(() => {})
     },
     async sendRequest(text, images) {
       if (!this.currentModelId) {
-        this.$modal.msgError("请先选择模型");
-        return;
+        this.$modal.msgError('请先选择模型')
+        return
       }
 
-      this.loading = true;
-      const imageList = images ? images.slice() : [];
+      this.loading = true
+      const imageList = images ? images.slice() : []
 
       this.messageList.push({
-        role: "assistant",
-        content: "",
-        reasoningContent: "",
-      });
-      const aiMsgIndex = this.messageList.length - 1;
+        role: 'assistant',
+        content: '',
+        reasoningContent: '',
+      })
+      const aiMsgIndex = this.messageList.length - 1
 
-      this.scrollToBottom();
-      this.isAutoScroll = true;
+      this.scrollToBottom()
+      this.isAutoScroll = true
 
-      this.abortController = new AbortController();
+      this.abortController = new AbortController()
 
       try {
-        const response = await fetch(
-          process.env.VUE_APP_BASE_API + "/ai/chat/send",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: "Bearer " + getToken(),
-            },
-            signal: this.abortController.signal,
-            body: JSON.stringify({
-              modelId: this.currentModelId,
-              message: text,
-              images: imageList,
-              sessionId: this.currentSessionId,
-              stream: true,
-              temperature: this.chatConfig.temperature,
-              isReasoning: this.chatConfig.isReasoning,
-            }),
-          }
-        );
+        const response = await fetch(process.env.VUE_APP_BASE_API + '/ai/chat/send', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer ' + getToken(),
+          },
+          signal: this.abortController.signal,
+          body: JSON.stringify({
+            modelId: this.currentModelId,
+            message: text,
+            images: imageList,
+            sessionId: this.currentSessionId,
+            stream: true,
+            temperature: this.chatConfig.temperature,
+            isReasoning: this.chatConfig.isReasoning,
+          }),
+        })
 
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let aiContent = "";
-        let aiReasoning = "";
-        let buffer = "";
-        let needRefreshSessions = false;
+        const reader = response.body.getReader()
+        const decoder = new TextDecoder()
+        let aiContent = ''
+        let aiReasoning = ''
+        let buffer = ''
+        let needRefreshSessions = false
 
         while (true) {
-          if (!this.abortController) break;
-          const { done, value } = await reader.read();
-          if (done) break;
+          if (!this.abortController) break
+          const { done, value } = await reader.read()
+          if (done) break
 
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop();
+          buffer += decoder.decode(value, { stream: true })
+          const lines = buffer.split('\n')
+          buffer = lines.pop()
 
           for (const line of lines) {
-            if (!line.trim()) continue;
+            if (!line.trim()) continue
             try {
-              const data = JSON.parse(line);
-              if (data.type === "content") {
-                aiContent += data.content;
-                this.$set(this.messageList[aiMsgIndex], "content", aiContent);
-              } else if (data.type === "reasoning") {
-                aiReasoning += data.content;
-                this.$set(
-                  this.messageList[aiMsgIndex],
-                  "reasoningContent",
-                  aiReasoning
-                );
-              } else if (data.type === "meta") {
-                this.currentSessionId = data.session_id;
-                if (
-                  !this.sessionList.find((s) => s.sessionId === data.session_id)
-                ) {
-                  needRefreshSessions = true;
+              const data = JSON.parse(line)
+              if (data.type === 'content') {
+                aiContent += data.content
+                this.$set(this.messageList[aiMsgIndex], 'content', aiContent)
+              } else if (data.type === 'reasoning') {
+                aiReasoning += data.content
+                this.$set(this.messageList[aiMsgIndex], 'reasoningContent', aiReasoning)
+              } else if (data.type === 'meta') {
+                this.currentSessionId = data.session_id
+                if (!this.sessionList.find((s) => s.sessionId === data.session_id)) {
+                  needRefreshSessions = true
                 }
-              } else if (data.type === "run_info") {
-                this.currentRunId = data.run_id;
-              } else if (data.type === "metrics") {
-                this.$set(
-                  this.messageList[aiMsgIndex],
-                  "metrics",
-                  data.metrics
-                );
-              } else if (data.type === "error") {
-                this.$modal.msgError(data.error);
+              } else if (data.type === 'run_info') {
+                this.currentRunId = data.run_id
+              } else if (data.type === 'metrics') {
+                this.$set(this.messageList[aiMsgIndex], 'metrics', data.metrics)
+              } else if (data.type === 'error') {
+                this.$modal.msgError(data.error)
               }
             } catch (e) {
-              console.error("Parse error", e);
+              console.error('Parse error', e)
             }
           }
         }
 
         if (needRefreshSessions) {
-          this.getSessions();
+          this.getSessions()
         }
       } catch (err) {
-        if (err.name === "AbortError") {
+        if (err.name === 'AbortError') {
           // User aborted
         } else {
-          this.$modal.msgError("请求失败: " + err.message);
+          this.$modal.msgError('请求失败: ' + err.message)
         }
       } finally {
-        this.loading = false;
-        this.abortController = null;
+        this.loading = false
+        this.abortController = null
       }
     },
     clearChat() {
-      this.messageList = [];
-      this.currentSessionId = this.generateSessionId();
-      this.currentSessionAgentData = null;
+      this.messageList = []
+      this.currentSessionId = this.generateSessionId()
+      this.currentSessionAgentData = null
     },
     copyText(text) {
       if (!text) {
-        this.$modal.msgWarning("内容为空，无法复制");
-        return;
+        this.$modal.msgWarning('内容为空，无法复制')
+        return
       }
       navigator.clipboard
         .writeText(text)
         .then(() => {
-          this.$modal.msgSuccess("复制成功");
+          this.$modal.msgSuccess('复制成功')
         })
         .catch(() => {
-          this.$modal.msgError("复制失败");
-        });
+          this.$modal.msgError('复制失败')
+        })
     },
     triggerImageUpload() {
-      if (!this.userConfig.visionEnabled || this.loading) return;
-      const input = this.$refs.imageInputRef;
+      if (!this.userConfig.visionEnabled || this.loading) return
+      const input = this.$refs.imageInputRef
       if (input) {
-        input.value = "";
-        input.click();
+        input.value = ''
+        input.click()
       }
     },
     async handleImageInputChange(event) {
-      const files = Array.from(event.target.files || []);
-      if (!files.length) return;
+      const files = Array.from(event.target.files || [])
+      if (!files.length) return
       if (files.length + this.inputImages.length > 10) {
-        this.$modal.msgError("最多只能上传 10 张图片");
-        return;
+        this.$modal.msgError('最多只能上传 10 张图片')
+        return
       }
-      const maxSize = (this.userConfig.imageMaxSizeMb || 5) * 1024 * 1024;
+      const maxSize = (this.userConfig.imageMaxSizeMb || 5) * 1024 * 1024
       for (const file of files) {
         if (file.size > maxSize) {
-          this.$modal.msgError(
-            `单张图片大小不能超过 ${this.userConfig.imageMaxSizeMb} MB`
-          );
-          return;
+          this.$modal.msgError(`单张图片大小不能超过 ${this.userConfig.imageMaxSizeMb} MB`)
+          return
         }
       }
       try {
-        this.$modal.loading("正在上传图片，请稍候...");
+        this.$modal.loading('正在上传图片，请稍候...')
         for (const file of files) {
-          const form = new FormData();
-          form.append("file", file);
-          const resp = await fetch(
-            process.env.VUE_APP_BASE_API + "/common/upload",
-            {
-              method: "POST",
-              headers: {
-                Authorization: "Bearer " + getToken(),
-              },
-              body: form,
-            }
-          );
-          const data = await resp.json();
+          const form = new FormData()
+          form.append('file', file)
+          const resp = await fetch(process.env.VUE_APP_BASE_API + '/common/upload', {
+            method: 'POST',
+            headers: {
+              Authorization: 'Bearer ' + getToken(),
+            },
+            body: form,
+          })
+          const data = await resp.json()
           if (data.code === 200 && data.fileName) {
-            this.inputImages.push(data.fileName);
+            this.inputImages.push(data.fileName)
           } else {
-            this.$modal.msgError(data.msg || "上传图片失败");
+            this.$modal.msgError(data.msg || '上传图片失败')
           }
         }
       } catch (e) {
-        this.$modal.msgError("上传图片失败");
+        this.$modal.msgError('上传图片失败')
       } finally {
-        this.$modal.closeLoading();
+        this.$modal.closeLoading()
       }
     },
     async handleSend() {
-      const text = this.inputMessage.trim();
-      const images = this.inputImages;
-      if (!text && !images.length) return;
+      const text = this.inputMessage.trim()
+      const images = this.inputImages
+      if (!text && !images.length) return
       if (!this.currentModelId) {
-        this.$modal.msgError("请先选择模型");
-        return;
+        this.$modal.msgError('请先选择模型')
+        return
       }
 
-      const imageList = images.slice();
+      const imageList = images.slice()
       this.messageList.push({
-        role: "user",
+        role: 'user',
         content: text,
         images: imageList,
-      });
-      this.inputMessage = "";
-      this.inputImages = [];
-      this.currentRunId = null;
+      })
+      this.inputMessage = ''
+      this.inputImages = []
+      this.currentRunId = null
 
-      await this.sendRequest(text, imageList);
+      await this.sendRequest(text, imageList)
     },
     stopGeneration() {
       if (this.abortController) {
-        const controller = this.abortController;
-        this.abortController = null;
-        this.loading = false;
+        const controller = this.abortController
+        this.abortController = null
+        this.loading = false
 
         if (this.currentRunId) {
           cancelChatRun(this.currentRunId)
             .then(() => {})
             .catch((err) => {
-              console.error("Failed to cancel run:", err);
+              console.error('Failed to cancel run:', err)
             })
             .finally(() => {
-              controller.abort();
-            });
+              controller.abort()
+            })
         } else {
-          controller.abort();
+          controller.abort()
         }
       }
     },
     handleScroll(e) {
-      if (this.isProgrammaticScroll) return;
+      if (this.isProgrammaticScroll) return
 
-      const { scrollTop, scrollHeight, clientHeight } = e.target;
-      const distanceToBottom = scrollHeight - scrollTop - clientHeight;
+      const { scrollTop, scrollHeight, clientHeight } = e.target
+      const distanceToBottom = scrollHeight - scrollTop - clientHeight
 
       if (distanceToBottom > 100) {
-        this.isAutoScroll = false;
+        this.isAutoScroll = false
       } else if (distanceToBottom < 20) {
-        this.isAutoScroll = true;
+        this.isAutoScroll = true
       }
     },
     scrollToBottom() {
       if (this.isAutoScroll && this.$refs.chatHistoryRef) {
-        this.isProgrammaticScroll = true;
+        this.isProgrammaticScroll = true
 
-        this.$refs.chatHistoryRef.scrollTop =
-          this.$refs.chatHistoryRef.scrollHeight;
+        this.$refs.chatHistoryRef.scrollTop = this.$refs.chatHistoryRef.scrollHeight
 
         this.$nextTick(() => {
           if (this.$refs.chatHistoryRef && this.isAutoScroll) {
-            this.$refs.chatHistoryRef.scrollTop =
-              this.$refs.chatHistoryRef.scrollHeight;
+            this.$refs.chatHistoryRef.scrollTop = this.$refs.chatHistoryRef.scrollHeight
           }
-        });
+        })
 
-        if (this.scrollTimeout) clearTimeout(this.scrollTimeout);
+        if (this.scrollTimeout) clearTimeout(this.scrollTimeout)
 
         this.scrollTimeout = setTimeout(() => {
-          this.isProgrammaticScroll = false;
-          this.scrollTimeout = null;
-        }, 100);
+          this.isProgrammaticScroll = false
+          this.scrollTimeout = null
+        }, 100)
       }
     },
     handleMainAction() {
       if (this.loading) {
-        this.stopGeneration();
+        this.stopGeneration()
       } else {
-        this.handleSend();
+        this.handleSend()
       }
     },
   },
-};
+}
 </script>
 
 <style scoped lang="scss">

@@ -4,7 +4,11 @@
     :data="fileList"
     @selection-change="$emit('selection-change', $event)"
   >
-    <el-table-column type="selection" width="50" align="center" />
+    <el-table-column
+      type="selection"
+      width="50"
+      align="center"
+    />
     <el-table-column
       label="原始文件名"
       align="left"
@@ -12,14 +16,37 @@
       min-width="200"
       :show-overflow-tooltip="true"
     />
-    <el-table-column label="访问类型" align="center" prop="accessType" width="110">
+    <el-table-column
+      label="访问类型"
+      align="center"
+      prop="accessType"
+      width="110"
+    >
       <template slot-scope="scope">
-        <el-tag v-if="scope.row.accessType === 'public'" type="success">公开</el-tag>
-        <el-tag v-else type="warning">受保护</el-tag>
+        <el-tag
+          v-if="scope.row.accessType === 'public'"
+          type="success"
+          >公开</el-tag
+        >
+        <el-tag
+          v-else
+          type="warning"
+          >受保护</el-tag
+        >
       </template>
     </el-table-column>
-    <el-table-column label="扩展名" align="center" prop="extension" width="90" />
-    <el-table-column label="文件大小" align="right" prop="fileSize" width="120">
+    <el-table-column
+      label="扩展名"
+      align="center"
+      prop="extension"
+      width="90"
+    />
+    <el-table-column
+      label="文件大小"
+      align="right"
+      prop="fileSize"
+      width="120"
+    >
       <template slot-scope="scope">{{ formatFileSize(scope.row.fileSize) }}</template>
     </el-table-column>
     <el-table-column
@@ -37,7 +64,7 @@
       :show-overflow-tooltip="true"
     >
       <template slot-scope="scope">
-        {{ scope.row.ownerName || scope.row.ownerUserId || "-" }}
+        {{ scope.row.ownerName || scope.row.ownerUserId || '-' }}
       </template>
     </el-table-column>
     <el-table-column
@@ -48,17 +75,29 @@
       :show-overflow-tooltip="true"
     >
       <template slot-scope="scope">
-        {{ scope.row.deptName || scope.row.deptId || "-" }}
+        {{ scope.row.deptName || scope.row.deptId || '-' }}
       </template>
     </el-table-column>
-    <el-table-column label="文件有效期" align="center" prop="expireTime" width="150">
+    <el-table-column
+      label="文件有效期"
+      align="center"
+      prop="expireTime"
+      width="150"
+    >
       <template slot-scope="scope">
-        <el-tag :type="expirationTagType(scope.row.expireTime)" effect="plain">
+        <el-tag
+          :type="expirationTagType(scope.row.expireTime)"
+          effect="plain"
+        >
           {{ expirationLabel(scope.row.expireTime) }}
         </el-tag>
       </template>
     </el-table-column>
-    <el-table-column label="ACL" align="center" width="130">
+    <el-table-column
+      label="ACL"
+      align="center"
+      width="130"
+    >
       <template slot-scope="scope">
         <el-tooltip
           v-if="scope.row.aclNearestExpireTime"
@@ -87,7 +126,8 @@
           v-if="scope.row.referenceCount"
           type="text"
           @click="$emit('reference', scope.row)"
-        >{{ scope.row.referenceCount }} 项</el-button>
+          >{{ scope.row.referenceCount }} 项</el-button
+        >
         <span v-else>0 项</span>
       </template>
     </el-table-column>
@@ -101,17 +141,40 @@
         <el-tag
           :type="storageStatusTagType(scope.row.storageStatus)"
           effect="plain"
-        >{{ storageStatusLabel(scope.row.storageStatus) }}</el-tag>
+          >{{ storageStatusLabel(scope.row.storageStatus) }}</el-tag
+        >
       </template>
     </el-table-column>
-    <el-table-column label="上传时间" align="center" prop="createTime" width="180">
+    <el-table-column
+      label="上传时间"
+      align="center"
+      prop="createTime"
+      width="180"
+    >
       <template slot-scope="scope">{{ parseTime(scope.row.createTime) }}</template>
     </el-table-column>
-    <el-table-column label="状态" align="center" prop="status" width="90">
+    <el-table-column
+      label="状态"
+      align="center"
+      prop="status"
+      width="90"
+    >
       <template slot-scope="scope">
-        <el-tag v-if="scope.row.status === 'active'" type="success">正常</el-tag>
-        <el-tag v-else-if="scope.row.status === 'deleted'" type="info">已删除</el-tag>
-        <el-tag v-else type="warning">清理中</el-tag>
+        <el-tag
+          v-if="scope.row.status === 'active'"
+          type="success"
+          >正常</el-tag
+        >
+        <el-tag
+          v-else-if="scope.row.status === 'deleted'"
+          type="info"
+          >已删除</el-tag
+        >
+        <el-tag
+          v-else
+          type="warning"
+          >清理中</el-tag
+        >
       </template>
     </el-table-column>
     <el-table-column
@@ -122,7 +185,10 @@
       fixed="right"
     >
       <template slot-scope="scope">
-        <el-tooltip content="详细" placement="top">
+        <el-tooltip
+          content="详细"
+          placement="top"
+        >
           <el-button
             type="text"
             icon="el-icon-view"
@@ -166,7 +232,10 @@
             v-hasPermi="['system:file:transfer']"
           />
         </el-tooltip>
-        <el-tooltip content="审计" placement="top">
+        <el-tooltip
+          content="审计"
+          placement="top"
+        >
           <el-button
             type="text"
             icon="el-icon-tickets"
@@ -240,20 +309,20 @@ import {
   formatFileSize,
   isAclExpiring,
   storageStatusLabel,
-  storageStatusTagType
-} from "./fileFormatters";
+  storageStatusTagType,
+} from './fileFormatters'
 
 export default {
-  name: "FileTable",
+  name: 'FileTable',
   props: {
     fileList: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     loading: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   methods: {
     expirationLabel,
@@ -261,9 +330,9 @@ export default {
     formatFileSize,
     isAclExpiring,
     storageStatusLabel,
-    storageStatusTagType
-  }
-};
+    storageStatusTagType,
+  },
+}
 </script>
 
 <style scoped>

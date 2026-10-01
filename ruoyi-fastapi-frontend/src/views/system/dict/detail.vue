@@ -1,16 +1,31 @@
 <template>
-  <el-drawer :title="drawerTitle" :visible.sync="localVisible" direction="rtl" size="700px" append-to-body>
+  <el-drawer
+    :title="drawerTitle"
+    :visible.sync="localVisible"
+    direction="rtl"
+    size="700px"
+    append-to-body
+  >
     <div class="drawer-wrap">
-      <div v-if="loading" class="drawer-loading">
+      <div
+        v-if="loading"
+        class="drawer-loading"
+      >
         <i class="el-icon-loading"></i>
         <span>加载中...</span>
       </div>
-      <div v-else-if="!dataList.length" class="drawer-empty">
+      <div
+        v-else-if="!dataList.length"
+        class="drawer-empty"
+      >
         <i class="el-icon-document"></i>
         <div>暂无字典数据</div>
       </div>
       <template v-else>
-        <el-row :gutter="12" class="stat-row">
+        <el-row
+          :gutter="12"
+          class="stat-row"
+        >
           <el-col :span="disabledCount > 0 ? 8 : 12">
             <div class="stat-card">
               <div class="stat-num">{{ dataList.length }}</div>
@@ -23,18 +38,30 @@
               <div class="stat-label">正常</div>
             </div>
           </el-col>
-          <el-col :span="8" v-if="disabledCount > 0">
+          <el-col
+            :span="8"
+            v-if="disabledCount > 0"
+          >
             <div class="stat-card">
               <div class="stat-num danger">{{ disabledCount }}</div>
               <div class="stat-label">停用</div>
             </div>
           </el-col>
         </el-row>
-        <div v-for="item in dataList" :key="item.dictCode" class="dict-item">
+        <div
+          v-for="item in dataList"
+          :key="item.dictCode"
+          class="dict-item"
+        >
           <div class="dict-cell">
             <div class="dict-cell-key">标签</div>
             <div class="dict-cell-val">
-              <el-tag v-if="item.listClass && item.listClass !== 'default'" :type="item.listClass === 'primary' ? '' : item.listClass" size="small">{{ item.dictLabel }}</el-tag>
+              <el-tag
+                v-if="item.listClass && item.listClass !== 'default'"
+                :type="item.listClass === 'primary' ? '' : item.listClass"
+                size="small"
+                >{{ item.dictLabel }}</el-tag
+              >
               <span v-else>{{ item.dictLabel }}</span>
             </div>
           </div>
@@ -45,7 +72,10 @@
           <div class="dict-cell">
             <div class="dict-cell-key">状态</div>
             <div class="dict-cell-val">
-              <el-tag :type="item.status === '0' ? 'success' : 'danger'" size="small">
+              <el-tag
+                :type="item.status === '0' ? 'success' : 'danger'"
+                size="small"
+              >
                 {{ item.status === '0' ? '正常' : '停用' }}
               </el-tag>
             </div>
@@ -62,13 +92,13 @@ import { listData } from '@/api/system/dict/data'
 export default {
   props: {
     visible: { type: Boolean, default: false },
-    row: { type: Object, default: () => ({}) }
+    row: { type: Object, default: () => ({}) },
   },
   data() {
     return {
       localVisible: false,
       loading: false,
-      dataList: []
+      dataList: [],
     }
   },
   computed: {
@@ -76,11 +106,11 @@ export default {
       return this.row.dictName + '　' + (this.row.dictType || '')
     },
     normalCount() {
-      return this.dataList.filter(r => r.status === '0').length
+      return this.dataList.filter((r) => r.status === '0').length
     },
     disabledCount() {
-      return this.dataList.filter(r => r.status !== '0').length
-    }
+      return this.dataList.filter((r) => r.status !== '0').length
+    },
   },
   watch: {
     visible(val) {
@@ -93,20 +123,23 @@ export default {
       } else {
         this.dataList = []
       }
-    }
+    },
   },
   methods: {
     loadData() {
       if (!this.row || !this.row.dictType) return
       this.loading = true
       this.dataList = []
-      listData({ dictType: this.row.dictType, pageSize: 100, pageNum: 1 }).then(response => {
-        this.dataList = response.rows || []
-      }).catch(() => {}).finally(() => {
-        this.loading = false
-      })
-    }
-  }
+      listData({ dictType: this.row.dictType, pageSize: 100, pageNum: 1 })
+        .then((response) => {
+          this.dataList = response.rows || []
+        })
+        .catch(() => {})
+        .finally(() => {
+          this.loading = false
+        })
+    },
+  },
 }
 </script>
 
@@ -156,8 +189,12 @@ export default {
   color: #2c3e50;
 }
 
-.stat-num.success { color: #27ae60; }
-.stat-num.danger  { color: #e74c3c; }
+.stat-num.success {
+  color: #27ae60;
+}
+.stat-num.danger {
+  color: #e74c3c;
+}
 
 .stat-label {
   font-size: 11px;

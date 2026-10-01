@@ -1,12 +1,12 @@
 const state = {
-  dict: new Array()
+  dict: new Array(),
 }
 const mutations = {
   SET_DICT: (state, { key, value }) => {
-    if (key !== null && key !== "") {
+    if (key !== null && key !== '') {
       state.dict.push({
         key: key,
-        value: value
+        value: value,
       })
     }
   },
@@ -18,12 +18,11 @@ const mutations = {
           return true
         }
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   },
   CLEAN_DICT: (state) => {
     state.dict = new Array()
-  }
+  },
 }
 
 const actions = {
@@ -38,13 +37,12 @@ const actions = {
   // 清空字典
   cleanDict({ commit }) {
     commit('CLEAN_DICT')
-  }
+  },
 }
 
 export default {
   namespaced: true,
   state,
   mutations,
-  actions
+  actions,
 }
-

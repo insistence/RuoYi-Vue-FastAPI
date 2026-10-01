@@ -1,11 +1,28 @@
 <template>
-  <div class="popup-result" :aria-busy="loading">
+  <div
+    class="popup-result"
+    :aria-busy="loading"
+  >
     <p class="title">最近5次运行时间（{{ resultTimeZone }}）</p>
-    <ul class="popup-result-scroll" aria-live="polite">
-      <li v-if="errorMessage" class="preview-error" role="alert">{{ errorMessage }}</li>
+    <ul
+      class="popup-result-scroll"
+      aria-live="polite"
+    >
+      <li
+        v-if="errorMessage"
+        class="preview-error"
+        role="alert"
+      >
+        {{ errorMessage }}
+      </li>
       <li v-else-if="loading">计算结果中...</li>
       <template v-else>
-        <li v-for="item in resultList" :key="item">{{ formatBusinessTime(item, 'YYYY-MM-DD HH:mm:ss Z', resultTimeZone) }}</li>
+        <li
+          v-for="item in resultList"
+          :key="item"
+        >
+          {{ formatBusinessTime(item, 'YYYY-MM-DD HH:mm:ss Z', resultTimeZone) }}
+        </li>
         <li v-if="!resultList.length">没有未来执行时间</li>
       </template>
     </ul>
@@ -20,26 +37,26 @@ export default {
   name: 'crontab-result',
   props: {
     ex: { type: String, default: '' },
-    timeZone: { type: String, required: true }
+    timeZone: { type: String, required: true },
   },
   data() {
     return {
       resultList: [],
       resultTimeZone: this.timeZone,
       loading: false,
-      errorMessage: ''
+      errorMessage: '',
     }
   },
   computed: {
     previewInput() {
       return [this.ex, this.timeZone]
-    }
+    },
   },
   watch: {
     previewInput: {
       handler: 'loadPreview',
-      immediate: true
-    }
+      immediate: true,
+    },
   },
   beforeCreate() {
     this._previewTimer = null
@@ -69,7 +86,10 @@ export default {
       this.resultTimeZone = timeZone
       this._previewTimer = setTimeout(async () => {
         try {
-          const response = await previewJob({ cronExpression: expression, timeZone, count: 5 }, controller.signal)
+          const response = await previewJob(
+            { cronExpression: expression, timeZone, count: 5 },
+            controller.signal
+          )
           if (requestId !== this._previewRequestSequence) return
           this.resultList = response.data.nextRunTimes
           this.resultTimeZone = response.data.timeZone
@@ -80,8 +100,8 @@ export default {
           if (requestId === this._previewRequestSequence) this.loading = false
         }
       }, 300)
-    }
-  }
+    },
+  },
 }
 </script>
 

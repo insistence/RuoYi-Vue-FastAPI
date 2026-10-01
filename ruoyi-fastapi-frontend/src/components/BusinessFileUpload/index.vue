@@ -10,15 +10,22 @@
       :on-success="handleUploadSuccess"
       :on-error="handleUploadError"
     >
-      <el-button size="mini" type="primary">选择文件</el-button>
+      <el-button
+        size="mini"
+        type="primary"
+        >选择文件</el-button
+      >
     </el-upload>
-    <div v-if="showTip && !disabled" class="el-upload__tip">
+    <div
+      v-if="showTip && !disabled"
+      class="el-upload__tip"
+    >
       请上传
       <template v-if="fileSize">
         大小不超过 <b class="upload-tip-emphasis">{{ fileSize }}MB</b>
       </template>
       <template v-if="fileType.length">
-        格式为 <b class="upload-tip-emphasis">{{ fileType.join("/") }}</b>
+        格式为 <b class="upload-tip-emphasis">{{ fileType.join('/') }}</b>
       </template>
       的文件，最多上传 {{ limit }} 个
     </div>
@@ -34,10 +41,16 @@
         class="el-upload-list__item business-file-item"
       >
         <div class="business-file-main">
-          <span class="business-file-name" :title="file.name">{{
-            file.name
-          }}</span>
-          <el-tag size="mini" type="success">已上传</el-tag>
+          <span
+            class="business-file-name"
+            :title="file.name"
+            >{{ file.name }}</span
+          >
+          <el-tag
+            size="mini"
+            type="success"
+            >已上传</el-tag
+          >
         </div>
         <div class="business-file-actions">
           <el-link
@@ -69,15 +82,32 @@
         class="el-upload-list__item business-file-item"
       >
         <div class="business-file-main">
-          <span class="business-file-name" :title="file.name">{{
-            file.name
-          }}</span>
-          <el-tag v-if="file.status === 'uploading'" size="mini">上传中</el-tag>
-          <el-tooltip v-else :content="file.error" placement="top">
-            <el-tag size="mini" type="danger">上传失败</el-tag>
+          <span
+            class="business-file-name"
+            :title="file.name"
+            >{{ file.name }}</span
+          >
+          <el-tag
+            v-if="file.status === 'uploading'"
+            size="mini"
+            >上传中</el-tag
+          >
+          <el-tooltip
+            v-else
+            :content="file.error"
+            placement="top"
+          >
+            <el-tag
+              size="mini"
+              type="danger"
+              >上传失败</el-tag
+            >
           </el-tooltip>
         </div>
-        <div v-if="file.status === 'failed'" class="business-file-actions">
+        <div
+          v-if="file.status === 'failed'"
+          class="business-file-actions"
+        >
           <el-link
             v-if="!disabled"
             :underline="false"
@@ -101,11 +131,11 @@
 </template>
 
 <script>
-import request from "@/utils/request";
-import Sortable from "sortablejs";
+import request from '@/utils/request'
+import Sortable from 'sortablejs'
 
 export default {
-  name: "BusinessFileUpload",
+  name: 'BusinessFileUpload',
   props: {
     value: {
       type: Array,
@@ -114,7 +144,7 @@ export default {
     // 上传接口必须返回fileId、originalFilename和downloadUrl
     action: {
       type: String,
-      default: "/common/files/upload",
+      default: '/common/files/upload',
     },
     // 上传携带的额外参数
     data: {
@@ -134,16 +164,7 @@ export default {
     // 文件类型，例如["doc", "docx", "pdf"]
     fileType: {
       type: Array,
-      default: () => [
-        "doc",
-        "docx",
-        "xls",
-        "xlsx",
-        "ppt",
-        "pptx",
-        "txt",
-        "pdf",
-      ],
+      default: () => ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'pdf'],
     },
     // 是否显示上传提示
     isShowTip: {
@@ -166,18 +187,18 @@ export default {
       fileList: [],
       pendingFileList: [],
       sortable: undefined,
-    };
+    }
   },
   computed: {
     showTip() {
-      return this.isShowTip && (this.fileType.length > 0 || this.fileSize);
+      return this.isShowTip && (this.fileType.length > 0 || this.fileSize)
     },
   },
   watch: {
     value: {
       handler(value) {
-        this.fileList = this.normalizeFileList(value);
-        this.$nextTick(this.initSortable);
+        this.fileList = this.normalizeFileList(value)
+        this.$nextTick(this.initSortable)
       },
       deep: true,
       immediate: true,
@@ -185,7 +206,7 @@ export default {
   },
   beforeDestroy() {
     if (this.sortable) {
-      this.sortable.destroy();
+      this.sortable.destroy()
     }
   },
   methods: {
@@ -197,35 +218,31 @@ export default {
      */
     handleBeforeUpload(file) {
       if (this.fileList.length + this.uploadingCount() >= this.limit) {
-        this.$modal.msgError(`上传文件数量不能超过 ${this.limit} 个`);
-        return false;
+        this.$modal.msgError(`上传文件数量不能超过 ${this.limit} 个`)
+        return false
       }
-      const extension = this.getFileExtension(file.name);
-      const allowedTypes = this.fileType.map((type) =>
-        String(type).toLowerCase()
-      );
+      const extension = this.getFileExtension(file.name)
+      const allowedTypes = this.fileType.map((type) => String(type).toLowerCase())
       if (allowedTypes.length && !allowedTypes.includes(extension)) {
-        this.$modal.msgError(
-          `文件格式不正确，请上传 ${this.fileType.join("/")} 格式文件`
-        );
-        return false;
+        this.$modal.msgError(`文件格式不正确，请上传 ${this.fileType.join('/')} 格式文件`)
+        return false
       }
-      if (file.name.includes(",")) {
-        this.$modal.msgError("文件名称不能包含英文逗号");
-        return false;
+      if (file.name.includes(',')) {
+        this.$modal.msgError('文件名称不能包含英文逗号')
+        return false
       }
       if (this.fileSize && file.size / 1024 / 1024 > this.fileSize) {
-        this.$modal.msgError(`上传文件大小不能超过 ${this.fileSize} MB`);
-        return false;
+        this.$modal.msgError(`上传文件大小不能超过 ${this.fileSize} MB`)
+        return false
       }
       this.pendingFileList.push({
         uid: file.uid,
         name: file.name,
         raw: file,
-        status: "uploading",
-        error: "",
-      });
-      return true;
+        status: 'uploading',
+        error: '',
+      })
+      return true
     },
     /**
      * 使用项目请求封装上传文件。
@@ -234,7 +251,7 @@ export default {
      * @returns {Promise<Object>} 上传响应
      */
     handleUploadRequest(options) {
-      return this.uploadFile(options.file, options.onProgress);
+      return this.uploadFile(options.file, options.onProgress)
     },
     /**
      * 上传原始文件。
@@ -244,30 +261,30 @@ export default {
      * @returns {Promise<Object>} 上传响应
      */
     async uploadFile(file, onProgress) {
-      const formData = new FormData();
-      formData.append("file", file);
-      this.appendUploadData(formData);
+      const formData = new FormData()
+      formData.append('file', file)
+      this.appendUploadData(formData)
       const response = await request({
         url: this.action,
-        method: "post",
+        method: 'post',
         data: formData,
         timeout: 120000,
         headers: {
-          "Content-Type": "multipart/form-data",
+          'Content-Type': 'multipart/form-data',
           repeatSubmit: false,
         },
         onUploadProgress: (event) => {
           if (onProgress && event.total) {
             onProgress({
               percent: Math.round((event.loaded * 100) / event.total),
-            });
+            })
           }
         },
-      });
+      })
       if (!response.fileId || !response.downloadUrl) {
-        throw new Error("上传响应缺少文件ID或下载地址");
+        throw new Error('上传响应缺少文件ID或下载地址')
       }
-      return response;
+      return response
     },
     /**
      * 追加上传接口的扩展参数。
@@ -278,14 +295,14 @@ export default {
     appendUploadData(formData) {
       Object.entries(this.data).forEach(([key, value]) => {
         if (value === undefined || value === null) {
-          return;
+          return
         }
         if (Array.isArray(value)) {
-          value.forEach((item) => formData.append(key, item));
-          return;
+          value.forEach((item) => formData.append(key, item))
+          return
         }
-        formData.append(key, value);
-      });
+        formData.append(key, value)
+      })
     },
     /**
      * 处理上传成功。
@@ -295,19 +312,17 @@ export default {
      * @returns {void}
      */
     handleUploadSuccess(response, uploadFile) {
-      this.pendingFileList = this.pendingFileList.filter(
-        (item) => item.uid !== uploadFile.uid
-      );
+      this.pendingFileList = this.pendingFileList.filter((item) => item.uid !== uploadFile.uid)
       const nextFile = {
         fileId: response.fileId,
         name: response.originalFilename || uploadFile.name,
         url: response.downloadUrl,
-      };
+      }
       this.updateModel([
         ...this.fileList.filter((item) => item.fileId !== nextFile.fileId),
         nextFile,
-      ]);
-      this.clearInternalFiles();
+      ])
+      this.clearInternalFiles()
     },
     /**
      * 处理上传失败。
@@ -317,14 +332,12 @@ export default {
      * @returns {void}
      */
     handleUploadError(error, uploadFile) {
-      const pendingFile = this.pendingFileList.find(
-        (item) => item.uid === uploadFile.uid
-      );
+      const pendingFile = this.pendingFileList.find((item) => item.uid === uploadFile.uid)
       if (pendingFile) {
-        pendingFile.status = "failed";
-        pendingFile.error = this.getErrorMessage(error);
+        pendingFile.status = 'failed'
+        pendingFile.error = this.getErrorMessage(error)
       }
-      this.clearInternalFiles();
+      this.clearInternalFiles()
     },
     /**
      * 重试失败文件。
@@ -333,13 +346,13 @@ export default {
      * @returns {Promise<void>}
      */
     async handleRetry(file) {
-      file.status = "uploading";
-      file.error = "";
+      file.status = 'uploading'
+      file.error = ''
       try {
-        const response = await this.uploadFile(file.raw);
-        this.handleUploadSuccess(response, file);
+        const response = await this.uploadFile(file.raw)
+        this.handleUploadSuccess(response, file)
       } catch (error) {
-        this.handleUploadError(error, file);
+        this.handleUploadError(error, file)
       }
     },
     /**
@@ -349,7 +362,7 @@ export default {
      * @returns {void}
      */
     handleDownload(file) {
-      this.$download.file(file.url);
+      this.$download.file(file.url)
     },
     /**
      * 删除已上传文件。
@@ -358,7 +371,7 @@ export default {
      * @returns {void}
      */
     handleDelete(fileId) {
-      this.updateModel(this.fileList.filter((item) => item.fileId !== fileId));
+      this.updateModel(this.fileList.filter((item) => item.fileId !== fileId))
     },
     /**
      * 移除上传失败文件。
@@ -367,9 +380,7 @@ export default {
      * @returns {void}
      */
     handleRemoveFailed(uid) {
-      this.pendingFileList = this.pendingFileList.filter(
-        (item) => item.uid !== uid
-      );
+      this.pendingFileList = this.pendingFileList.filter((item) => item.uid !== uid)
     },
     /**
      * 更新结构化文件列表。
@@ -378,15 +389,15 @@ export default {
      * @returns {void}
      */
     updateModel(value) {
-      const modelValue = value.map(this.toModelFile);
-      this.fileList = this.normalizeFileList(modelValue);
-      this.$emit("input", modelValue);
+      const modelValue = value.map(this.toModelFile)
+      this.fileList = this.normalizeFileList(modelValue)
+      this.$emit('input', modelValue)
       this.$emit(
-        "change",
+        'change',
         modelValue,
         modelValue.map((item) => item.fileId)
-      );
-      this.$nextTick(this.initSortable);
+      )
+      this.$nextTick(this.initSortable)
     },
     /**
      * 获取文件ID列表。
@@ -394,7 +405,7 @@ export default {
      * @returns {Array<string>} 文件ID列表
      */
     getFileIds() {
-      return this.fileList.map((item) => item.fileId);
+      return this.fileList.map((item) => item.fileId)
     },
     /**
      * 初始化文件拖动排序。
@@ -403,21 +414,21 @@ export default {
      */
     initSortable() {
       if (this.sortable) {
-        this.sortable.destroy();
-        this.sortable = undefined;
+        this.sortable.destroy()
+        this.sortable = undefined
       }
       if (!this.drag || this.disabled || !this.$refs.uploadFileList) {
-        return;
+        return
       }
       this.sortable = Sortable.create(this.$refs.uploadFileList, {
-        ghostClass: "business-file-drag",
+        ghostClass: 'business-file-drag',
         onEnd: (event) => {
-          const nextList = [...this.fileList];
-          const movedFile = nextList.splice(event.oldIndex, 1)[0];
-          nextList.splice(event.newIndex, 0, movedFile);
-          this.updateModel(nextList);
+          const nextList = [...this.fileList]
+          const movedFile = nextList.splice(event.oldIndex, 1)[0]
+          nextList.splice(event.newIndex, 0, movedFile)
+          this.updateModel(nextList)
         },
-      });
+      })
     },
     /**
      * 清理Element UI内部文件，数量限制由结构化列表统一控制。
@@ -428,9 +439,9 @@ export default {
       if (this.uploadingCount() === 0) {
         this.$nextTick(() => {
           if (this.$refs.fileUpload) {
-            this.$refs.fileUpload.clearFiles();
+            this.$refs.fileUpload.clearFiles()
           }
-        });
+        })
       }
     },
     /**
@@ -439,8 +450,7 @@ export default {
      * @returns {number} 正在上传的文件数
      */
     uploadingCount() {
-      return this.pendingFileList.filter((item) => item.status === "uploading")
-        .length;
+      return this.pendingFileList.filter((item) => item.status === 'uploading').length
     },
     /**
      * 标准化外部传入的结构化文件列表。
@@ -450,19 +460,19 @@ export default {
      */
     normalizeFileList(value) {
       if (!Array.isArray(value)) {
-        return [];
+        return []
       }
       return value
-        .filter((item) => item && typeof item === "object" && item.fileId)
+        .filter((item) => item && typeof item === 'object' && item.fileId)
         .map((item) => ({
           fileId: item.fileId,
           name:
             item.name ||
             item.originalFilename ||
-            this.getFileName(item.url || item.downloadUrl || ""),
-          url: item.url || item.downloadUrl || item.fileName || "",
+            this.getFileName(item.url || item.downloadUrl || ''),
+          url: item.url || item.downloadUrl || item.fileName || '',
         }))
-        .filter((item) => item.url);
+        .filter((item) => item.url)
     },
     /**
      * 转换为业务表单保存的数据结构。
@@ -475,7 +485,7 @@ export default {
         fileId: file.fileId,
         name: file.name,
         url: file.url,
-      };
+      }
     },
     /**
      * 获取文件扩展名。
@@ -484,8 +494,8 @@ export default {
      * @returns {string} 小写扩展名
      */
     getFileExtension(filename) {
-      const index = filename.lastIndexOf(".");
-      return index > -1 ? filename.slice(index + 1).toLowerCase() : "";
+      const index = filename.lastIndexOf('.')
+      return index > -1 ? filename.slice(index + 1).toLowerCase() : ''
     },
     /**
      * 从路径获取文件名称。
@@ -494,8 +504,8 @@ export default {
      * @returns {string} 文件名称
      */
     getFileName(value) {
-      const path = value.split("?")[0];
-      return decodeURIComponent(path.slice(path.lastIndexOf("/") + 1));
+      const path = value.split('?')[0]
+      return decodeURIComponent(path.slice(path.lastIndexOf('/') + 1))
     },
     /**
      * 获取可展示的上传错误。
@@ -504,10 +514,10 @@ export default {
      * @returns {string} 错误信息
      */
     getErrorMessage(error) {
-      return (error && error.message) || "上传失败，请重试";
+      return (error && error.message) || '上传失败，请重试'
     },
   },
-};
+}
 </script>
 
 <style scoped lang="scss">

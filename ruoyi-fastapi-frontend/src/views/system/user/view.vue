@@ -1,9 +1,23 @@
 <template>
-  <el-drawer title="用户信息详情" :visible.sync="visible" direction="rtl" size="68%" append-to-body :before-close="handleClose" custom-class="detail-drawer">
-    <div v-loading="loading" class="drawer-content">
+  <el-drawer
+    title="用户信息详情"
+    :visible.sync="visible"
+    direction="rtl"
+    size="68%"
+    append-to-body
+    :before-close="handleClose"
+    custom-class="detail-drawer"
+  >
+    <div
+      v-loading="loading"
+      class="drawer-content"
+    >
       <!-- 基本信息 -->
       <h4 class="section-header">基本信息</h4>
-      <el-row :gutter="20" class="mb8">
+      <el-row
+        :gutter="20"
+        class="mb8"
+      >
         <el-col :span="12">
           <div class="info-item">
             <label class="info-label">用户名称：</label>
@@ -13,11 +27,14 @@
         <el-col :span="12">
           <div class="info-item">
             <label class="info-label">归属部门：</label>
-            <span class="info-value plaintext">{{ (info.dept && info.dept.deptName) }}</span>
+            <span class="info-value plaintext">{{ info.dept && info.dept.deptName }}</span>
           </div>
         </el-col>
       </el-row>
-      <el-row :gutter="20" class="mb8">
+      <el-row
+        :gutter="20"
+        class="mb8"
+      >
         <el-col :span="12">
           <div class="info-item">
             <label class="info-label">手机号码：</label>
@@ -31,7 +48,10 @@
           </div>
         </el-col>
       </el-row>
-      <el-row :gutter="20" class="mb8">
+      <el-row
+        :gutter="20"
+        class="mb8"
+      >
         <el-col :span="12">
           <div class="info-item">
             <label class="info-label">登录账号：</label>
@@ -42,12 +62,19 @@
           <div class="info-item">
             <label class="info-label">用户状态：</label>
             <span class="info-value plaintext">
-              <el-tag size="small" :type="info.status === '0' ? 'success' : 'danger'">{{ info.status === '0' ? '正常' : '停用' }}</el-tag>
+              <el-tag
+                size="small"
+                :type="info.status === '0' ? 'success' : 'danger'"
+                >{{ info.status === '0' ? '正常' : '停用' }}</el-tag
+              >
             </span>
           </div>
         </el-col>
       </el-row>
-      <el-row :gutter="20" class="mb8">
+      <el-row
+        :gutter="20"
+        class="mb8"
+      >
         <el-col :span="12">
           <div class="info-item">
             <label class="info-label">岗位：</label>
@@ -61,7 +88,10 @@
           </div>
         </el-col>
       </el-row>
-      <el-row :gutter="20" class="mb8">
+      <el-row
+        :gutter="20"
+        class="mb8"
+      >
         <el-col :span="24">
           <div class="info-item full-width">
             <label class="info-label">角色：</label>
@@ -71,7 +101,10 @@
       </el-row>
       <!-- 其他信息 -->
       <h4 class="section-header">其他信息</h4>
-      <el-row :gutter="20" class="mb8">
+      <el-row
+        :gutter="20"
+        class="mb8"
+      >
         <el-col :span="12">
           <div class="info-item">
             <label class="info-label">创建者：</label>
@@ -85,7 +118,10 @@
           </div>
         </el-col>
       </el-row>
-      <el-row :gutter="20" class="mb8">
+      <el-row
+        :gutter="20"
+        class="mb8"
+      >
         <el-col :span="12">
           <div class="info-item">
             <label class="info-label">更新者：</label>
@@ -99,7 +135,10 @@
           </div>
         </el-col>
       </el-row>
-      <el-row :gutter="20" class="mb8">
+      <el-row
+        :gutter="20"
+        class="mb8"
+      >
         <el-col :span="12">
           <div class="info-item">
             <label class="info-label">最后登录IP：</label>
@@ -113,7 +152,10 @@
           </div>
         </el-col>
       </el-row>
-      <el-row :gutter="20" class="mb8">
+      <el-row
+        :gutter="20"
+        class="mb8"
+      >
         <el-col :span="24">
           <div class="info-item full-width">
             <label class="info-label">备注：</label>
@@ -137,7 +179,7 @@ export default {
       loading: false,
       info: {},
       postOptions: [],
-      roleOptions: []
+      roleOptions: [],
     }
   },
   computed: {
@@ -147,31 +189,43 @@ export default {
     postNames() {
       if (!this.postOptions.length) return ''
       const ids = this.info.postIds || []
-      return this.postOptions.filter(p => ids.includes(p.postId)).map(p => p.postName).join('、') || ''
+      return (
+        this.postOptions
+          .filter((p) => ids.includes(p.postId))
+          .map((p) => p.postName)
+          .join('、') || ''
+      )
     },
     roleNames() {
       if (!this.roleOptions.length) return ''
       const ids = this.info.roleIds || []
-      return this.roleOptions.filter(r => ids.includes(r.roleId)).map(r => r.roleName).join('、') || ''
-    }
+      return (
+        this.roleOptions
+          .filter((r) => ids.includes(r.roleId))
+          .map((r) => r.roleName)
+          .join('、') || ''
+      )
+    },
   },
   methods: {
     open(userId) {
       this.visible = true
       this.loading = true
-      getUser(userId).then(res => {
-        this.info = res.data || {}
-        this.postOptions = res.posts || []
-        this.roleOptions = res.roles || []
-        this.info.postIds = res.postIds || []
-        this.info.roleIds = res.roleIds || []
-      }).finally(() => {
-        this.loading = false
-      })
+      getUser(userId)
+        .then((res) => {
+          this.info = res.data || {}
+          this.postOptions = res.posts || []
+          this.roleOptions = res.roles || []
+          this.info.postIds = res.postIds || []
+          this.info.roleIds = res.roleIds || []
+        })
+        .finally(() => {
+          this.loading = false
+        })
     },
     handleClose() {
       this.visible = false
-    }
-  }
+    },
+  },
 }
 </script>

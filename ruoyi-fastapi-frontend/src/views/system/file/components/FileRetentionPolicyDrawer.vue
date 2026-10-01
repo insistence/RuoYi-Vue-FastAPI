@@ -14,7 +14,10 @@
           show-icon
           class="mb8"
         />
-        <el-row :gutter="10" class="mb8">
+        <el-row
+          :gutter="10"
+          class="mb8"
+        >
           <el-col :span="1.5">
             <el-button
               type="primary"
@@ -22,10 +25,14 @@
               size="mini"
               icon="el-icon-plus"
               @click="handleAdd"
-            >新增</el-button>
+              >新增</el-button
+            >
           </el-col>
         </el-row>
-        <el-table v-loading="loading" :data="policyList">
+        <el-table
+          v-loading="loading"
+          :data="policyList"
+        >
           <el-table-column
             label="业务类型"
             align="center"
@@ -39,10 +46,15 @@
             prop="retentionDays"
             width="100"
           />
-          <el-table-column label="状态" align="center" prop="status" width="90">
+          <el-table-column
+            label="状态"
+            align="center"
+            prop="status"
+            width="90"
+          >
             <template slot-scope="scope">
               <el-tag :type="scope.row.status === '0' ? 'success' : 'info'">
-                {{ scope.row.status === "0" ? "启用" : "停用" }}
+                {{ scope.row.status === '0' ? '启用' : '停用' }}
               </el-tag>
             </template>
           </el-table-column>
@@ -53,7 +65,7 @@
             min-width="160"
             :show-overflow-tooltip="true"
           >
-            <template slot-scope="scope">{{ scope.row.remark || "-" }}</template>
+            <template slot-scope="scope">{{ scope.row.remark || '-' }}</template>
           </el-table-column>
           <el-table-column
             label="更新时间"
@@ -62,19 +74,30 @@
             width="180"
           >
             <template slot-scope="scope">
-              {{ parseTime(scope.row.updateTime) || "-" }}
+              {{ parseTime(scope.row.updateTime) || '-' }}
             </template>
           </el-table-column>
-          <el-table-column label="操作" align="center" width="90" fixed="right">
+          <el-table-column
+            label="操作"
+            align="center"
+            width="90"
+            fixed="right"
+          >
             <template slot-scope="scope">
-              <el-tooltip content="修改" placement="top">
+              <el-tooltip
+                content="修改"
+                placement="top"
+              >
                 <el-button
                   type="text"
                   icon="el-icon-edit"
                   @click="handleEdit(scope.row)"
                 />
               </el-tooltip>
-              <el-tooltip content="删除" placement="top">
+              <el-tooltip
+                content="删除"
+                placement="top"
+              >
                 <el-button
                   type="text"
                   class="file-action-danger"
@@ -100,7 +123,10 @@
         :rules="rules"
         label-width="90px"
       >
-        <el-form-item label="业务类型" prop="businessType">
+        <el-form-item
+          label="业务类型"
+          prop="businessType"
+        >
           <el-input
             v-model="form.businessType"
             :disabled="editing"
@@ -108,7 +134,10 @@
             placeholder="请输入业务类型"
           />
         </el-form-item>
-        <el-form-item label="保留天数" prop="retentionDays">
+        <el-form-item
+          label="保留天数"
+          prop="retentionDays"
+        >
           <el-input-number
             v-model="form.retentionDays"
             controls-position="right"
@@ -118,13 +147,19 @@
             style="width: 100%"
           />
         </el-form-item>
-        <el-form-item label="状态" prop="status">
+        <el-form-item
+          label="状态"
+          prop="status"
+        >
           <el-radio-group v-model="form.status">
             <el-radio label="0">启用</el-radio>
             <el-radio label="1">停用</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="备注" prop="remark">
+        <el-form-item
+          label="备注"
+          prop="remark"
+        >
           <el-input
             v-model="form.remark"
             type="textarea"
@@ -135,8 +170,15 @@
           />
         </el-form-item>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button type="primary" :loading="saving" @click="submit">
+      <div
+        slot="footer"
+        class="dialog-footer"
+      >
+        <el-button
+          type="primary"
+          :loading="saving"
+          @click="submit"
+        >
           确 定
         </el-button>
         <el-button @click="formOpen = false">取 消</el-button>
@@ -150,11 +192,11 @@ import {
   addFileRetentionPolicy,
   delFileRetentionPolicy,
   listFileRetentionPolicy,
-  updateFileRetentionPolicy
-} from "@/api/system/file";
+  updateFileRetentionPolicy,
+} from '@/api/system/file'
 
 export default {
-  name: "FileRetentionPolicyDrawer",
+  name: 'FileRetentionPolicyDrawer',
   data() {
     return {
       visible: false,
@@ -166,100 +208,92 @@ export default {
       form: {
         businessType: undefined,
         retentionDays: 30,
-        status: "0",
-        remark: undefined
+        status: '0',
+        remark: undefined,
       },
       rules: {
-        businessType: [
-          { required: true, message: "请输入业务类型", trigger: "blur" }
-        ],
-        retentionDays: [
-          { required: true, message: "请输入保留天数", trigger: "blur" }
-        ]
-      }
-    };
+        businessType: [{ required: true, message: '请输入业务类型', trigger: 'blur' }],
+        retentionDays: [{ required: true, message: '请输入保留天数', trigger: 'blur' }],
+      },
+    }
   },
   computed: {
     formTitle() {
-      return this.editing
-        ? "修改文件保留策略"
-        : "新增文件保留策略";
-    }
+      return this.editing ? '修改文件保留策略' : '新增文件保留策略'
+    },
   },
   methods: {
     open() {
-      this.visible = true;
-      this.getList();
+      this.visible = true
+      this.getList()
     },
     getList() {
-      this.loading = true;
+      this.loading = true
       listFileRetentionPolicy()
-        .then(response => {
-          this.policyList = response.data;
+        .then((response) => {
+          this.policyList = response.data
         })
         .finally(() => {
-          this.loading = false;
-        });
+          this.loading = false
+        })
     },
     resetForm() {
       Object.assign(this.form, {
         businessType: undefined,
         retentionDays: 30,
-        status: "0",
-        remark: undefined
-      });
-      this.$nextTick(() => this.$refs.form.clearValidate());
+        status: '0',
+        remark: undefined,
+      })
+      this.$nextTick(() => this.$refs.form.clearValidate())
     },
     handleAdd() {
-      this.editing = false;
-      this.resetForm();
-      this.formOpen = true;
+      this.editing = false
+      this.resetForm()
+      this.formOpen = true
     },
     handleEdit(row) {
-      this.editing = true;
+      this.editing = true
       Object.assign(this.form, {
         businessType: row.businessType,
         retentionDays: row.retentionDays,
         status: row.status,
-        remark: row.remark
-      });
-      this.formOpen = true;
-      this.$nextTick(() => this.$refs.form.clearValidate());
+        remark: row.remark,
+      })
+      this.formOpen = true
+      this.$nextTick(() => this.$refs.form.clearValidate())
     },
     submit() {
-      this.$refs.form.validate(valid => {
+      this.$refs.form.validate((valid) => {
         if (!valid) {
-          return;
+          return
         }
-        this.saving = true;
+        this.saving = true
         const submitRequest = this.editing
           ? updateFileRetentionPolicy(this.form)
-          : addFileRetentionPolicy(this.form);
+          : addFileRetentionPolicy(this.form)
         submitRequest
           .then(() => {
-            this.$modal.msgSuccess(
-              this.editing ? "修改成功" : "新增成功"
-            );
-            this.formOpen = false;
-            this.getList();
+            this.$modal.msgSuccess(this.editing ? '修改成功' : '新增成功')
+            this.formOpen = false
+            this.getList()
           })
           .finally(() => {
-            this.saving = false;
-          });
-      });
+            this.saving = false
+          })
+      })
     },
     handleDelete(row) {
       this.$modal
         .confirm(`是否确认删除业务类型“${row.businessType}”的保留策略?`)
         .then(() => delFileRetentionPolicy(row.businessType))
         .then(() => {
-          this.$modal.msgSuccess("删除成功");
-          this.getList();
+          this.$modal.msgSuccess('删除成功')
+          this.getList()
         })
-        .catch(() => {});
-    }
-  }
-};
+        .catch(() => {})
+    },
+  },
+}
 </script>
 
 <style scoped>

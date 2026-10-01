@@ -1,8 +1,14 @@
 <template>
   <section class="app-main">
-    <transition name="fade-transform" mode="out-in">
+    <transition
+      name="fade-transform"
+      mode="out-in"
+    >
       <keep-alive :include="cachedViews">
-        <router-view v-if="!$route.meta.link" :key="key" />
+        <router-view
+          v-if="!$route.meta.link"
+          :key="key"
+        />
       </keep-alive>
     </transition>
     <iframe-toggle />
@@ -11,8 +17,8 @@
 </template>
 
 <script>
-import copyright from "./Copyright/index"
-import iframeToggle from "./IframeToggle/index"
+import copyright from './Copyright/index'
+import iframeToggle from './IframeToggle/index'
 
 export default {
   name: 'AppMain',
@@ -23,12 +29,12 @@ export default {
     },
     key() {
       return this.$route.path
-    }
+    },
   },
   watch: {
     $route() {
       this.addIframe()
-    }
+    },
   },
   mounted() {
     this.addIframe()
@@ -39,8 +45,8 @@ export default {
       if (name && this.$route.meta.link) {
         this.$store.dispatch('tagsView/addIframeView', this.$route)
       }
-    }
-  }
+    },
+  },
 }
 </script>
 

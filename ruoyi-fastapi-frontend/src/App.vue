@@ -6,11 +6,11 @@
 </template>
 
 <script>
-import { refreshDeviceTimezone } from "@/utils/time";
-import ThemePicker from "@/components/ThemePicker";
+import { refreshDeviceTimezone } from '@/utils/time'
+import ThemePicker from '@/components/ThemePicker'
 
 export default {
-  name: "App",
+  name: 'App',
   components: { ThemePicker },
   mounted() {
     window.addEventListener('focus', refreshDeviceTimezone)
@@ -23,9 +23,9 @@ export default {
   methods: {
     refreshTimezoneOnVisible() {
       if (document.visibilityState === 'visible') refreshDeviceTimezone()
-    }
-  }
-};
+    },
+  },
+}
 </script>
 <style scoped>
 #app .theme-picker {

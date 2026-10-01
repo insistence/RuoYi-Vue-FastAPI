@@ -5,7 +5,7 @@ const lock = {
   namespaced: true,
   state: {
     isLock: JSON.parse(localStorage.getItem(LOCK_KEY) || 'false'),
-    lockPath: localStorage.getItem(LOCK_PATH_KEY) || '/index'
+    lockPath: localStorage.getItem(LOCK_PATH_KEY) || '/index',
   },
   mutations: {
     SET_LOCK(state, status) {
@@ -15,7 +15,7 @@ const lock = {
     SET_LOCK_PATH(state, path) {
       state.lockPath = path
       localStorage.setItem(LOCK_PATH_KEY, path)
-    }
+    },
   },
   actions: {
     // 锁定屏幕，同时记录当前路径
@@ -27,8 +27,8 @@ const lock = {
     unlockScreen({ commit }) {
       commit('SET_LOCK', false)
       commit('SET_LOCK_PATH', '/index')
-    }
-  }
+    },
+  },
 }
 
 export default lock

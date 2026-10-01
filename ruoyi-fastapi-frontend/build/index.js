@@ -19,7 +19,7 @@ if (process.env.npm_config_preview || rawArgv.includes('--preview')) {
   app.use(
     publicPath,
     serveStatic('./dist', {
-      index: ['index.html', '/']
+      index: ['index.html', '/'],
     })
   )
 
@@ -28,7 +28,6 @@ if (process.env.npm_config_preview || rawArgv.includes('--preview')) {
     if (report) {
       console.log(chalk.green(`> Report at  http://localhost:${port}${publicPath}report.html`))
     }
-
   })
 } else {
   run(`vue-cli-service build ${args}`)

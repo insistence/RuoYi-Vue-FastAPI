@@ -1,27 +1,85 @@
 <template>
-  <div class="json-editor" :class="{ 'has-error': !validation.valid }">
+  <div
+    class="json-editor"
+    :class="{ 'has-error': !validation.valid }"
+  >
     <div class="json-editor__toolbar">
-      <span class="json-editor__type">{{ valueType === 'array' ? 'JSON 数组 [ ]' : 'JSON 对象 { }' }}</span>
+      <span class="json-editor__type">{{
+        valueType === 'array' ? 'JSON 数组 [ ]' : 'JSON 对象 { }'
+      }}</span>
       <div class="json-editor__actions">
-        <el-button type="text" size="mini" icon="el-icon-s-operation" :disabled="!editorReady || !validation.valid"
-          :aria-label="`格式化${label}`" @click="formatDocument">格式化</el-button>
-        <el-button type="text" size="mini" icon="el-icon-full-screen" :aria-label="`${expanded ? '收起' : '展开'}${label}编辑器`"
-          :aria-expanded="expanded" @click="expanded = !expanded">{{ expanded ? '收起' : '展开' }}</el-button>
+        <el-button
+          type="text"
+          size="mini"
+          icon="el-icon-s-operation"
+          :disabled="!editorReady || !validation.valid"
+          :aria-label="`格式化${label}`"
+          @click="formatDocument"
+          >格式化</el-button
+        >
+        <el-button
+          type="text"
+          size="mini"
+          icon="el-icon-full-screen"
+          :aria-label="`${expanded ? '收起' : '展开'}${label}编辑器`"
+          :aria-expanded="expanded"
+          @click="expanded = !expanded"
+          >{{ expanded ? '收起' : '展开' }}</el-button
+        >
       </div>
     </div>
-    <div class="json-editor__body" :style="{ height: expanded ? '360px' : '100px' }">
-      <div v-if="!loadFailed" ref="editorRef" class="json-editor__canvas" />
-      <div v-if="!editorReady && !loadFailed" class="json-editor__loading" role="status">正在加载编辑器…</div>
-      <el-input v-if="loadFailed" :value="value" type="textarea" :rows="expanded ? 16 : 4"
-        :aria-label="label" @input="updateValue" @blur="validateForm" />
+    <div
+      class="json-editor__body"
+      :style="{ height: expanded ? '360px' : '100px' }"
+    >
+      <div
+        v-if="!loadFailed"
+        ref="editorRef"
+        class="json-editor__canvas"
+      />
+      <div
+        v-if="!editorReady && !loadFailed"
+        class="json-editor__loading"
+        role="status"
+      >
+        正在加载编辑器…
+      </div>
+      <el-input
+        v-if="loadFailed"
+        :value="value"
+        type="textarea"
+        :rows="expanded ? 16 : 4"
+        :aria-label="label"
+        @input="updateValue"
+        @blur="validateForm"
+      />
     </div>
     <div class="json-editor__footer">
-      <span v-if="validation.valid" class="json-editor__valid" role="status">格式正确</span>
-      <button v-else type="button" class="json-editor__error" @click="revealError">
-        <i class="el-icon-warning" aria-hidden="true"></i>
+      <span
+        v-if="validation.valid"
+        class="json-editor__valid"
+        role="status"
+        >格式正确</span
+      >
+      <button
+        v-else
+        type="button"
+        class="json-editor__error"
+        @click="revealError"
+      >
+        <i
+          class="el-icon-warning"
+          aria-hidden="true"
+        ></i>
         <span>{{ errorLocation }}{{ validation.message }}</span>
       </button>
-      <span v-if="validation.valid" class="json-editor__hint">{{ loadFailed ? '编辑器加载失败，已切换文本输入' : 'Tab 切换焦点 · Alt+Shift+F 格式化' }}</span>
+      <span
+        v-if="validation.valid"
+        class="json-editor__hint"
+        >{{
+          loadFailed ? '编辑器加载失败，已切换文本输入' : 'Tab 切换焦点 · Alt+Shift+F 格式化'
+        }}</span
+      >
     </div>
   </div>
 </template>
@@ -33,33 +91,33 @@ export default {
   props: {
     value: {
       type: String,
-      default: ''
+      default: '',
     },
     label: {
       type: String,
-      default: 'JSON参数'
+      default: 'JSON参数',
     },
     valueType: {
       type: String,
-      default: 'object'
+      default: 'object',
     },
     validate: {
       type: Function,
-      default: (value) => JSON.parse(value)
-    }
+      default: (value) => JSON.parse(value),
+    },
   },
   inject: {
     formItem: {
       from: 'elFormItem',
-      default: null
-    }
+      default: null,
+    },
   },
   data() {
     return {
       editorReady: false,
       loadFailed: false,
       expanded: false,
-      firstMarker: undefined
+      firstMarker: undefined,
     }
   },
   computed: {
@@ -67,12 +125,12 @@ export default {
       try {
         this.validate(this.value)
         return {
-          valid: true
+          valid: true,
         }
       } catch (error) {
         return {
           valid: false,
-          message: error.message
+          message: error.message,
         }
       }
     },
@@ -80,14 +138,14 @@ export default {
       return this.firstMarker
         ? `第 ${this.firstMarker.startLineNumber} 行，第 ${this.firstMarker.startColumn} 列：`
         : ''
-    }
+    },
   },
   watch: {
     value(value) {
       if (this._model && this._model.getValue() !== value) {
         this._model.setValue(value)
       }
-    }
+    },
   },
   beforeCreate() {
     this._editor = undefined
@@ -103,7 +161,7 @@ export default {
       this._model = monaco.editor.createModel(this.value, 'json')
       this._model.updateOptions({
         tabSize: 2,
-        insertSpaces: true
+        insertSpaces: true,
       })
       this._editor = monaco.editor.create(this.$refs.editorRef, {
         model: this._model,
@@ -113,7 +171,7 @@ export default {
         lineHeight: 22,
         lineNumbersMinChars: 3,
         minimap: {
-          enabled: false
+          enabled: false,
         },
         scrollBeyondLastLine: false,
         wordWrap: 'on',
@@ -121,31 +179,35 @@ export default {
         tabFocusMode: true,
         padding: {
           top: 8,
-          bottom: 8
+          bottom: 8,
         },
         stickyScroll: {
-          enabled: false
+          enabled: false,
         },
         formatOnPaste: true,
         suggest: {
-          showWords: false
+          showWords: false,
         },
         scrollbar: {
-          alwaysConsumeMouseWheel: false
-        }
+          alwaysConsumeMouseWheel: false,
+        },
       })
-      this._listeners.push(this._editor.onDidChangeModelContent(() => this.updateValue(this._model.getValue())))
+      this._listeners.push(
+        this._editor.onDidChangeModelContent(() => this.updateValue(this._model.getValue()))
+      )
       this._listeners.push(this._editor.onDidBlurEditorText(this.validateForm))
       this._listeners.push(
         monaco.editor.onDidChangeMarkers((resources) => {
           if (resources.some((resource) => resource.toString() === this._model.uri.toString())) {
             this.firstMarker = monaco.editor
               .getModelMarkers({
-                resource: this._model.uri
+                resource: this._model.uri,
               })
               .filter((marker) => marker.severity === monaco.MarkerSeverity.Error)
               .sort(
-                (left, right) => left.startLineNumber - right.startLineNumber || left.startColumn - right.startColumn
+                (left, right) =>
+                  left.startLineNumber - right.startLineNumber ||
+                  left.startColumn - right.startColumn
               )[0]
           }
         })
@@ -154,7 +216,7 @@ export default {
       this._themeObserver = new MutationObserver(this.updateTheme)
       this._themeObserver.observe(document.documentElement, {
         attributes: true,
-        attributeFilter: ['class']
+        attributeFilter: ['class'],
       })
       this.editorReady = true
     } catch {
@@ -191,7 +253,7 @@ export default {
       const marker = this.firstMarker
       const position = {
         lineNumber: marker?.startLineNumber || 1,
-        column: marker?.startColumn || 1
+        column: marker?.startColumn || 1,
       }
       this._editor?.setPosition(position)
       this._editor?.revealPositionInCenter(position)
@@ -200,10 +262,10 @@ export default {
     /** 跟随页面亮暗主题切换 */
     updateTheme() {
       this._editor?.updateOptions({
-        theme: document.documentElement.classList.contains('dark') ? 'vs-dark' : 'vs'
+        theme: document.documentElement.classList.contains('dark') ? 'vs-dark' : 'vs',
       })
-    }
-  }
+    },
+  },
 }
 </script>
 

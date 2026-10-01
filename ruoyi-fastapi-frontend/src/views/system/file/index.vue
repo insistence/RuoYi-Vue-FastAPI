@@ -11,7 +11,10 @@
 
     <file-statistics :stats="fileStats" />
 
-    <el-row :gutter="10" class="mb8">
+    <el-row
+      :gutter="10"
+      class="mb8"
+    >
       <el-col :span="1.5">
         <el-button
           type="primary"
@@ -113,7 +116,10 @@
           >提醒</el-button
         >
       </el-col>
-      <right-toolbar :show-search.sync="showSearch" @queryTable="getList" />
+      <right-toolbar
+        :show-search.sync="showSearch"
+        @queryTable="getList"
+      />
     </el-row>
 
     <file-table
@@ -150,10 +156,19 @@
       ref="retentionReminderDrawer"
       @refresh="getList"
     />
-    <file-acl-drawer ref="aclDrawer" @refresh="getList" />
-    <file-transfer-dialog ref="transferDialog" @refresh="getList" />
+    <file-acl-drawer
+      ref="aclDrawer"
+      @refresh="getList"
+    />
+    <file-transfer-dialog
+      ref="transferDialog"
+      @refresh="getList"
+    />
     <file-audit-drawer ref="auditDrawer" />
-    <file-reconcile-drawer ref="reconcileDrawer" @refresh="getList" />
+    <file-reconcile-drawer
+      ref="reconcileDrawer"
+      @refresh="getList"
+    />
   </div>
 </template>
 
@@ -166,21 +181,21 @@ import {
   listFile,
   purgeFile,
   restoreFile,
-} from "@/api/system/file";
-import FileAclDrawer from "./components/FileAclDrawer.vue";
-import FileAuditDrawer from "./components/FileAuditDrawer.vue";
-import FileDetailDialog from "./components/FileDetailDialog.vue";
-import FileReferenceDrawer from "./components/FileReferenceDrawer.vue";
-import FileReconcileDrawer from "./components/FileReconcileDrawer.vue";
-import FileRetentionPolicyDrawer from "./components/FileRetentionPolicyDrawer.vue";
-import FileRetentionReminderDrawer from "./components/FileRetentionReminderDrawer.vue";
-import FileSearchForm from "./components/FileSearchForm.vue";
-import FileStatistics from "./components/FileStatistics.vue";
-import FileTable from "./components/FileTable.vue";
-import FileTransferDialog from "./components/FileTransferDialog.vue";
+} from '@/api/system/file'
+import FileAclDrawer from './components/FileAclDrawer.vue'
+import FileAuditDrawer from './components/FileAuditDrawer.vue'
+import FileDetailDialog from './components/FileDetailDialog.vue'
+import FileReferenceDrawer from './components/FileReferenceDrawer.vue'
+import FileReconcileDrawer from './components/FileReconcileDrawer.vue'
+import FileRetentionPolicyDrawer from './components/FileRetentionPolicyDrawer.vue'
+import FileRetentionReminderDrawer from './components/FileRetentionReminderDrawer.vue'
+import FileSearchForm from './components/FileSearchForm.vue'
+import FileStatistics from './components/FileStatistics.vue'
+import FileTable from './components/FileTable.vue'
+import FileTransferDialog from './components/FileTransferDialog.vue'
 
 export default {
-  name: "File",
+  name: 'File',
   components: {
     FileAclDrawer,
     FileAuditDrawer,
@@ -228,148 +243,140 @@ export default {
         pageSize: 10,
         originalName: undefined,
         accessType: undefined,
-        status: "active",
+        status: 'active',
         createBy: undefined,
         ownerName: undefined,
         deptId: undefined,
         expirationStatus: undefined,
       },
-    };
+    }
   },
   created() {
-    this.getList();
+    this.getList()
     getFileAclDeptTree().then((response) => {
-      this.fileDeptOptions = response.data;
-    });
+      this.fileDeptOptions = response.data
+    })
   },
   methods: {
     /** 查询文件列表 */
     getList() {
-      this.loading = true;
-      const query = this.addDateRange({ ...this.queryParams }, this.dateRange);
+      this.loading = true
+      const query = this.addDateRange({ ...this.queryParams }, this.dateRange)
       listFile(query)
         .then((response) => {
-          this.fileList = response.rows;
-          this.total = response.total;
+          this.fileList = response.rows
+          this.total = response.total
         })
         .finally(() => {
-          this.loading = false;
-        });
+          this.loading = false
+        })
       getFileStats(query).then((response) => {
-        Object.assign(this.fileStats, response.data);
-      });
+        Object.assign(this.fileStats, response.data)
+      })
     },
     /** 搜索按钮操作 */
     handleQuery() {
-      this.queryParams.pageNum = 1;
-      this.getList();
+      this.queryParams.pageNum = 1
+      this.getList()
     },
     /** 重置按钮操作 */
     resetQuery() {
-      this.queryParams.pageNum = 1;
-      this.getList();
+      this.queryParams.pageNum = 1
+      this.getList()
     },
     /** 多选框选中数据 */
     handleSelectionChange(selection) {
-      this.ids = selection.map((item) => item.fileId);
+      this.ids = selection.map((item) => item.fileId)
       this.privateIds = selection
-        .filter(
-          (item) => item.status === "active" && item.accessType === "private"
-        )
-        .map((item) => item.fileId);
-      this.selectedReferencedCount = selection.filter(
-        (item) => item.referenceCount > 0
-      ).length;
-      this.activeMultiple =
-        !selection.length || selection.some((item) => item.status !== "active");
-      this.deleteMultiple =
-        this.activeMultiple || this.selectedReferencedCount > 0;
-      this.privateMultiple = !this.privateIds.length;
+        .filter((item) => item.status === 'active' && item.accessType === 'private')
+        .map((item) => item.fileId)
+      this.selectedReferencedCount = selection.filter((item) => item.referenceCount > 0).length
+      this.activeMultiple = !selection.length || selection.some((item) => item.status !== 'active')
+      this.deleteMultiple = this.activeMultiple || this.selectedReferencedCount > 0
+      this.privateMultiple = !this.privateIds.length
       this.restoreMultiple =
-        !selection.length ||
-        selection.some((item) => item.status !== "deleted");
+        !selection.length || selection.some((item) => item.status !== 'deleted')
       this.purgeMultiple =
-        !selection.length ||
-        selection.some((item) => !["deleted", "purging"].includes(item.status));
+        !selection.length || selection.some((item) => !['deleted', 'purging'].includes(item.status))
     },
     /** 查看文件详情 */
     handleView(row) {
       getFile(row.fileId).then((response) => {
-        this.detail = response.data;
-        this.detailOpen = true;
-      });
+        this.detail = response.data
+        this.detailOpen = true
+      })
     },
     /** 下载文件 */
     handleDownload(row) {
-      const displayName = encodeURIComponent(row.storedName || "file");
-      this.$download.file(`/system/file/download/${row.fileId}/${displayName}`);
+      const displayName = encodeURIComponent(row.storedName || 'file')
+      this.$download.file(`/system/file/download/${row.fileId}/${displayName}`)
     },
     /** 查看文件业务引用 */
     handleReference(row) {
-      this.$refs.referenceDrawer.open(row);
+      this.$refs.referenceDrawer.open(row)
     },
     /** 配置文件访问权限 */
     handleAcl(row) {
-      this.$refs.aclDrawer.open(row, this.ids, this.privateIds);
+      this.$refs.aclDrawer.open(row, this.ids, this.privateIds)
     },
     /** 转移文件 */
     handleTransfer(row) {
-      this.$refs.transferDialog.open(row, this.ids);
+      this.$refs.transferDialog.open(row, this.ids)
     },
     /** 查看文件访问审计 */
     handleAudit(row) {
-      this.$refs.auditDrawer.open(row);
+      this.$refs.auditDrawer.open(row)
     },
     /** 删除文件 */
     handleDelete(row) {
-      const isSingle = row && row.fileId;
+      const isSingle = row && row.fileId
       if (isSingle && row.referenceCount > 0) {
-        this.$modal.msgWarning("文件仍被业务引用，请先解除引用后再删除");
-        return;
+        this.$modal.msgWarning('文件仍被业务引用，请先解除引用后再删除')
+        return
       }
       if (!isSingle && this.selectedReferencedCount > 0) {
-        this.$modal.msgWarning("所选文件存在业务引用，请先解除引用后再删除");
-        return;
+        this.$modal.msgWarning('所选文件存在业务引用，请先解除引用后再删除')
+        return
       }
-      const fileIds = isSingle ? row.fileId : this.ids;
-      const fileName = isSingle ? row.originalName : `${this.ids.length}个文件`;
+      const fileIds = isSingle ? row.fileId : this.ids
+      const fileName = isSingle ? row.originalName : `${this.ids.length}个文件`
       this.$modal
         .confirm(`是否确认将文件“${fileName}”移入回收站?`)
         .then(() => delFile(fileIds))
         .then(() => {
-          this.getList();
-          this.$modal.msgSuccess("文件已移入回收站");
+          this.getList()
+          this.$modal.msgSuccess('文件已移入回收站')
         })
-        .catch(() => {});
+        .catch(() => {})
     },
     /** 恢复文件 */
     handleRestore(row) {
-      const isSingle = row && row.fileId;
-      const fileIds = isSingle ? row.fileId : this.ids;
-      const fileName = isSingle ? row.originalName : `${this.ids.length}个文件`;
+      const isSingle = row && row.fileId
+      const fileIds = isSingle ? row.fileId : this.ids
+      const fileName = isSingle ? row.originalName : `${this.ids.length}个文件`
       this.$modal
         .confirm(`是否确认恢复文件“${fileName}”?`)
         .then(() => restoreFile(fileIds))
         .then(() => {
-          this.getList();
-          this.$modal.msgSuccess("文件恢复成功");
+          this.getList()
+          this.$modal.msgSuccess('文件恢复成功')
         })
-        .catch(() => {});
+        .catch(() => {})
     },
     /** 永久清理文件 */
     handlePurge(row) {
-      const isSingle = row && row.fileId;
-      const fileIds = isSingle ? row.fileId : this.ids.join(",");
-      const fileName = isSingle ? row.originalName : `${this.ids.length}个文件`;
+      const isSingle = row && row.fileId
+      const fileIds = isSingle ? row.fileId : this.ids.join(',')
+      const fileName = isSingle ? row.originalName : `${this.ids.length}个文件`
       this.$modal
         .confirm(`永久清理后无法恢复，是否确认清理文件“${fileName}”?`)
         .then(() => purgeFile(fileIds))
         .then(() => {
-          this.getList();
-          this.$modal.msgSuccess("文件已永久清理");
+          this.getList()
+          this.$modal.msgSuccess('文件已永久清理')
         })
-        .catch(() => {});
+        .catch(() => {})
     },
   },
-};
+}
 </script>

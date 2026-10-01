@@ -2,14 +2,14 @@
   <i-frame :src="url" />
 </template>
 <script>
-import iFrame from "@/components/iFrame/index";
+import iFrame from '@/components/iFrame/index'
 export default {
-  name: "Swagger",
+  name: 'Swagger',
   components: { iFrame },
   data() {
     return {
-      url: process.env.VUE_APP_BASE_API + "/proxy-docs"
-    };
+      url: process.env.VUE_APP_BASE_API + '/proxy-docs',
+    }
   },
-};
+}
 </script>

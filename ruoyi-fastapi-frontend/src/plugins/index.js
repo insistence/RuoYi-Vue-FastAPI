@@ -16,5 +16,5 @@ export default {
     Vue.prototype.$modal = modal
     // 下载文件
     Vue.prototype.$download = download
-  }
+  },
 }
