@@ -259,6 +259,13 @@ const name = process.env.VUE_APP_TITLE || 'vfadmin管理系统' // 网页标题
 
 const port = process.env.port || process.env.npm_config_port || 80 // 端口
 
+// 与浏览器通信桥使用同样的同源路径规则，拒绝外部 URL 和路径跳转。
+const pluginBaseValue = process.env.VUE_APP_PLUGIN_BASE || ''
+const pluginBase = pluginBaseValue === '/' ? '' : pluginBaseValue.replace(/\/$/, '')
+if (pluginBase && !/^\/[a-zA-Z0-9_-]+(?:\/[a-zA-Z0-9_-]+)*$/.test(pluginBase)) {
+  throw new Error('插件部署路径无效')
+}
+
 // vue.config.js 配置说明
 //官方vue.config.js 参考文档 https://cli.vuejs.org/zh/config/#css-loaderoptions
 // 这里只列一部分，具体配置参考文档
@@ -301,6 +308,28 @@ module.exports = {
     port: port,
     open: true,
     proxy: {
+      [`${pluginBase}/apps/`]: {
+        target: 'http://127.0.0.1:9099',
+        changeOrigin: false,
+        ws: true,
+        // Uvicorn 会补回 root_path，转发时只剥离一次外部部署前缀。
+        pathRewrite: (requestPath) => requestPath.slice(pluginBase.length),
+        onProxyRes(upstream, _request, response) {
+          const contentType = upstream.headers['content-type'] || ''
+          if (contentType.split(';')[0].trim().toLowerCase() !== 'text/event-stream') return
+          // 上游异常断开时结束下游，下游退出时也回收仍在读取的事件流。
+          upstream.once('aborted', () => response.destroy())
+          upstream.once('error', () => response.destroy())
+          response.once('close', () => {
+            if (!upstream.complete) upstream.destroy()
+          })
+        },
+      },
+      [`${pluginBase}/plugin/runtime/`]: {
+        target: 'http://127.0.0.1:9099',
+        changeOrigin: false,
+        pathRewrite: (requestPath) => requestPath.slice(pluginBase.length),
+      },
       // 认证协议与交互 API 使用 issuer 同源根路径。
       '/.well-known': { target: 'http://127.0.0.1:9099', changeOrigin: true },
       '/oauth2': { target: 'http://127.0.0.1:9099', changeOrigin: true },

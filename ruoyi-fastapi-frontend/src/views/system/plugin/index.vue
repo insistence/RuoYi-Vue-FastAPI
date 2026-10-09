@@ -177,7 +177,7 @@
         :show-overflow-tooltip="true"
       />
       <el-table-column
-        label="源码版本"
+        label="代码版本"
         align="center"
         prop="version"
         width="100"
@@ -206,6 +206,7 @@
             <span class="plugin-switch-tooltip-target">
               <el-switch
                 v-model="scope.row.enabled"
+                :aria-label="scope.row.pluginName + '启用设置'"
                 active-value="0"
                 inactive-value="1"
                 :disabled="isEnabledSwitchBlocked(scope.row)"
@@ -226,6 +227,19 @@
           <el-tag :type="getStatusTagType(scope.row.status)">{{
             getStatusLabel(scope.row.status)
           }}</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column
+        label="制品发布"
+        align="center"
+        min-width="220"
+      >
+        <template #default="scope">
+          <plugin-release-status
+            v-if="scope.row.source === 'artifact'"
+            :plugin="scope.row"
+          />
+          <span v-else>-</span>
         </template>
       </el-table-column>
       <el-table-column
@@ -260,6 +274,7 @@
               <el-button
                 type="text"
                 icon="el-icon-view"
+                aria-label="详情"
                 @click="handleDetail(scope.row)"
                 v-hasPermi="['system:plugin:query']"
               />
@@ -272,6 +287,7 @@
               <el-button
                 type="text"
                 icon="el-icon-setting"
+                aria-label="配置"
                 @click="handleConfig(scope.row)"
                 v-hasPermi="['system:plugin:query']"
               />
@@ -284,6 +300,7 @@
               <el-button
                 type="text"
                 icon="el-icon-connection"
+                aria-label="依赖"
                 @click="handleDependencies(scope.row)"
                 v-hasPermi="['system:plugin:query']"
               />
@@ -296,6 +313,7 @@
               <el-button
                 type="text"
                 icon="el-icon-circle-check"
+                aria-label="检查"
                 @click="handleCheck(scope.row)"
                 v-hasPermi="['system:plugin:query']"
               />
@@ -308,6 +326,7 @@
               <el-button
                 type="text"
                 icon="el-icon-first-aid-kit"
+                aria-label="健康检查"
                 @click="handleHealth(scope.row)"
                 v-hasPermi="['system:plugin:query']"
               />
@@ -320,6 +339,7 @@
               <el-button
                 type="text"
                 icon="el-icon-document-checked"
+                aria-label="诊断包"
                 @click="handleDiagnose(scope.row)"
                 v-hasPermi="['system:plugin:query']"
               />
@@ -332,6 +352,7 @@
               <el-button
                 type="text"
                 icon="el-icon-download"
+                aria-label="安装"
                 :disabled="isOperationBlocked(scope.row, 'install')"
                 @click="handleInstallDryRun(scope.row)"
                 v-hasPermi="['system:plugin:edit']"
@@ -345,6 +366,7 @@
               <el-button
                 type="text"
                 icon="el-icon-upload2"
+                aria-label="升级"
                 :disabled="isOperationBlocked(scope.row, 'upgrade')"
                 @click="handleUpgradeDryRun(scope.row)"
                 v-hasPermi="['system:plugin:edit']"
@@ -359,6 +381,7 @@
                 type="text"
                 class="plugin-action-danger"
                 icon="el-icon-switch-button"
+                aria-label="卸载"
                 :disabled="isOperationBlocked(scope.row, 'uninstall')"
                 @click="handleUninstallDryRun(scope.row)"
                 v-hasPermi="['system:plugin:edit']"
@@ -373,6 +396,7 @@
                 type="text"
                 class="plugin-action-danger"
                 icon="el-icon-delete"
+                aria-label="清理孤儿元数据"
                 @click="handlePurgeDryRun(scope.row)"
                 v-hasPermi="['system:plugin:remove']"
               />
@@ -446,7 +470,7 @@
     <el-drawer
       title="插件操作审计"
       :visible.sync="operationLogOpen"
-      size="50%"
+      size="max(50vw, min(600px, 100vw))"
       append-to-body
     >
       <div class="plugin-audit-drawer">
@@ -679,6 +703,7 @@
                   <el-button
                     type="text"
                     icon="el-icon-view"
+                    aria-label="审计详情"
                     @click="handleOperationLogDetail(scope.row)"
                   />
                 </el-tooltip>
@@ -703,7 +728,7 @@
     <el-dialog
       title="审计详情"
       :visible.sync="operationLogDetailOpen"
-      width="920px"
+      width="min(920px, calc(100vw - 32px))"
       append-to-body
     >
       <el-descriptions
@@ -1030,6 +1055,8 @@
       :visible.sync="configOpen"
       :title="configTitle"
       :items="configItems"
+      :plugin-id="configPluginId"
+      :refresh-key="configStatusRevision"
       :loading="configLoading"
       :format-config-default-value="formatConfigDefaultValue"
       :format-config-constraint="formatConfigConstraint"
@@ -1039,7 +1066,7 @@
     <el-dialog
       :title="actionTitle"
       :visible.sync="actionOpen"
-      width="860px"
+      width="min(860px, calc(100vw - 32px))"
       append-to-body
     >
       <el-alert
@@ -1420,6 +1447,7 @@ import PluginDependencyDialog from './components/PluginDependencyDialog.vue'
 import PluginDiagnosticDialog from './components/PluginDiagnosticDialog.vue'
 import PluginDetailDialog from './components/PluginDetailDialog.vue'
 import PluginPlanDialog from './components/PluginPlanDialog.vue'
+import PluginReleaseStatus from './components/PluginReleaseStatus.vue'
 import {
   getPlanBlockerStatusLabel,
   getPlanOperationLabel,
@@ -1470,6 +1498,8 @@ const configLoading = ref(false)
 const configTitle = ref('插件配置')
 const configPluginId = ref('')
 const configItems = ref([])
+const configStatusRevision = ref(0)
+let configRequestRevision = 0
 const dependencyOpen = ref(false)
 const dependencyLoading = ref(false)
 const dependencyPluginId = ref('')
@@ -1580,7 +1610,7 @@ function handleSelectionChange(selection) {
 }
 
 function canSelectForBatch(row) {
-  return !isOrphanPlugin(row)
+  return !isOrphanPlugin(row) && row?.source !== 'artifact'
 }
 
 /** 清空当前选择 */
@@ -1647,6 +1677,9 @@ function isEnabledSwitchBlocked(row) {
 }
 
 function getEnabledSwitchTooltip(row) {
+  if (row?.source === 'artifact') {
+    return '签名制品须在停机维护窗口通过 release enable/disable 修改启停设置，再启动全部 worker'
+  }
   if (row?.status === 'error') {
     return row?.enabled === '0'
       ? '插件当前被异常状态隔离；关闭开关可取消自动恢复意图'
@@ -1764,36 +1797,44 @@ function handleMarkMigrationFailed(row) {
 
 /** 打开插件配置 */
 function handleConfig(row) {
+  const revision = ++configRequestRevision
   configLoading.value = true
   configPluginId.value = row.pluginId
   configTitle.value = row.pluginName + '配置'
   getPluginConfig(row.pluginId)
     .then((response) => {
+      if (revision !== configRequestRevision) return
       const configs = response.data?.configs || []
       configItems.value = configs
       configOpen.value = true
+      configStatusRevision.value++
     })
     .catch((error) => {
+      if (revision !== configRequestRevision) return
       proxy.$modal.msgError(getErrorMessage(error))
     })
     .finally(() => {
-      configLoading.value = false
+      if (revision === configRequestRevision) configLoading.value = false
     })
 }
 
 /** 保存插件配置 */
 function submitConfig(values) {
+  const revision = ++configRequestRevision
   configLoading.value = true
   updatePluginConfig(configPluginId.value, { values })
-    .then(() => {
+    .then((response) => {
+      if (revision !== configRequestRevision) return
       proxy.$modal.msgSuccess('插件配置已保存')
-      configOpen.value = false
+      configItems.value = response.data?.configs || configItems.value
+      configStatusRevision.value++
     })
     .catch((error) => {
+      if (revision !== configRequestRevision) return
       proxy.$modal.msgError(getErrorMessage(error))
     })
     .finally(() => {
-      configLoading.value = false
+      if (revision === configRequestRevision) configLoading.value = false
     })
 }
 
@@ -2333,16 +2374,22 @@ function getStatusTagType(status) {
 function canInstall(row) {
   return (
     !isOrphanPlugin(row) &&
+    row?.source !== 'artifact' &&
     (!row.installedVersion || row.status === 'discovered' || row.status === 'error')
   )
 }
 
 function canUpgrade(row) {
-  return !isOrphanPlugin(row) && row.status === 'pending_upgrade'
+  return !isOrphanPlugin(row) && row?.source !== 'artifact' && row.status === 'pending_upgrade'
 }
 
 function canUninstall(row) {
-  return !isOrphanPlugin(row) && row.installedVersion && row.enabled === '0'
+  return (
+    !isOrphanPlugin(row) &&
+    row?.source !== 'artifact' &&
+    row.installedVersion &&
+    row.enabled === '0'
+  )
 }
 
 function isOrphanPlugin(row) {
@@ -2360,7 +2407,7 @@ function canExecuteActionResult(result) {
 }
 
 function isOperationBlocked(row, operation) {
-  return isCapabilityOperationBlocked(row?.capability, operation)
+  return row?.source === 'artifact' || isCapabilityOperationBlocked(row?.capability, operation)
 }
 
 function isCapabilityOperationBlocked(capability, operation) {
@@ -2688,18 +2735,18 @@ getList()
 .plugin-audit-search {
   padding: 12px 12px 4px;
   margin-bottom: 12px;
-  border: 1px solid #ebeef5;
+  border: 1px solid var(--el-border-color-light, #ebeef5);
   border-radius: 4px;
 }
 
 .plugin-audit-search {
-  background: #fff;
+  background: var(--el-bg-color, #fff);
 }
 
 .plugin-audit-maintenance {
   margin-bottom: 12px;
-  background: #f8f9fb;
-  border: 1px solid #ebeef5;
+  background: var(--el-fill-color-light, #f8f9fb);
+  border: 1px solid var(--el-border-color-light, #ebeef5);
   border-radius: 4px;
 }
 
@@ -2721,7 +2768,7 @@ getList()
 
 .plugin-audit-maintenance-title {
   margin-right: 8px;
-  color: #606266;
+  color: var(--el-text-color-regular, #606266);
   font-weight: 600;
 }
 

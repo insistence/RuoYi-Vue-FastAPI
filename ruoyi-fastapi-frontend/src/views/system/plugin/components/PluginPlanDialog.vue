@@ -2,7 +2,7 @@
   <el-dialog
     :title="title"
     :visible="visible"
-    width="920px"
+    width="min(920px, calc(100vw - 32px))"
     append-to-body
     @close="emit('update:visible', false)"
   >
@@ -341,27 +341,27 @@ function formatDuration(value) {
 .plan-summary-item {
   min-width: 0;
   padding: 10px 12px;
-  border: 1px solid #ebeef5;
+  border: 1px solid var(--el-border-color-light, #ebeef5);
   border-radius: 4px;
-  background: #f8f9fb;
+  background: var(--el-fill-color-light, #f8f9fb);
 }
 
 .plan-summary-label {
   display: block;
   margin-bottom: 6px;
-  color: #909399;
+  color: var(--el-text-color-regular, #606266);
   font-size: 12px;
 }
 
 .plan-summary-value {
-  color: #303133;
+  color: var(--el-text-color-primary, #303133);
   font-size: 14px;
   font-weight: 600;
   word-break: break-all;
 }
 
 .plan-summary-value.is-danger {
-  color: #f56c6c;
+  color: var(--el-color-danger, #f56c6c);
 }
 
 .plan-order-tag {

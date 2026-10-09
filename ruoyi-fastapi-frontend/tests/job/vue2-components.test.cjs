@@ -230,9 +230,12 @@ test('Job log initializes from stable IDs and follows route and display timezone
 })
 
 test('Plugin config dynamic fields stay reactive and JSON values submit with their original types', async () => {
-  const component = createLoader({ 'element-ui': { Message: { error: assert.fail } } })(
-    'views/system/plugin/components/PluginConfigDialog.vue'
-  )
+  const component = createLoader({
+    'element-ui': { Message: { error: assert.fail } },
+    '@/api/system/plugin': {
+      getPluginConfigStatus: () => assert.fail('Closed config status must not request data'),
+    },
+  })('views/system/plugin/components/PluginConfigDialog.vue')
   const instance = new Vue({
     ...component,
     propsData: {

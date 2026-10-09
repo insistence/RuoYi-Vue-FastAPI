@@ -2,7 +2,7 @@
   <el-dialog
     title="插件依赖"
     :visible="visible"
-    width="860px"
+    width="min(860px, calc(100vw - 32px))"
     append-to-body
     @close="emit('update:visible', false)"
   >
@@ -438,27 +438,27 @@ async function copyText(text) {
 .dependency-summary-item {
   min-width: 0;
   padding: 10px 12px;
-  border: 1px solid #ebeef5;
+  border: 1px solid var(--el-border-color-light, #ebeef5);
   border-radius: 4px;
-  background: #f8f9fb;
+  background: var(--el-fill-color-light, #f8f9fb);
 }
 
 .dependency-summary-label {
   display: block;
   margin-bottom: 6px;
-  color: #909399;
+  color: var(--el-text-color-regular, #606266);
   font-size: 12px;
 }
 
 .dependency-summary-value {
-  color: #303133;
+  color: var(--el-text-color-primary, #303133);
   font-size: 14px;
   font-weight: 600;
   word-break: break-all;
 }
 
 .dependency-summary-value.is-danger {
-  color: #f56c6c;
+  color: var(--el-color-danger, #f56c6c);
 }
 
 .dependency-policy-messages {
@@ -468,7 +468,7 @@ async function copyText(text) {
 
 .dependency-policy-next {
   margin-top: 6px;
-  color: #606266;
+  color: var(--el-text-color-regular, #606266);
 }
 
 .dependency-command-cell {
@@ -481,7 +481,7 @@ async function copyText(text) {
   min-width: 0;
   flex: 1;
   overflow: hidden;
-  color: #303133;
+  color: var(--el-text-color-primary, #303133);
   font-family: monospace;
   text-overflow: ellipsis;
   white-space: nowrap;
