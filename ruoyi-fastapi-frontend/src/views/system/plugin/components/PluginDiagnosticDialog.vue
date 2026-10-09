@@ -2,7 +2,7 @@
   <el-dialog
     :title="title"
     :visible="visible"
-    width="920px"
+    width="min(920px, calc(100vw - 32px))"
     append-to-body
     @close="emit('update:visible', false)"
   >
@@ -268,7 +268,7 @@ function formatDuration(value) {
 
 .diagnostic-summary {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   gap: 10px;
   margin-bottom: 16px;
 }
@@ -276,20 +276,20 @@ function formatDuration(value) {
 .diagnostic-summary-item {
   min-width: 0;
   padding: 10px 12px;
-  border: 1px solid #ebeef5;
+  border: 1px solid var(--el-border-color-light, #ebeef5);
   border-radius: 4px;
-  background: #f8f9fb;
+  background: var(--el-fill-color-light, #f8f9fb);
 }
 
 .diagnostic-summary-label {
   display: block;
   margin-bottom: 6px;
-  color: #909399;
+  color: var(--el-text-color-regular, #606266);
   font-size: 12px;
 }
 
 .diagnostic-summary-value {
-  color: #303133;
+  color: var(--el-text-color-primary, #303133);
   font-size: 14px;
   font-weight: 600;
   word-break: break-all;
