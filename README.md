@@ -1,3 +1,10 @@
+> [!CAUTION]
+> ## ⛔ 项目已停止维护
+>
+> 当前项目已合并至 **[RuoYi-FastAPI](https://github.com/insistence/RuoYi-FastAPI)**。
+>
+> **本仓库不再维护，后续更新请移步上述项目。**
+
 <h1 align="center">
     <img alt="logo" src="./ruoyi-fastapi-frontend/src/assets/logo/logo.png">
 </h1>
